@@ -38,6 +38,22 @@ enum Role: string
         };
     }
 
+    /**
+     * Roles granted on the user & role management screen. Ustadz, mahasantri
+     * and wali santri come with a profile and are managed on their own pages.
+     *
+     * @return list<self>
+     */
+    public static function staff(): array
+    {
+        return [self::Superadmin, self::Admin, self::AdminPayment, self::AcademicMonitor];
+    }
+
+    public function isStaff(): bool
+    {
+        return in_array($this, self::staff(), true);
+    }
+
     public function icon(): string
     {
         return match ($this) {
@@ -150,6 +166,7 @@ enum Role: string
 
         if ($this === self::Superadmin) {
             $groups[] = ['heading' => __('System'), 'items' => [
+                $item(__('Users & roles'), 'user-plus', 'superadmin.users.index', 'superadmin.users.*'),
                 $item(__('Settings'), 'adjustments-horizontal', 'superadmin.settings'),
                 $item(__('Audit log'), 'clipboard-document-list', 'superadmin.audit-logs'),
             ]];

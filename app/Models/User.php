@@ -121,6 +121,21 @@ class User extends Authenticatable implements PasskeyUser
         return $this->loadMissing('roles')->roles->contains(fn (UserRole $assignment) => in_array($assignment->role, $roles, true));
     }
 
+    public function hasStaffRole(): bool
+    {
+        return $this->hasRole(...Role::staff());
+    }
+
+    /**
+     * Password, login status and email of an account holding a staff role
+     * are managed by a Superadmin only, so an Admin can never take over a
+     * Superadmin or Admin Payment login (e.g. of an ustadz with that role).
+     */
+    public function accountManageableBy(?Role $actingAs): bool
+    {
+        return $actingAs === Role::Superadmin || ! $this->hasStaffRole();
+    }
+
     public function assignRole(Role $role): void
     {
         if (! $this->hasRole($role)) {

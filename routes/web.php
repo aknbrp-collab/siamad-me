@@ -27,6 +27,9 @@ Route::middleware('portal')->group(function () {
         Route::view('/', 'dashboard', ['role' => Role::Superadmin])->name('dashboard');
         Route::livewire('settings', 'pages::superadmin.settings')->name('settings');
         Route::livewire('audit-logs', 'pages::superadmin.audit-logs')->name('audit-logs');
+        Route::livewire('users', 'pages::superadmin.users.index')->name('users.index');
+        Route::livewire('users/create', 'pages::superadmin.users.form')->name('users.create');
+        Route::livewire('users/{user}', 'pages::superadmin.users.form')->name('users.edit');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('role:admin,superadmin')->group(function () {

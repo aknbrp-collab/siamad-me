@@ -580,3 +580,19 @@ Phase 4 notes (done 2026-10-29):
 - Classroom files (materials, submissions) are on the private disk: materials for the class and Admin,
   submissions for their author, the ustadz and Admin. Mahasantri with submissions or quiz attempts can no
   longer be moved out of their class (same rule as scores and attendance).
+
+User & role management (done 2026-10-26, before Phase 5):
+- Superadmin → **Users & roles** (`/superadmin/users`): every login account with search and role / status
+  filters; **Add staff account** creates a login (ID, name, optional email) with one or more staff roles
+  and a temporary password shown once, like the other person forms.
+- Staff roles (`Role::staff()`: Superadmin, Admin, Admin Payment, Academic Monitor) are granted or removed
+  here for any ustadz or staff account. Ustadz / Mahasantri / Wali Santri roles come with their profile
+  and are never changed here; such people are edited on their profile page (linked from the screen).
+- Rules (in `ManageUserAccounts`): mahasantri and wali santri accounts cannot hold staff roles; every
+  account keeps at least one role; a Superadmin cannot remove their own Superadmin role or disable their
+  own login (so at least one active Superadmin always remains). A removed role stops working on the
+  user's next request (the role picker / middleware re-check it). Role changes are audited (`UserRole`).
+- Accounts holding a staff role are managed by a Superadmin only (`User::accountManageableBy()`): on the
+  ustadz form an Admin can't reset the password, disable the login or change the email (which allows a
+  password reset) of an ustadz who is also e.g. Superadmin or Admin Payment — otherwise an Admin could
+  take over that login and break the separation of duties.

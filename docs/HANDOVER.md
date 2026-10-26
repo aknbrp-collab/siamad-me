@@ -6,10 +6,6 @@ Read this first in a new session, then [`DESIGN.md`](DESIGN.md) (the full design
 the end recording what was actually built and every deviation from the plan). The original client brief
 is [`../project.md`](../project.md).
 
-> ⚠️ **The project is not under version control.** `D:\` is a git repository but this folder is
-> *untracked* in it, so there is no history and no undo. First thing to do: see
-> [Immediate next steps](#5-immediate-next-steps).
-
 ---
 
 ## 1. Executive summary — what is built
@@ -19,21 +15,21 @@ Phases 0–4 of the 6-phase plan are **done and tested**; Phase 5 (hardening) ha
 
 | Phase | Status | What exists |
 | --- | --- | --- |
-| 0 Foundation | ✅ | Login by ID number (NIM / NIDM / guardian code / staff username), 7 roles with a role picker for multi-role users, forced change of temporary passwords, deactivated accounts signed out, role-based areas + sidebar, audit log (Superadmin), system settings |
+| 0 Foundation | ✅ | Login by ID number (NIM / NIDM / guardian code / staff username), 7 roles with a role picker for multi-role users, Superadmin user & role management, forced change of temporary passwords, deactivated accounts signed out, role-based areas + sidebar, audit log (Superadmin), system settings |
 | 1 Academic core | ✅ | Academic years & semesters (planned → active → closed; closed = read-only; Superadmin reopen with reason), study programs, classes, subjects, mahasantri / ustadz / wali santri with full biodata and login accounts, KTP/KK/Ijazah upload + verification, Excel/CSV import & export, class rosters per semester (copy from previous semester with promotion), course offerings (subject × class × ustadz × schedule) with automatic course enrolment |
 | 2 Finance | ✅ | Fee types & rates per academic year (most-specific rate wins; monthly ×6; once-only fees), idempotent bill generation, scholarships with quota (applied as discount lines), instalment rules (max 3, min Rp 200.000 unless settling), payment recording → cash handover → Admin verification (separation of duties), PDF receipts (provisional slip / official / void), finance dashboard, bill views for mahasantri and wali |
 | 3 Teaching & grades | ✅ | Meetings (in class / online link) & attendance, grade components (weights = 100), score grid + Excel import, finalise (locks; Admin unlock with reason), editable grade scale, KHS & transcript (web + PDF) for mahasantri / wali / admin, academic monitor dashboard (attendance below minimum, grade status, distribution) |
 | 4 LMS | ✅ | Materials, assignments + submissions + grading, quizzes (4 question types, server-side timer, auto-grading, essay grading), class forum (pin/lock/moderate), copy assignment/quiz scores into the grade sheet, pesantren activity log (monitor; shown to wali; never on KHS), missing-work count on the monitor dashboard |
 | 5 Hardening | ⏳ | Not started — see §3 |
 
-**Quality gates (all green at handover):** 158 Pest tests / 666 assertions pass on **both** SQLite and
+**Quality gates (all green at handover):** 170 Pest tests / 728 assertions pass on **both** SQLite and
 PostgreSQL · Larastan 0 errors · Pint clean. Every phase was also checked in the browser.
 
 ### Roles and where they land
 
 | Role | Login ID | Home | Main areas |
 | --- | --- | --- | --- |
-| Superadmin | username | `/superadmin` | everything incl. settings, audit log, finance, reopen semester, void payment |
+| Superadmin | username | `/superadmin` | everything incl. users & roles, settings, audit log, finance, reopen semester, void payment |
 | Admin | username | `/admin` | academic setup, people, documents, import, payment verification, monitor |
 | Admin Payment | username | `/finance` | fees, bills, payments, cash handovers, scholarships |
 | Academic Monitor | username | `/monitor` | attendance/grade monitoring, activity log |
@@ -104,7 +100,7 @@ resources/views/
     profile/               documents (owner upload)
     settings/              starter-kit profile/security/appearance (profile adapted)
     shared/                forum (embedded in ustadz + mahasantri pages)
-    superadmin/            settings, audit-logs
+    superadmin/            settings, audit-logs, users/{index,form}
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades}
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs), account-panel, bill-card, khs-table,
@@ -123,9 +119,8 @@ tests/Feature/             Admin, Auth, Finance, Teaching, Lms, Superadmin, Sett
 
 ### Not built yet
 
-- [ ] **User & role management screen** (Superadmin). There is *no UI* to create Admin / Admin Payment /
-      Academic Monitor accounts or to give an existing user an extra role. Today only the seeder and
-      `php artisan siakad:superadmin` can. **Highest priority before real use.**
+- [x] **User & role management screen** (Superadmin → Users & roles) — done 2026-10-26, see DESIGN.md
+      "User & role management" notes.
 - [ ] **Indonesian translation.** UI strings are English `__()` keys; `APP_LOCALE=en`; no `lang/id`
       (including validation messages). PDFs (receipts, KHS, transcript) are already in Indonesian.
 - [ ] **Mobile polish.** Tables scroll horizontally on phones; the design called for stacked cards below `md`.
@@ -141,7 +136,7 @@ tests/Feature/             Admin, Auth, Finance, Teaching, Lms, Superadmin, Sett
 
 ### Known issues / housekeeping
 
-- [ ] **No git** (see top). Nothing has ever been committed.
+- [x] **Git** — the project is its own repository (`main`).
 - [ ] `composer.json` has a `post-update-cmd` script `@php artisan boost:update` from the starter kit, but
       Laravel Boost is not installed → every `composer update` prints an error (harmless). Remove the line
       or install Boost.
@@ -206,23 +201,17 @@ edition) · Tailwind 4 · Alpine (via Livewire) · Fortify (auth, 2FA, passkeys)
 
 ## 5. Immediate next steps (prioritised)
 
-1. **Put the project under git** (protects everything built so far):
-   `cd D:\herd-laravel\ready && git init`, check `.gitignore` covers `.env`, `vendor`, `node_modules`,
-   `storage/*.key`, `public/build`, then make the first commit. Decide whether it should leave the parent
-   `D:\` repository.
-2. **User & role management (Superadmin):** list users, create staff accounts (Admin, Admin Payment,
-   Academic Monitor) with a temporary password, add/remove roles on any user (e.g. ustadz + monitor),
-   enable/disable, reset password. Reuse `ManagesAccount`, `Credentials`, `UniqueUsername`; audit is automatic.
-3. **Phase 5 — hardening**, in this order:
+1. ~~Git~~ and ~~user & role management (Superadmin)~~ — done 2026-10-26.
+2. **Phase 5 — hardening**, in this order:
    1. Indonesian translation: `APP_LOCALE=id`, `lang/id.json` for all `__()` strings, `lang/id/validation.php`.
    2. Mobile polish: stacked cards for the main tables below `md`; check every page at 375 px.
    3. Performance pass: indexes for hot queries (bills by semester/status, attendances, submissions),
       check N+1 on large rosters, consider queued imports/bill generation.
    4. Backups: scheduled `pg_dump` + private storage, retention ≥ 30 days.
    5. User guide per role; then UAT with real data.
-4. **Housekeeping:** remove the `boost:update` composer script (or install Boost), delete/adapt
+3. **Housekeeping:** remove the `boost:update` composer script (or install Boost), delete/adapt
    `layouts/app/header.blade.php`, tidy `.env` spacing.
-5. **Later / optional:** transcript handling of retaken subjects, Reverb for the forum, institution logo,
+4. **Later / optional:** transcript handling of retaken subjects, Reverb for the forum, institution logo,
    notifications, payment gateway.
 
 ### How to work on it
@@ -244,5 +233,4 @@ php artisan siakad:superadmin        # first account on a fresh/production insta
 ### Suggested opening message for the new chat
 
 > Continue the SIAKAD Mahad Aly project in `D:\herd-laravel\ready`. Read `docs/HANDOVER.md` and
-> `docs/DESIGN.md` first. Start with step 1 (git) and step 2 (user & role management) from the handover's
-> "Immediate next steps".
+> `docs/DESIGN.md` first. Continue with Phase 5 from the handover's "Immediate next steps".

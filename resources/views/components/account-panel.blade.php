@@ -18,13 +18,17 @@
         <dd>{{ $user->last_login_at?->diffForHumans() ?? __('Never') }}</dd>
     </dl>
 
-    <div class="flex flex-wrap gap-2">
-        <flux:button size="sm" icon="key" wire:click="resetPassword" wire:confirm="{{ __('Create a new temporary password? The current password stops working.') }}">
-            {{ __('Reset password') }}
-        </flux:button>
-        <flux:button size="sm" :variant="$user->is_active ? 'danger' : 'primary'" wire:click="toggleActive"
-            :icon="$user->is_active ? 'no-symbol' : 'check-circle'">
-            {{ $user->is_active ? __('Disable login') : __('Enable login') }}
-        </flux:button>
-    </div>
+    @if ($user->accountManageableBy(\App\Support\ActiveRole::get()))
+        <div class="flex flex-wrap gap-2">
+            <flux:button size="sm" icon="key" wire:click="resetPassword" wire:confirm="{{ __('Create a new temporary password? The current password stops working.') }}">
+                {{ __('Reset password') }}
+            </flux:button>
+            <flux:button size="sm" :variant="$user->is_active ? 'danger' : 'primary'" wire:click="toggleActive"
+                :icon="$user->is_active ? 'no-symbol' : 'check-circle'">
+                {{ $user->is_active ? __('Disable login') : __('Enable login') }}
+            </flux:button>
+        </div>
+    @else
+        <flux:text class="text-sm">{{ __('This account holds a staff role. Only a Superadmin can reset its password or disable it.') }}</flux:text>
+    @endif
 </flux:card>

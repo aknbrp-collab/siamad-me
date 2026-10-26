@@ -4,6 +4,7 @@ namespace App\Livewire\Concerns;
 
 use App\Actions\People\ResetUserPassword;
 use App\Models\User;
+use App\Support\ActiveRole;
 use App\Support\CreatedAccount;
 use App\Support\SpreadsheetDownload;
 use Flux\Flux;
@@ -38,6 +39,7 @@ trait ManagesAccount
     {
         $user = $this->accountUser();
         abort_if($user === null, 404);
+        abort_unless($user->accountManageableBy(ActiveRole::get()), 403);
 
         $this->credentialUsername = $user->username;
         $this->credentialName = $user->name;
@@ -51,6 +53,7 @@ trait ManagesAccount
         $user = $this->accountUser();
         abort_if($user === null, 404);
         abort_if($user->is(auth()->user()), 403);
+        abort_unless($user->accountManageableBy(ActiveRole::get()), 403);
 
         $user->update(['is_active' => ! $user->is_active]);
 

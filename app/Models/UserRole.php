@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\Auditable;
+use App\Enums\Gender;
 use App\Enums\Role;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -13,10 +14,11 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $user_id
  * @property Role $role
+ * @property Gender|null $scope Petugas Pembayaran: the gender of the bills they handle
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['role'])]
+#[Fillable(['role', 'scope'])]
 class UserRole extends Model
 {
     use Auditable;
@@ -30,6 +32,7 @@ class UserRole extends Model
     {
         return [
             'role' => Role::class,
+            'scope' => Gender::class,
         ];
     }
 

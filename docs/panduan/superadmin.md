@@ -33,6 +33,11 @@ Aturan yang dijaga sistem:
   emailnya oleh Superadmin. Admin biasa tidak bisa, agar tidak ada yang dapat mengambil alih akun
   dengan wewenang lebih tinggi.
 
+**Petugas Pembayaran.** Di halaman akun, bagian **Petugas Pembayaran**, pilih *Petugas pembayaran
+Putra* atau *Putri* lalu **Simpan**. Orang itu hanya melihat dan mencatat pembayaran tagihan mahasantri
+jenis kelamin tersebut, menyetorkan uang tunai, dan tidak dapat memverifikasi. Peran ini boleh diberikan
+kepada mahasantri (bukan wali santri). Pilih *Bukan petugas pembayaran* untuk mencabutnya.
+
 **Atur ulang kata sandi / Nonaktifkan login** ada di kartu **Akun login** di setiap halaman akun. Akun
 yang dinonaktifkan langsung keluar pada permintaan berikutnya.
 

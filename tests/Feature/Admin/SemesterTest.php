@@ -188,8 +188,8 @@ test('students with grades cannot be removed from their class', function () {
 test('copying classes promotes active students and skips the rest', function () {
     ['program' => $program, 'classA' => $classA, 'classB' => $classB] = semesterSetup();
     // Fixed years: promotion only applies when copying from an earlier semester.
-    $previous = Semester::factory()->closed()->even()->create(['academic_year_id' => AcademicYear::factory()->create(['name' => '2025/2026'])]);
-    $next = Semester::factory()->create(['academic_year_id' => AcademicYear::factory()->create(['name' => '2026/2027'])]);
+    $previous = Semester::factory()->closed()->even()->create(['academic_year_id' => AcademicYear::factory()->create(['name' => '1990/1991'])]);
+    $next = Semester::factory()->create(['academic_year_id' => AcademicYear::factory()->create(['name' => '1991/1992'])]);
 
     $staying = Student::factory()->create();
     $graduated = Student::factory()->create(['status' => StudentStatus::Graduated, 'graduated_at' => '2026-06-01']);

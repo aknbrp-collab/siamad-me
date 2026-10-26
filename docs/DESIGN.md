@@ -720,3 +720,18 @@ v1 Step 6 (2026-10-27) — in-app notifications:
   Opening a notification marks it read and redirects only to a local path.
 - UI: "Notifikasi" with the unread count at the top of every sidebar, a bell in the phone header, and a
   list page with "Tandai semua dibaca". Email can be added later as a second channel of `SiakadNotice`.
+
+v2 Step 1 (2026-10-27) — Petugas Pembayaran (see `docs/req/v2-plan.md`):
+- `Role::PaymentCollector` with a scope (`user_roles.scope`, `Gender`): Superadmin sets it on the user
+  page (`ManageUserAccounts::setCollector`). The one staff-like role a mahasantri may hold; never a wali.
+  Home `/petugas`; menu: Tagihan, Setoran tunai.
+- `App\Support\BillAccess` decides which bills the acting user may see and record on: Admin Keuangan
+  and Superadmin all; a collector only bills of mahasantri of their scope's gender, and nothing if no
+  scope is set. Enforced in the bill pages' Livewire actions (list query, open, record) — not only the
+  menus. Generating, voiding and changing instalment limits stay with the finance office.
+- Her payments are `PaymentSource::Collector`. Verification (v2 D1): transfers and cash handovers from
+  collectors (like payer confirmations) may be verified by Admin Keuangan, Admin or Superadmin; cash and
+  transfers recorded by Admin Keuangan still need an Admin — `ReviewPayments::mayReviewTransfer()` /
+  `mayReceive()` (receiving a handover had no role check before; it was only protected by the Admin
+  route). Finance queue *Konfirmasi transfer* now also lists collector transfers and handovers; Admin
+  Keuangan is notified of a collector's handover.

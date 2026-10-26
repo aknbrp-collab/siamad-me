@@ -32,6 +32,7 @@ PostgreSQL · Larastan 0 errors · Pint clean. Every phase was also checked in t
 | Superadmin | username | `/superadmin` | everything incl. users & roles, settings, audit log, finance, reopen semester, void payment |
 | Admin | username | `/admin` | academic setup, people, documents, import, payment verification, monitor |
 | Admin Payment | username | `/finance` | fees, bills, payments, cash handovers, scholarships |
+| Petugas Pembayaran (v2) | username or NIM | `/petugas` | bills and cash handovers of putra **or** putri mahasantri only; cannot verify |
 | Academic Monitor | username | `/monitor` | attendance/grade monitoring, activity log |
 | Muhadhir (teacher; called Ustadz before v1) | NIDM | `/muhadhir` (old `/ustadz` links redirect) | own classes: meetings, materials, assignments, quizzes, forum, grades |
 | Mahasantri (student) | NIM | `/mahasantri` | my classes, KHS, transcript, bills, documents |
@@ -42,7 +43,8 @@ PostgreSQL · Larastan 0 errors · Pint clean. Every phase was also checked in t
 `superadmin`, `admin`, `keuangan` (Admin Payment), `monitor`, ustadz `2026010001` (Fiqh) and `2026010002`
 (Nahwu + Academic Monitor → role picker), mahasantri `2026110001`–`2026110004`, wali `ws-demo0001`.
 Seeded: semester 2026/2027 Ganjil (active), classes Semester I/II Putra/Putri; Semester I Putra holds
-Faqih, Rifqi and Umar (`…0004`), Semester I Putri holds Fatimah (`…0003`); Fiqh (finalised grades,
+Faqih, Rifqi and Umar (`…0004`), Semester I Putri holds Fatimah (`…0003`, also the putri Petugas
+Pembayaran); Fiqh (finalised grades,
 4 meetings, LMS content, open quiz) and Nahwu (grades in progress), bills with one verified transfer
 and one cash payment, scholarship, activity log entries.
 

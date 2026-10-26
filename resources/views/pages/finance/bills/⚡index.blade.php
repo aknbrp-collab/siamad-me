@@ -2,9 +2,12 @@
 
 use App\Actions\Finance\GenerateBills;
 use App\Enums\BillStatus;
+use App\Enums\Gender;
 use App\Models\Bill;
 use App\Models\ClassEnrollment;
 use App\Models\Semester;
+use App\Support\ActiveRole;
+use App\Support\BillAccess;
 use App\Support\Money;
 use App\Support\SpreadsheetDownload;
 use Flux\Flux;
@@ -75,7 +78,7 @@ new #[Title('Bills')] class extends Component {
     {
         $term = '%'.mb_strtolower(trim($this->search)).'%';
 
-        return Bill::query()
+        return BillAccess::scope(Bill::query(), auth()->user(), ActiveRole::get())
             ->with(['student.user', 'semester.academicYear'])
             ->when($this->semesterId !== self::ALL_SEMESTERS, fn (Builder $query) => $query->where('semester_id', $this->semesterId))
             ->when($this->status === self::OUTSTANDING, fn (Builder $query) => $query->whereIn('status', [BillStatus::Unpaid, BillStatus::Partial]))
@@ -122,8 +125,25 @@ new #[Title('Bills')] class extends Component {
         return $this->semesterId === self::ALL_SEMESTERS;
     }
 
+    /**
+     * Petugas Pembayaran: the gender of the bills shown (null for the finance office).
+     */
+    #[Computed]
+    public function collectorGender(): ?Gender
+    {
+        return BillAccess::gender(auth()->user(), ActiveRole::get());
+    }
+
+    #[Computed]
+    public function administers(): bool
+    {
+        return BillAccess::administers(ActiveRole::get());
+    }
+
     public function openGenerate(GenerateBills $generate): void
     {
+        abort_unless($this->administers, 403);
+
         $this->resetErrorBag();
         $entries = $generate->preview($this->semester);
 
@@ -139,6 +159,8 @@ new #[Title('Bills')] class extends Component {
 
     public function generate(GenerateBills $generate): void
     {
+        abort_unless($this->administers, 403);
+
         $this->resetErrorBag();
         $this->validate(['dueOn' => ['nullable', 'date']]);
 
@@ -171,11 +193,18 @@ new #[Title('Bills')] class extends Component {
     <x-page-header :title="__('Bills')" :subtitle="__('One bill per mahasantri per semester. Status counts verified payments only.')">
         <x-slot:actions>
             <flux:button icon="arrow-down-tray" wire:click="export">{{ __('Export') }}</flux:button>
-            @if ($this->semester && ! $this->semester->isLocked())
+            @if ($this->administers && $this->semester && ! $this->semester->isLocked())
                 <flux:button variant="primary" icon="sparkles" wire:click="openGenerate">{{ __('Generate bills') }}</flux:button>
             @endif
         </x-slot:actions>
     </x-page-header>
+
+    @unless ($this->administers)
+        <flux:callout icon="information-circle" class="mb-4" data-test="collector-scope"
+            :text="$this->collectorGender
+                ? __('You see and record payments for the bills of :gender mahasantri only. An Admin Keuangan or Admin verifies them.', ['gender' => $this->collectorGender->classLabel()])
+                : __('No Putra/Putri scope is set for your account yet. Please contact the Superadmin.')" />
+    @endunless
 
     <div class="mb-4 flex flex-col gap-3 sm:flex-row">
         <flux:select wire:model.live="semesterId" class="sm:max-w-60">
@@ -234,6 +263,7 @@ new #[Title('Bills')] class extends Component {
         </flux:table>
     </div>
 
+    @if ($this->administers)
     <flux:modal name="generate-bills" class="w-full max-w-md">
         <form wire:submit="generate" class="space-y-6">
             <div>
@@ -269,4 +299,5 @@ new #[Title('Bills')] class extends Component {
             </div>
         </form>
     </flux:modal>
+    @endif
 </section>

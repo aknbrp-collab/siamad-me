@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\Auditable;
+use App\Enums\Gender;
 use App\Enums\Role;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -134,6 +135,14 @@ class User extends Authenticatable implements PasskeyUser
     public function accountManageableBy(?Role $actingAs): bool
     {
         return $actingAs === Role::Superadmin || ! $this->hasStaffRole();
+    }
+
+    /**
+     * The gender a Petugas Pembayaran handles, or null if the user is not one.
+     */
+    public function collectorScope(): ?Gender
+    {
+        return $this->loadMissing('roles')->roles->firstWhere('role', Role::PaymentCollector)?->scope;
     }
 
     public function assignRole(Role $role): void

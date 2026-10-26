@@ -59,6 +59,18 @@ class ReviewPayments
 
             Payment::query()->whereKey($payments->modelKeys())->update(['payment_handover_id' => $handover->id]);
 
+            if ($payments->first()?->source === PaymentSource::Collector) {
+                Notify::send(
+                    User::query()->whereHas('roles', fn ($query) => $query->where('role', Role::AdminPayment))->get(),
+                    'payment',
+                    __('Cash handover from :name', ['name' => $recorder->name]),
+                    __(':number · :amount', ['number' => $handover->number, 'amount' => Money::format($handover->total_amount)]),
+                    route('finance.transfers'),
+                    'inbox-arrow-down',
+                    $recorder,
+                );
+            }
+
             return $handover;
         });
     }
@@ -77,6 +89,10 @@ class ReviewPayments
 
         if ($handover->handed_over_by === $verifier->id) {
             $this->fail('handover', __('You handed this money over; another person must receive and verify it.'));
+        }
+
+        if (! $this->mayReceive($handover, $verifier)) {
+            $this->fail('handover', __('Only an Admin can receive cash handed over by the finance office.'));
         }
 
         foreach ($rejections as $reason) {
@@ -234,16 +250,36 @@ class ReviewPayments
 
     /**
      * Transfers the finance office recorded are verified by an Admin (the
-     * recorder is Admin Keuangan). Transfers a mahasantri or wali confirmed
-     * were recorded by no staff member, so Admin Keuangan may verify them too.
+     * recorder is Admin Keuangan). Transfers a mahasantri or wali confirmed,
+     * or a Petugas Pembayaran recorded, were not recorded by the finance office,
+     * so Admin Keuangan may verify them too.
      */
     public function mayReviewTransfer(Payment $payment, User $verifier): bool
     {
-        $roles = $payment->source === PaymentSource::Payer
-            ? [Role::Admin, Role::Superadmin, Role::AdminPayment]
-            : [Role::Admin, Role::Superadmin];
+        return $verifier->hasRole(...$this->reviewerRoles($payment->source));
+    }
 
-        return $verifier->hasRole(...$roles);
+    /**
+     * The same rule for cash: a Petugas Pembayaran hands over to Admin Keuangan
+     * or Admin; Admin Keuangan hands over to an Admin.
+     */
+    public function mayReceive(PaymentHandover $handover, User $receiver): bool
+    {
+        // A handover holds one recorder's cash, so its payments share one source.
+        $first = $handover->payments()->first();
+        $source = $first === null ? PaymentSource::Staff : $first->source;
+
+        return $receiver->hasRole(...$this->reviewerRoles($source));
+    }
+
+    /**
+     * @return list<Role>
+     */
+    private function reviewerRoles(PaymentSource $source): array
+    {
+        return $source === PaymentSource::Staff
+            ? [Role::Admin, Role::Superadmin]
+            : [Role::Admin, Role::Superadmin, Role::AdminPayment];
     }
 
     private function ensureMayReviewTransfer(Payment $payment, User $verifier): void

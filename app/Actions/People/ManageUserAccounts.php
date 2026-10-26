@@ -2,6 +2,7 @@
 
 namespace App\Actions\People;
 
+use App\Enums\Gender;
 use App\Enums\Role;
 use App\Models\User;
 use App\Rules\UniqueUsername;
@@ -100,6 +101,31 @@ class ManageUserAccounts
             foreach (Role::staff() as $role) {
                 in_array($role, $wanted, true) ? $user->assignRole($role) : $user->removeRole($role);
             }
+        });
+    }
+
+    /**
+     * Make the user a Petugas Pembayaran for the bills of one gender, or (null)
+     * remove the role. The one staff-like role a mahasantri may hold; never a wali.
+     */
+    public function setCollector(User $user, ?Gender $scope): void
+    {
+        if ($scope !== null && $user->hasRole(Role::Guardian)) {
+            $this->fail(__('Wali santri accounts can not be payment collectors.'), 'collector');
+        }
+
+        DB::transaction(function () use ($user, $scope) {
+            $current = $user->loadMissing('roles')->roles->firstWhere('role', Role::PaymentCollector);
+
+            if ($scope === null) {
+                $current?->delete();
+            } elseif ($current === null) {
+                $user->roles()->create(['role' => Role::PaymentCollector, 'scope' => $scope]);
+            } elseif ($current->scope !== $scope) {
+                $current->update(['scope' => $scope]);
+            }
+
+            $user->unsetRelation('roles');
         });
     }
 

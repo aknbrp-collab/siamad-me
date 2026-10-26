@@ -7,6 +7,7 @@ Pilih panduan sesuai peran Anda. Setiap panduan berdiri sendiri dan boleh diceta
 | Superadmin | ID login staf | [superadmin.md](superadmin.md) |
 | Admin (bagian akademik) | ID login staf | [admin.md](admin.md) |
 | Admin Keuangan | ID login staf | [keuangan.md](keuangan.md) |
+| Petugas Pembayaran | ID login (bisa NIM) | [petugas.md](petugas.md) |
 | Pemantau Akademik | ID login staf | [pemantau.md](pemantau.md) |
 | Muhadhir | NIDM | [muhadhir.md](muhadhir.md) |
 | Mahasantri | NIM | [mahasantri.md](mahasantri.md) |

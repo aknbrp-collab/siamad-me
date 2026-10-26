@@ -10,6 +10,7 @@ use App\Enums\Role;
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Support\ActiveRole;
+use App\Support\BillAccess;
 use App\Support\Money;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
@@ -36,6 +37,9 @@ new #[Title('Bill')] class extends Component {
 
     public function mount(Bill $bill): void
     {
+        // A Petugas Pembayaran only opens bills of their own scope (putra or putri).
+        abort_unless(BillAccess::allows(auth()->user(), ActiveRole::get(), $bill), 403);
+
         $this->bill = $bill;
         $this->paidOn = now()->format('Y-m-d');
     }
@@ -61,8 +65,16 @@ new #[Title('Bill')] class extends Component {
         return app(RecordPayment::class)->allowance($this->details);
     }
 
+    #[Computed]
+    public function administers(): bool
+    {
+        return BillAccess::administers(ActiveRole::get());
+    }
+
     public function recordPayment(RecordPayment $recordPayment): void
     {
+        abort_unless(BillAccess::allows(auth()->user(), ActiveRole::get(), $this->bill), 403);
+
         $this->resetErrorBag();
 
         $recordPayment->handle($this->bill, auth()->user(), [
@@ -71,7 +83,7 @@ new #[Title('Bill')] class extends Component {
             'paid_on' => $this->paidOn,
             'reference' => $this->reference ?: null,
             'proof' => $this->proof,
-        ]);
+        ], BillAccess::source(ActiveRole::get()));
 
         $this->reset('amount', 'reference', 'proof');
         unset($this->details, $this->allowance);
@@ -82,6 +94,8 @@ new #[Title('Bill')] class extends Component {
 
     public function voidBill(AdjustBill $adjustBill): void
     {
+        abort_unless($this->administers, 403);
+
         $this->resetErrorBag();
 
         $adjustBill->void($this->bill, $this->voidReason);
@@ -289,7 +303,7 @@ new #[Title('Bill')] class extends Component {
                     : __('All allowed instalments are used.')" />
             @endif
 
-            @if ($bill->status !== BillStatus::Void && ! $bill->semester->isLocked() && $bill->payments->whereIn('status', PaymentStatus::counting())->isEmpty())
+            @if ($this->administers && $bill->status !== BillStatus::Void && ! $bill->semester->isLocked() && $bill->payments->whereIn('status', PaymentStatus::counting())->isEmpty())
                 <flux:modal.trigger name="void-bill">
                     <flux:button variant="danger" size="sm" icon="no-symbol">{{ __('Void bill') }}</flux:button>
                 </flux:modal.trigger>
@@ -297,6 +311,7 @@ new #[Title('Bill')] class extends Component {
         </div>
     </div>
 
+    @if ($this->administers)
     <flux:modal name="void-bill" class="w-full max-w-md">
         <form wire:submit="voidBill" class="space-y-6">
             <flux:heading size="lg">{{ __('Void bill') }}</flux:heading>
@@ -308,6 +323,7 @@ new #[Title('Bill')] class extends Component {
             </div>
         </form>
     </flux:modal>
+    @endif
 
     <flux:modal name="override-installments" class="w-full max-w-md">
         <form wire:submit="overrideInstallments" class="space-y-6">

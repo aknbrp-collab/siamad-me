@@ -11,6 +11,8 @@ enum Role: string
     case Teacher = 'teacher';
     case Student = 'student';
     case Guardian = 'guardian';
+    /** Records payments for the bills of one gender only (v2); may be held by a mahasantri. */
+    case PaymentCollector = 'payment_collector';
 
     public function label(): string
     {
@@ -22,6 +24,7 @@ enum Role: string
             self::Teacher => __('Ustadz'),
             self::Student => __('Mahasantri'),
             self::Guardian => __('Wali Santri'),
+            self::PaymentCollector => __('Payment Collector'),
         };
     }
 
@@ -35,6 +38,7 @@ enum Role: string
             self::Teacher => __('Your course offerings, attendance and grading.'),
             self::Student => __('Schedule, classes, KHS and bills.'),
             self::Guardian => __("Your children's progress, attendance and payments."),
+            self::PaymentCollector => __('Record payments for the bills of putra or putri mahasantri.'),
         };
     }
 
@@ -64,6 +68,7 @@ enum Role: string
             self::Teacher => 'academic-cap',
             self::Student => 'book-open',
             self::Guardian => 'users',
+            self::PaymentCollector => 'wallet',
         };
     }
 
@@ -80,6 +85,7 @@ enum Role: string
             self::Teacher => 'ustadz',
             self::Student => 'mahasantri',
             self::Guardian => 'wali',
+            self::PaymentCollector => 'petugas',
         };
     }
 
@@ -127,6 +133,11 @@ enum Role: string
 
         if (in_array($this, [self::Teacher, self::Student, self::Guardian], true)) {
             $groups[0]['items'][] = $item(__('My profile'), 'identification', 'profile.mine');
+        }
+
+        if ($this === self::PaymentCollector) {
+            $groups[0]['items'][] = $item(__('Bills'), 'document-currency-dollar', 'finance.bills.index', 'finance.bills.*');
+            $groups[0]['items'][] = $item(__('Cash handovers'), 'inbox-arrow-down', 'finance.handovers');
         }
 
         if (in_array($this, [self::Teacher, self::Student], true)) {

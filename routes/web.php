@@ -92,10 +92,18 @@ Route::middleware('portal')->group(function () {
         Route::livewire('/', 'pages::finance.dashboard')->name('dashboard');
         Route::livewire('fees', 'pages::finance.fees')->name('fees');
         Route::livewire('scholarships', 'pages::finance.scholarships')->name('scholarships');
+        Route::livewire('transfers', 'pages::finance.transfers')->name('transfers');
+    });
+
+    // Also open to the Petugas Pembayaran; which bills they see is limited by App\Support\BillAccess.
+    Route::prefix('finance')->name('finance.')->middleware('role:admin_payment,superadmin,payment_collector')->group(function () {
         Route::livewire('bills', 'pages::finance.bills.index')->name('bills.index');
         Route::livewire('bills/{bill}', 'pages::finance.bills.show')->name('bills.show');
         Route::livewire('handovers', 'pages::finance.handovers')->name('handovers');
-        Route::livewire('transfers', 'pages::finance.transfers')->name('transfers');
+    });
+
+    Route::prefix('petugas')->name('petugas.')->middleware('role:payment_collector')->group(function () {
+        Route::view('/', 'dashboard', ['role' => Role::PaymentCollector])->name('dashboard');
     });
 
     Route::prefix('monitor')->name('monitor.')->middleware('role:academic_monitor,admin,superadmin')->group(function () {

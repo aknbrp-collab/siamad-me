@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 beforeEach(function () {
     $this->program = StudyProgram::factory()->create();
-    $year = AcademicYear::factory()->create(['name' => '2026/2027']);
+    $year = AcademicYear::factory()->create(['name' => '1992/1993']);
     $this->odd = Semester::factory()->closed()->create(['academic_year_id' => $year->id, 'term' => SemesterTerm::Odd]);
     $this->even = Semester::factory()->active()->create(['academic_year_id' => $year->id, 'term' => SemesterTerm::Even]);
 

@@ -14,6 +14,7 @@ use App\Actions\Lms\ManageAssignments;
 use App\Actions\Lms\ManageForum;
 use App\Actions\Lms\ManageQuizzes;
 use App\Actions\Lms\RecordActivity;
+use App\Actions\People\ManageUserAccounts;
 use App\Actions\Supervision\ManageSupervision;
 use App\Actions\Teaching\ManageGrades;
 use App\Actions\Teaching\ManageMeetings;
@@ -135,6 +136,11 @@ class DatabaseSeeder extends Seeder
         $supervision->assign($ahmad, array_values($putra->map(fn (Student $student) => $student->id)->all()), $staff['admin']);
         $supervision->assign($hasan, array_values($putri->map(fn (Student $student) => $student->id)->all()), $staff['admin']);
         app(ManageForum::class)->startThread(new SupervisionForum($ahmad), $ahmad->user, 'Rencana studi semester ini', 'Silakan tulis target hafalan dan kitab yang ingin diselesaikan semester ini.');
+
+        // Fatimah collects and records the payments of the putri (v2 Petugas Pembayaran).
+        foreach ($putri as $student) {
+            app(ManageUserAccounts::class)->setCollector($student->user, Gender::Female);
+        }
     }
 
     /**

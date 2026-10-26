@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\People\ManageUserAccounts;
+use App\Enums\Gender;
 use App\Enums\Role;
 use App\Livewire\PersonForm;
 use App\Models\User;
@@ -18,6 +19,9 @@ new #[Title('Users & roles')] class extends PersonForm {
     /** @var list<string> Staff roles (values of Role::staff()). */
     public array $roles = [];
 
+    /** Petugas Pembayaran scope: '' (not a collector), 'male' or 'female'. */
+    public string $collectorScope = '';
+
     public function mount(?User $user = null): void
     {
         if ($user?->exists) {
@@ -26,6 +30,7 @@ new #[Title('Users & roles')] class extends PersonForm {
             $this->name = $user->name;
             $this->email = $user->email;
             $this->roles = $this->heldStaffRoles();
+            $this->collectorScope = $user->collectorScope()->value ?? '';
         }
     }
 
@@ -94,6 +99,17 @@ new #[Title('Users & roles')] class extends PersonForm {
         $accounts->update($this->user, $input);
         $this->user->refresh();
         Flux::toast(variant: 'success', text: __('Account saved.'));
+    }
+
+    public function saveCollector(ManageUserAccounts $accounts): void
+    {
+        $this->resetErrorBag();
+        abort_if($this->user === null, 404);
+
+        $accounts->setCollector($this->user, Gender::tryFrom($this->collectorScope));
+
+        $this->user->unsetRelation('roles');
+        Flux::toast(variant: 'success', text: __('Roles saved. They apply from the user\'s next request.'));
     }
 
     public function saveRoles(ManageUserAccounts $accounts): void
@@ -180,6 +196,23 @@ new #[Title('Users & roles')] class extends PersonForm {
                     @if ($this->canHoldStaffRoles)
                         <flux:button type="submit" variant="primary" data-test="save-roles">{{ __('Save roles') }}</flux:button>
                     @endif
+                </form>
+            @endif
+
+            @if ($user && ! $user->hasRole(Role::Guardian))
+                <form wire:submit="saveCollector" class="space-y-4" data-test="collector-form">
+                    <flux:fieldset>
+                        <flux:legend>{{ __('Payment Collector') }}</flux:legend>
+                        <flux:text class="mb-3 text-sm">{{ __('Records payments for the bills of putra or putri mahasantri only, and hands the cash over. Cannot verify payments. A mahasantri may hold this role.') }}</flux:text>
+                        <flux:select wire:model="collectorScope" class="sm:max-w-64">
+                            <flux:select.option value="">{{ __('Not a payment collector') }}</flux:select.option>
+                            @foreach (Gender::cases() as $gender)
+                                <flux:select.option :value="$gender->value">{{ __('Payment collector for :gender', ['gender' => $gender->classLabel()]) }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="collector" />
+                    </flux:fieldset>
+                    <flux:button type="submit" variant="primary" data-test="save-collector">{{ __('Save') }}</flux:button>
                 </form>
             @endif
         </div>

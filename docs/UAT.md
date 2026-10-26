@@ -36,12 +36,17 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Record cash and transfer payments; try breaking the rules (4th instalment, below Rp 200.000, overpaying)
 - [ ] Hand over cash; print the provisional slip and, after verification, the official receipt
 - [ ] Verify one transfer confirmation from a mahasantri and reject another with a reason
+- [ ] Receive a cash handover from the putri payment collector and verify one of her transfers
 
 ## Muhadhir
 - [ ] Add meetings (one online) and take attendance
 - [ ] Materials, an assignment with grading, a quiz with an essay question
 - [ ] Grade components, enter scores by hand and by Excel import, copy assignment/quiz scores, finalise
 - [ ] As pembimbing akademik: the supervisee list matches; open one supervisee's record; post in the group forum
+
+## Petugas Pembayaran (a putri mahasantri)
+- [ ] Switch to the role; only putri bills are listed; a putra bill cannot be opened
+- [ ] Record a cash and a transfer payment; hand the cash over; nothing can be verified from this role
 
 ## Pemantau Akademik
 - [ ] Dashboard shows the right attendance percentages and the below-minimum list

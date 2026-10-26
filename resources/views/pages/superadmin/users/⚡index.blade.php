@@ -94,7 +94,9 @@ new #[Title('Users & roles')] class extends Component {
                         <flux:table.cell class="whitespace-normal">
                             <div class="flex flex-wrap gap-1">
                                 @forelse ($user->roleList() as $held)
-                                    <flux:badge size="sm" :color="$held->isStaff() ? 'indigo' : 'zinc'">{{ $held->label() }}</flux:badge>
+                                    <flux:badge size="sm" :color="$held->isStaff() || $held === Role::PaymentCollector ? 'indigo' : 'zinc'">
+                                        {{ $held->label() }}{{ $held === Role::PaymentCollector && $user->collectorScope() ? ' · '.$user->collectorScope()->classLabel() : '' }}
+                                    </flux:badge>
                                 @empty
                                     <flux:badge size="sm" color="red">{{ __('No role') }}</flux:badge>
                                 @endforelse

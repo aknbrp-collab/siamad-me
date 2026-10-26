@@ -10,12 +10,15 @@ enum PaymentSource: string
 {
     case Staff = 'staff';
     case Payer = 'payer';
+    /** Recorded by a Petugas Pembayaran (v2), not by the finance office. */
+    case Collector = 'collector';
 
     public function label(): string
     {
         return match ($this) {
             self::Staff => __('Recorded by the finance office'),
             self::Payer => __('Sent by mahasantri / wali'),
+            self::Collector => __('Recorded by a payment collector'),
         };
     }
 }

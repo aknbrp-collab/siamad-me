@@ -1,0 +1,160 @@
+<?php
+
+namespace App\Enums;
+
+enum Role: string
+{
+    case Superadmin = 'superadmin';
+    case Admin = 'admin';
+    case AdminPayment = 'admin_payment';
+    case AcademicMonitor = 'academic_monitor';
+    case Teacher = 'teacher';
+    case Student = 'student';
+    case Guardian = 'guardian';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Superadmin => __('Superadmin'),
+            self::Admin => __('Admin'),
+            self::AdminPayment => __('Admin Payment'),
+            self::AcademicMonitor => __('Academic Monitor'),
+            self::Teacher => __('Ustadz'),
+            self::Student => __('Mahasantri'),
+            self::Guardian => __('Wali Santri'),
+        };
+    }
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::Superadmin => __('System configuration, roles and audit log.'),
+            self::Admin => __('Master data, users, classes and payment verification.'),
+            self::AdminPayment => __('Bills, payments, scholarships and receipts.'),
+            self::AcademicMonitor => __('Attendance and academic progress monitoring.'),
+            self::Teacher => __('Your course offerings, attendance and grading.'),
+            self::Student => __('Schedule, classes, KHS and bills.'),
+            self::Guardian => __("Your children's progress, attendance and payments."),
+        };
+    }
+
+    public function icon(): string
+    {
+        return match ($this) {
+            self::Superadmin => 'shield-check',
+            self::Admin => 'building-library',
+            self::AdminPayment => 'banknotes',
+            self::AcademicMonitor => 'chart-bar',
+            self::Teacher => 'academic-cap',
+            self::Student => 'book-open',
+            self::Guardian => 'users',
+        };
+    }
+
+    /**
+     * The URL prefix of this role's area, also used as its route name prefix.
+     */
+    public function area(): string
+    {
+        return match ($this) {
+            self::Superadmin => 'superadmin',
+            self::Admin => 'admin',
+            self::AdminPayment => 'finance',
+            self::AcademicMonitor => 'monitor',
+            self::Teacher => 'ustadz',
+            self::Student => 'mahasantri',
+            self::Guardian => 'wali',
+        };
+    }
+
+    public function homeRoute(): string
+    {
+        return $this->area().'.dashboard';
+    }
+
+    /**
+     * Sidebar navigation for this role, as headed groups. `match` is the route
+     * name pattern that marks an item as current.
+     *
+     * @return list<array{heading: string, items: list<array{label: string, icon: string, route: string, match: string}>}>
+     */
+    public function navigation(): array
+    {
+        $item = fn (string $label, string $icon, string $route, ?string $match = null) => [
+            'label' => $label, 'icon' => $icon, 'route' => $route, 'match' => $match ?? $route,
+        ];
+
+        $groups = [
+            ['heading' => $this->label(), 'items' => [$item(__('Dashboard'), 'home', $this->homeRoute(), $this === self::Teacher ? 'ustadz.*' : null)]],
+        ];
+
+        if ($this === self::AcademicMonitor) {
+            $groups[0]['items'][] = $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities');
+        }
+
+        if ($this === self::Student) {
+            $groups[0]['items'][] = $item(__('My classes'), 'book-open', 'mahasantri.classes', 'mahasantri.class*|mahasantri.quiz-attempt');
+            $groups[0]['items'][] = $item(__('KHS'), 'document-chart-bar', 'mahasantri.khs');
+            $groups[0]['items'][] = $item(__('Transcript'), 'academic-cap', 'mahasantri.transcript');
+            $groups[0]['items'][] = $item(__('My bills'), 'banknotes', 'mahasantri.bills');
+        }
+
+        if ($this === self::Guardian) {
+            $groups[0]['items'][] = $item(__('Academic progress'), 'chart-bar', 'wali.academic');
+            $groups[0]['items'][] = $item(__('Bills'), 'banknotes', 'wali.bills');
+        }
+
+        if (in_array($this, [self::Teacher, self::Student], true)) {
+            $groups[0]['items'][] = $item(__('My documents'), 'document-text', 'documents.mine');
+        }
+
+        if (in_array($this, [self::Admin, self::Superadmin], true)) {
+            $groups[] = ['heading' => __('Academic'), 'items' => [
+                $item(__('Academic years'), 'calendar-days', 'admin.academic-years', 'admin.academic-years|admin.semesters.*'),
+                $item(__('Study programs'), 'building-library', 'admin.study-programs'),
+                $item(__('Classes'), 'user-group', 'admin.class-groups'),
+                $item(__('Subjects'), 'book-open', 'admin.subjects'),
+                $item(__('Grade scale'), 'scale', 'admin.grade-scale'),
+                $item(__('Academic monitor'), 'chart-bar', 'monitor.dashboard'),
+                $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities'),
+            ]];
+            $groups[] = ['heading' => __('People'), 'items' => [
+                $item(__('Mahasantri'), 'academic-cap', 'admin.students.index', 'admin.students.*'),
+                $item(__('Ustadz'), 'user', 'admin.teachers.index', 'admin.teachers.*'),
+                $item(__('Wali santri'), 'users', 'admin.guardians.index', 'admin.guardians.*'),
+                $item(__('Documents'), 'document-check', 'admin.documents'),
+                $item(__('Import'), 'arrow-up-tray', 'admin.imports'),
+            ]];
+        }
+
+        if (in_array($this, [self::AdminPayment, self::Superadmin], true)) {
+            $finance = [
+                $item(__('Bills'), 'document-currency-dollar', 'finance.bills.index', 'finance.bills.*'),
+                $item(__('Cash handovers'), 'inbox-arrow-down', 'finance.handovers'),
+                $item(__('Fees'), 'tag', 'finance.fees'),
+                $item(__('Scholarships'), 'gift', 'finance.scholarships'),
+            ];
+
+            if ($this === self::Superadmin) {
+                array_unshift($finance, $item(__('Overview'), 'chart-pie', 'finance.dashboard'));
+            }
+
+            $groups[] = ['heading' => __('Finance'), 'items' => $finance];
+        }
+
+        if (in_array($this, [self::Admin, self::Superadmin], true)) {
+            $groups[] = ['heading' => __('Verification'), 'items' => [
+                $item(__('Payment verification'), 'check-badge', 'admin.payments'),
+            ]];
+        }
+
+        if ($this === self::Superadmin) {
+            $groups[] = ['heading' => __('System'), 'items' => [
+                $item(__('Settings'), 'adjustments-horizontal', 'superadmin.settings'),
+                $item(__('Audit log'), 'clipboard-document-list', 'superadmin.audit-logs'),
+            ]];
+        }
+
+        return $groups;
+    }
+}

@@ -59,7 +59,7 @@ class AcademicRecord
                     'ip' => $summary['ip'],
                 ];
             })
-            ->sortBy(fn (array $entry) => $this->chronology($entry['semester']))
+            ->sortBy(fn (array $entry) => $entry['semester']->chronology())
             ->values();
 
         $all = $this->summarise($enrollments);
@@ -83,18 +83,10 @@ class AcademicRecord
                 ->sortByDesc(fn (CourseEnrollment $attempt) => [
                     (float) $attempt->final_point,
                     (float) $attempt->final_score,
-                    $this->chronology($attempt->courseOffering->semester),
+                    $attempt->courseOffering->semester->chronology(),
                 ])
                 ->first())
             ->values();
-    }
-
-    /**
-     * Sort key putting semesters in order: academic year, then odd before even.
-     */
-    private function chronology(Semester $semester): string
-    {
-        return $semester->academicYear->name.'-'.($semester->term->value === 'odd' ? 1 : 2);
     }
 
     /**

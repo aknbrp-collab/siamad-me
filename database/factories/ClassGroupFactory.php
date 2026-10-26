@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Gender;
 use App\Models\ClassGroup;
 use App\Models\StudyProgram;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -18,12 +19,24 @@ class ClassGroupFactory extends Factory
      */
     public function definition(): array
     {
-        $level = fake()->numberBetween(1, 4);
+        $level = fake()->numberBetween(1, 8);
 
         return [
             'study_program_id' => StudyProgram::factory(),
-            'name' => "Marhalah {$level} ".fake()->unique()->randomLetter(),
+            'name' => "Semester {$level} Putra ".fake()->unique()->randomLetter(),
             'level' => $level,
+            'gender' => Gender::Male,
         ];
+    }
+
+    /**
+     * A class for female mahasantri.
+     */
+    public function putri(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'gender' => Gender::Female,
+            'name' => str_replace('Putra', 'Putri', $attributes['name']),
+        ]);
     }
 }

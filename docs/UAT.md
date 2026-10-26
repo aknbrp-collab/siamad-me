@@ -21,7 +21,9 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Study program, classes, subjects, grade scale, academic year
 - [ ] Import the real mahasantri list from Excel (check the error rows, then import); hand out the credentials sheet
 - [ ] Add muhadhir and wali santri; link a wali to two siblings
+- [ ] Classes per semester level, Putra and Putri; placing a mahasantri in a class of the other gender is refused
 - [ ] Place mahasantri in classes; add course offerings with muhadhir and schedules; activate the semester
+- [ ] Open the next semester: copying rosters moves everyone up one semester into the same-gender class
 - [ ] Verify and reject an uploaded document (the owner sees the note)
 - [ ] Verify a cash handover (reject one payment in it) and a transfer
 - [ ] Close the semester; check that it is read-only

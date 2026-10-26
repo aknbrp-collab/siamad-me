@@ -75,8 +75,11 @@ class DatabaseSeeder extends Seeder
         $semester = $year->semesters()->where('term', SemesterTerm::Odd)->sole();
         app(SemesterLifecycle::class)->activate($semester);
 
-        $classOne = ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Marhalah 1 A', 'level' => 1]);
-        ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Marhalah 2 A', 'level' => 2]);
+        // Classes per semester of study, Putra and Putri. Semester II classes are the promotion targets.
+        $classOne = ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester I Putra', 'level' => 1, 'gender' => Gender::Male]);
+        $classOnePutri = ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester I Putri', 'level' => 1, 'gender' => Gender::Female]);
+        ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester II Putra', 'level' => 2, 'gender' => Gender::Male]);
+        ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester II Putri', 'level' => 2, 'gender' => Gender::Female]);
 
         $fiqh = Subject::create(['study_program_id' => $program->id, 'code' => 'FQH101', 'name' => 'Fiqh Ibadah', 'kitab' => 'Fathul Qarib', 'credits' => 3]);
         $nahwu = Subject::create(['study_program_id' => $program->id, 'code' => 'NHW101', 'name' => 'Nahwu', 'kitab' => 'Alfiyah Ibnu Malik', 'credits' => 2]);
@@ -91,6 +94,7 @@ class DatabaseSeeder extends Seeder
             ['2026110001', 'Muhammad Faqih', Gender::Male],
             ['2026110002', 'Ahmad Rifqi', Gender::Male],
             ['2026110003', 'Fatimah Azzahra', Gender::Female],
+            ['2026110004', 'Umar Faruq', Gender::Male],
         ])->map(fn (array $data) => $this->user($data[0], $data[1], Role::Student)->student()->create([
             'nim' => $data[0],
             'study_program_id' => $program->id,
@@ -110,13 +114,15 @@ class DatabaseSeeder extends Seeder
             ->guardian()->create(['code' => 'WS-DEMO0001', 'relationship' => 'Ayah']);
         $guardian->students()->attach($students->first());
 
-        app(ManageClassEnrollments::class)->enroll($semester, $classOne, array_values($students->map(fn (Student $student) => $student->id)->all()));
+        [$putra, $putri] = $students->partition(fn (Student $student) => $student->gender === Gender::Male);
+        app(ManageClassEnrollments::class)->enroll($semester, $classOne, array_values($putra->map(fn (Student $student) => $student->id)->all()));
+        app(ManageClassEnrollments::class)->enroll($semester, $classOnePutri, array_values($putri->map(fn (Student $student) => $student->id)->all()));
 
         $offerings = app(ManageCourseOfferings::class);
         $fiqhClass = $offerings->save($semester, null, ['subject_id' => $fiqh->id, 'class_group_id' => $classOne->id, 'teacher_id' => $ahmad->id, 'day_of_week' => 6, 'starts_at' => '07:30', 'ends_at' => '09:00', 'room' => 'R.101']);
         $nahwuClass = $offerings->save($semester, null, ['subject_id' => $nahwu->id, 'class_group_id' => $classOne->id, 'teacher_id' => $hasan->id, 'day_of_week' => 7, 'starts_at' => '07:30', 'ends_at' => '09:00', 'room' => 'R.101']);
 
-        $this->seedFinance($year->id, $semester, array_values($students->all()), $staff['keuangan'], $staff['admin']);
+        $this->seedFinance($year->id, $semester, array_values($students->take(3)->all()), $staff['keuangan'], $staff['admin']);
 
         $this->seedTeaching($fiqhClass, $nahwuClass, $ahmad->user);
         $this->seedClassroom($fiqhClass, $ahmad->user, $staff['monitor']);
@@ -131,7 +137,7 @@ class DatabaseSeeder extends Seeder
         $meetings = app(ManageMeetings::class);
         $grades = app(ManageGrades::class);
 
-        // Faqih, Rifqi, Fatimah (by NIM).
+        // Faqih, Rifqi, Umar (by NIM): the Semester I Putra class.
         $ids = $fiqh->enrollments()->join('students', 'students.id', '=', 'course_enrollments.student_id')
             ->orderBy('students.nim')->pluck('course_enrollments.id')->all();
 

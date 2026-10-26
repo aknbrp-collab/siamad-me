@@ -119,12 +119,25 @@ new #[Title('Semester')] class extends Component {
         return Student::query()
             ->with(['user', 'classEnrollments' => fn ($query) => $query->where('semester_id', $this->semester->id)])
             ->where('status', StudentStatus::Active)
+            // Putra classes only list putra, putri classes only putri.
+            ->when($this->selectedClass?->gender, fn (Builder $query, $gender) => $query->where('gender', $gender))
             ->where(fn (Builder $query) => $query
                 ->whereRaw('lower(nim) like ?', [$term])
                 ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
             ->orderBy('nim')
             ->limit(15)
             ->get();
+    }
+
+    /**
+     * The semester of study each candidate should be in now, by student id.
+     *
+     * @return array<int, int>
+     */
+    #[Computed]
+    public function candidateLevels(): array
+    {
+        return app(ManageClassEnrollments::class)->expectedLevels($this->semester, $this->candidates->modelKeys());
     }
 
     /**
@@ -235,23 +248,26 @@ new #[Title('Semester')] class extends Component {
     }
 
     /**
-     * Default mapping: when opening an odd semester (new academic year),
-     * promote to the first class one level up in the same study program;
-     * otherwise keep the same class.
+     * Default mapping: mahasantri move up one semester of study every
+     * semester, into the class one level up in the same study program with
+     * the same gender (Semester II Putra -> Semester III Putra). Copying from
+     * a later semester keeps the same level. Every pair can be changed.
      */
     private function buildClassMap(): void
     {
         unset($this->sourceClasses);
 
         $current = ClassGroup::query()->orderBy('name')->get();
-        $promote = $this->semester->term === SemesterTerm::Odd;
+        $from = $this->otherSemesters->firstWhere('id', $this->copyFromId);
+        $step = $from && $from->chronology() < $this->semester->chronology() ? 1 : 0;
 
         $this->classMap = [];
 
         foreach ($this->sourceClasses as $source) {
-            $target = $promote
-                ? $current->first(fn (ClassGroup $c) => $c->study_program_id === $source->study_program_id && $c->level === $source->level + 1)
-                : $current->firstWhere('id', $source->id);
+            $target = $current->first(fn (ClassGroup $class) => $class->study_program_id === $source->study_program_id
+                && $class->level === $source->level + $step
+                && $source->gender !== null
+                && $class->gender === $source->gender);
 
             $this->classMap[$source->id] = $target?->id;
         }
@@ -263,11 +279,15 @@ new #[Title('Semester')] class extends Component {
 
         $from = Semester::query()->findOrFail($this->copyFromId);
 
-        $placed = $manage->copy($from, $this->semester, $this->classMap);
+        $result = $manage->copy($from, $this->semester, $this->classMap);
 
         Flux::modal('copy-enrollments')->close();
         unset($this->classGroups, $this->roster);
-        Flux::toast(variant: 'success', text: trans_choice(':count mahasantri placed.|:count mahasantri placed.', $placed));
+        Flux::toast(
+            variant: $result['skipped'] > 0 ? 'warning' : 'success',
+            text: trans_choice(':count mahasantri placed.|:count mahasantri placed.', $result['placed'])
+                .($result['skipped'] > 0 ? ' '.__(':count skipped: their gender does not match the class. Place them by hand.', ['count' => $result['skipped']]) : ''),
+        );
     }
 
     public function createOffering(): void
@@ -398,6 +418,7 @@ new #[Title('Semester')] class extends Component {
                                 @if ($classGroup->trashed())
                                     <span class="text-xs text-zinc-500">({{ __('removed') }})</span>
                                 @endif
+                                <span class="block text-xs text-zinc-500">{{ $classGroup->description() }}</span>
                             </span>
                             <flux:badge size="sm">{{ $classGroup->students_count }}</flux:badge>
                         </button>
@@ -412,9 +433,19 @@ new #[Title('Semester')] class extends Component {
 
             <div>
                 @if ($this->selectedClass)
-                    <flux:heading size="lg" class="mb-4">{{ $this->selectedClass->name }} · {{ trans_choice(':count mahasantri|:count mahasantri', $this->roster->count()) }}</flux:heading>
+                    <flux:heading size="lg">{{ $this->selectedClass->name }} · {{ trans_choice(':count mahasantri|:count mahasantri', $this->roster->count()) }}</flux:heading>
+                    <flux:text class="mb-4 text-sm">{{ $this->selectedClass->description() }}</flux:text>
 
-                    @unless ($this->locked)
+                    @if (! $this->locked && $this->selectedClass->gender === null)
+                        <flux:callout icon="exclamation-triangle" color="amber" class="mb-4" data-test="class-gender-missing"
+                            :text="__('Set Putra or Putri for :classes first (Classes page).', ['classes' => $this->selectedClass->name])">
+                            <x-slot name="actions">
+                                <flux:button size="sm" :href="route('admin.class-groups')" wire:navigate>{{ __('Classes') }}</flux:button>
+                            </x-slot>
+                        </flux:callout>
+                    @endif
+
+                    @if (! $this->locked && $this->selectedClass->gender !== null)
                         <flux:input
                             wire:model.live.debounce.300ms="studentSearch"
                             icon="magnifying-glass"
@@ -432,6 +463,11 @@ new #[Title('Semester')] class extends Component {
                                             @if ($current)
                                                 <span class="ms-2 text-zinc-500">· {{ $current->class_name }}</span>
                                             @endif
+                                            @php($expected = $this->candidateLevels[$candidate->id] ?? 1)
+                                            @if ($expected !== $this->selectedClass->level)
+                                                {{-- Not blocking: repeating or skipping a level is the office's call. --}}
+                                                <flux:badge size="sm" color="amber" class="ms-2">{{ __('Expected: :level', ['level' => ClassGroup::levelName($expected)]) }}</flux:badge>
+                                            @endif
                                         </div>
                                         @if ($current?->class_group_id === $selectedClassId)
                                             <flux:badge size="sm" color="green">{{ __('In this class') }}</flux:badge>
@@ -444,7 +480,7 @@ new #[Title('Semester')] class extends Component {
                         @elseif (mb_strlen(trim($studentSearch)) >= 2)
                             <flux:text class="mb-6 text-sm">{{ __('No active mahasantri found.') }}</flux:text>
                         @endif
-                    @endunless
+                    @endif
 
                     <div class="overflow-x-auto">
                         <flux:table class="table-stack">
@@ -535,6 +571,7 @@ new #[Title('Semester')] class extends Component {
             <div>
                 <flux:heading size="lg">{{ __('Copy classes from another semester') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Active mahasantri are placed in the class you choose. Graduated, dropped-out and on-leave students and anyone already placed this semester are skipped.') }}</flux:text>
+                <flux:text class="mt-1">{{ __('By default everyone moves up one semester, into the class of the same gender one level up. Mahasantri whose gender does not match the chosen class are skipped.') }}</flux:text>
             </div>
 
             <flux:select wire:model.live="copyFromId" :label="__('Copy from')">
@@ -549,12 +586,13 @@ new #[Title('Semester')] class extends Component {
                 <div class="space-y-3">
                     @foreach ($this->sourceClasses as $source)
                         <div wire:key="map-{{ $source->id }}" class="grid items-center gap-2 sm:grid-cols-[1fr_auto_1fr]">
-                            <span class="text-sm font-medium">{{ $source->name }} <span class="text-zinc-500">({{ $source->students_count }})</span></span>
+                            <span class="text-sm font-medium">{{ $source->name }} <span class="text-zinc-500">({{ $source->students_count }})</span>
+                                <span class="block text-xs font-normal text-zinc-500">{{ $source->description() }}</span></span>
                             <flux:icon.arrow-right class="hidden size-4 text-zinc-400 sm:block" />
                             <flux:select wire:model="classMap.{{ $source->id }}" size="sm">
                                 <flux:select.option value="">{{ __('— skip —') }}</flux:select.option>
                                 @foreach ($this->classGroups->whereNull('deleted_at') as $target)
-                                    <flux:select.option :value="$target->id">{{ $target->name }}</flux:select.option>
+                                    <flux:select.option :value="$target->id">{{ $target->name }} — {{ $target->description() }}</flux:select.option>
                                 @endforeach
                             </flux:select>
                         </div>

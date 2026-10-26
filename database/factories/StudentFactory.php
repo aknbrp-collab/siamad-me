@@ -31,11 +31,17 @@ class StudentFactory extends Factory
                 ->id,
             'study_program_id' => StudyProgram::factory(),
             'entry_year' => 2026,
-            'gender' => fake()->randomElement(Gender::cases()),
+            // Putra by default, so students fit the default (putra) factory class; use female() for putri.
+            'gender' => Gender::Male,
             'birth_place' => fake()->city(),
             'birth_date' => fake()->dateTimeBetween('-25 years', '-17 years')->format('Y-m-d'),
             'status' => StudentStatus::Active,
         ];
+    }
+
+    public function female(): static
+    {
+        return $this->state(fn (array $attributes) => ['gender' => Gender::Female]);
     }
 
     /**

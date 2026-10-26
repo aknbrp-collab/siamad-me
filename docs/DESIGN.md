@@ -649,3 +649,23 @@ v1 Step 2 (2026-10-26) — self-service profiles:
 - A mahasantri's **name** is on official documents, so it is now read-only for them under
   Pengaturan → Profil too (previously every user could rename themselves); enforced in
   `UpdateUserProfile`, not only in the form.
+
+v1 Step 3 (2026-10-26) — classes by semester level, Putra / Putri:
+- `class_groups.level` now means the **semester of study** (Semester I, II, III … up to XIV), shown in
+  roman numerals; no data conversion. `class_groups.gender` (new, `Gender` enum) makes a class Putra or
+  Putri; it is nullable only for classes created before v1.
+- `ManageClassEnrollments::enroll()` refuses a class without a gender and any mahasantri of the other
+  gender (names in the message). `copy()` refuses targets without a gender and skips (and counts)
+  students whose gender does not match; it now returns `['placed', 'skipped']`.
+- Roster copy defaults to **one level up every semester** into the same-gender class of the same study
+  program (previously only on odd semesters); copying from a later semester keeps the level.
+  `Semester::chronology()` orders semesters (moved from `AcademicRecord`).
+- The class search on the semester page lists only the class's gender and flags mahasantri whose
+  expected level (`expectedLevels()`: one above their latest earlier class, else Semester I) differs —
+  a hint, not a block, so repeating a level stays possible.
+- A class's gender cannot be changed while it holds the other gender in the active semester.
+- Factories default to putra (class and student) with `putri()` / `female()` states, so tests are
+  deterministic. Demo data: Semester I/II Putra/Putri; a fourth mahasantri (Umar) keeps the Fiqh demo
+  at three putra.
+- Dev databases seeded before v1 keep their old mixed class ("Marhalah 1 A") with no gender; re-seed
+  (`migrate:fresh --seed`) for the new demo. Real installations have no data yet.

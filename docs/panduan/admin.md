@@ -6,7 +6,9 @@ Admin mengelola data induk, data orang, semester, dan memverifikasi pembayaran.
 
 Isi berurutan dari menu **Akademik**:
 1. **Program studi** — kode (mis. `MA`) dan nama.
-2. **Kelas** — nama kelas dan tingkat (marhalah), mis. *Marhalah 1 A*, tingkat 1.
+2. **Kelas** — satu kelas per **tingkat semester** (Semester I, II, III …) dan **Putra** atau **Putri**,
+   mis. *Semester I Putra* dan *Semester I Putri*. Mahasantri hanya dapat ditempatkan di kelas yang sesuai
+   jenis kelaminnya.
 3. **Mata kuliah** — kode, nama, kitab, dan SKS. Mata kuliah yang tidak dipakai lagi cukup
    dinonaktifkan, jangan dihapus.
 4. **Skala nilai** — rentang nilai akhir (0–100) menjadi huruf dan bobot. Salah satu rentang harus mulai
@@ -37,8 +39,12 @@ sementara baru) dan **Nonaktifkan login**. Jangan menghapus orang; nonaktifkan a
 ## Membuka semester baru
 
 1. **Tahun akademik** → buka semester baru.
-2. Tab **Kelas**: **Salin dari semester lain** untuk menyalin rombel. Saat membuka semester ganjil,
-   mahasantri otomatis dinaikkan satu tingkat (dapat diubah sebelum menyalin). Mahasantri lulus, keluar,
+2. Tab **Kelas**: **Salin dari semester lain** untuk menyalin rombel. Setiap semester mahasantri
+   otomatis naik satu tingkat ke kelas berjenis kelamin sama (Semester II Putra → Semester III Putra);
+   pasangan kelas dapat diubah sebelum menyalin. Mahasantri yang jenis kelaminnya tidak sesuai dengan kelas
+   tujuan dilewati dan dapat ditempatkan manual. Saat mencari mahasantri untuk sebuah kelas, hanya yang
+   sejenis kelamin yang tampil; tanda *Seharusnya: Semester …* muncul jika tingkatnya tidak sesuai
+   (tetap boleh ditempatkan, mis. untuk mengulang). Mahasantri lulus, keluar,
    atau cuti dilewati. Tambahkan mahasantri satu per satu lewat
    **Tambah mahasantri: ketik NIM atau nama…** di kelas yang dipilih.
 3. Tab **Kelas kuliah**: **Salin kelas kuliah** dari semester lalu (mata kuliah × kelas × muhadhir ×

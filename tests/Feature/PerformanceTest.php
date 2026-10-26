@@ -81,7 +81,7 @@ function addMahasantri(int $count): void
     test()->actingAs($recorder);
 
     $semester = Semester::query()->where('status', 'active')->sole();
-    $class = ClassGroup::query()->where('name', 'Marhalah 1 A')->sole();
+    $class = ClassGroup::query()->where('name', 'Semester I Putra')->sole();
     $students = Student::factory()->count($count)->withDocuments()
         ->create(['study_program_id' => StudyProgram::query()->value('id')]);
 

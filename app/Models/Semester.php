@@ -60,6 +60,14 @@ class Semester extends Model
     }
 
     /**
+     * Sort key putting semesters in order: academic year, then odd before even.
+     */
+    public function chronology(): string
+    {
+        return $this->loadMissing('academicYear')->academicYear->name.'-'.($this->term === SemesterTerm::Odd ? 1 : 2);
+    }
+
+    /**
      * @return BelongsTo<AcademicYear, $this>
      */
     public function academicYear(): BelongsTo

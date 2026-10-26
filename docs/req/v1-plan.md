@@ -65,7 +65,7 @@ New page **Profil saya** for mahasantri, muhadhir and wali santri, reusing the a
   official documents). Muhadhir keep name editable, as asked ("except nidm"); status is excluded
   because it is an employment decision.
 
-### Step 3 — Classes by semester level and gender (medium–large)
+### Step 3 — Classes by semester level and gender (medium–large) — ✅ done 2026-10-26
 - Class **level = Semester I, II, III …** (label "Semester" with roman numerals, e.g. *Semester III
   Putra*). Copying rosters into the next semester moves everyone **one level up every semester**
   (today: only on odd semesters). Existing demo classes are converted (level 1 → Semester I).

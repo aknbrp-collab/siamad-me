@@ -40,8 +40,9 @@ PostgreSQL · Larastan 0 errors · Pint clean. Every phase was also checked in t
 ### Demo data (`php artisan migrate:fresh --seed`, local only — every password is `password`)
 
 `superadmin`, `admin`, `keuangan` (Admin Payment), `monitor`, ustadz `2026010001` (Fiqh) and `2026010002`
-(Nahwu + Academic Monitor → role picker), mahasantri `2026110001`–`2026110003`, wali `ws-demo0001`.
-Seeded: semester 2026/2027 Ganjil (active), Marhalah 1 A with 3 mahasantri, Fiqh (finalised grades,
+(Nahwu + Academic Monitor → role picker), mahasantri `2026110001`–`2026110004`, wali `ws-demo0001`.
+Seeded: semester 2026/2027 Ganjil (active), classes Semester I/II Putra/Putri; Semester I Putra holds
+Faqih, Rifqi and Umar (`…0004`), Semester I Putri holds Fatimah (`…0003`); Fiqh (finalised grades,
 4 meetings, LMS content, open quiz) and Nahwu (grades in progress), bills with one verified transfer
 and one cash payment, scholarship, activity log entries.
 

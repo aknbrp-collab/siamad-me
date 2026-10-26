@@ -76,7 +76,7 @@ new #[Title('Study programs')] class extends Component {
     </x-page-header>
 
     <div class="overflow-x-auto">
-        <flux:table>
+        <flux:table class="table-stack">
             <flux:table.columns>
                 <flux:table.column>{{ __('Code') }}</flux:table.column>
                 <flux:table.column>{{ __('Name') }}</flux:table.column>

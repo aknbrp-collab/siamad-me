@@ -47,3 +47,19 @@ test('the sidebar shows the active role\'s menu', function () {
         ->assertSee(route('superadmin.settings'))
         ->assertSee(route('superadmin.audit-logs'));
 });
+
+test('generic dashboards link to the role\'s menu instead of placeholders', function (Role $role, string $shortcut) {
+    $user = User::factory()->withRole($role)->create();
+
+    $this->actingAs($user)
+        ->get(route($role->homeRoute()))
+        ->assertOk()
+        ->assertSee('data-test="shortcuts"', false)
+        ->assertSee(route($shortcut))
+        ->assertDontSee(__('Coming soon'));
+})->with([
+    [Role::Superadmin, 'superadmin.users.index'],
+    [Role::Admin, 'admin.students.index'],
+    [Role::Student, 'mahasantri.khs'],
+    [Role::Guardian, 'wali.academic'],
+]);

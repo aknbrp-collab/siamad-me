@@ -17,7 +17,8 @@ final class SpreadsheetDownload
      */
     public static function make(string $filename, iterable $rows): BinaryFileResponse
     {
-        $path = storage_path('app/private/tmp/'.Str::uuid().'.xlsx');
+        // System temp, not the private disk: these are transient and must never end up in backups.
+        $path = self::directory().DIRECTORY_SEPARATOR.Str::uuid().'.xlsx';
 
         if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0755, true);
@@ -32,6 +33,14 @@ final class SpreadsheetDownload
         $writer->close();
 
         return response()->download($path, $filename)->deleteFileAfterSend();
+    }
+
+    /**
+     * Where the temporary .xlsx files are built.
+     */
+    public static function directory(): string
+    {
+        return sys_get_temp_dir().DIRECTORY_SEPARATOR.'siakad-downloads';
     }
 
     /**

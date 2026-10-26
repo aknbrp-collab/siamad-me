@@ -495,7 +495,7 @@ resources/views/pages/
 | **2. Finance** ✅ | Fee types/rates, bill generation, scholarships, instalment rules, payment recording → handover → verification, receipts PDF, finance dashboard, student/guardian bill view | Full payment roadmap works end-to-end with separation of duties |
 | **3. Teaching & grades** ✅ | Meetings + attendance, grade components, grade entry (grid + Excel import), finalisation, KHS, transcript, monitor dashboards | Closed semester shows correct historical KHS for student and guardian |
 | **4. LMS** ✅ | Materials, assignments & submissions, quizzes, forum, activity log (Q6) | Teacher runs a complete online class |
-| **5. Hardening** | Performance pass, mobile polish, backups, user guide, UAT with real data | Sign-off |
+| **5. Hardening** 🟡 | Performance pass, mobile polish, backups, user guide, UAT with real data | Sign-off (UAT pending) |
 
 Phase 0 changes to the existing kit (done 2026-10-25):
 - `config/fortify.php`: `'username' => 'username'`, remove `registration()` and `emailVerification()`.
@@ -596,3 +596,27 @@ User & role management (done 2026-10-26, before Phase 5):
   ustadz form an Admin can't reset the password, disable the login or change the email (which allows a
   password reset) of an ustadz who is also e.g. Superadmin or Admin Payment — otherwise an Admin could
   take over that login and break the separation of duties.
+
+Phase 5 notes (2026-10-26; UAT with the institution still to do):
+- **Indonesian UI.** `APP_LOCALE=id` (also the config default); every `__()` string and page title is in
+  `lang/id.json`, Laravel's messages in `lang/id/*.php` with Indonesian field names. Institution terms
+  stay as used there (Mahasantri, Ustadz, Wali Santri, SKS, KHS, IPS/IPK, SPP). Bill-line descriptions are
+  snapshotted in the locale of the day they are generated. Tests run with `APP_LOCALE=en`;
+  `TranslationTest` fails when a string has no Indonesian translation or loses a `:placeholder`.
+- **Phones.** List tables carry `class="table-stack"`: below `md` each row becomes a card, every cell
+  labelled with its column header (`resources/js/table-stack.js` copies the headers; CSS in `app.css`).
+  Columns hidden in the narrow table are shown in the card. The ustadz class tabs become a 3×2 button grid
+  and the mahasantri class tabs a dropdown. Every page of every role was checked at 375 px for sideways
+  scrolling. Score/attendance grids stay real tables.
+- **Performance.** PostgreSQL does not index foreign keys: 45 were unindexed and are now indexed
+  (migration `2026_10_30_000001`); a PostgreSQL-only test keeps it that way. `PerformanceTest` loads 23
+  pages before and after adding 20 mahasantri and fails if any page's query count grows (none did).
+  Bulk work stays synchronous: 300 mahasantri are placed in 0.9 s and billed in 1.7 s.
+- **Backups.** `php artisan siakad:backup` (scheduled daily 02:00): `pg_dump --format=custom` + a zip of
+  `storage/app/private`, one folder per run in `storage/app/backups` (`BACKUP_PATH`), 30-day retention,
+  half-written runs removed. A restore into a scratch database matched the source row counts. Download
+  spreadsheets are now built in the system temp folder, so they can never end up in a backup.
+  Operations guide: `docs/OPERATIONS.md`.
+- **Dashboards** of Superadmin, Admin, mahasantri and wali showed Phase 0 "Coming soon" placeholders;
+  they now show shortcuts built from the role's own menu.
+- **User guides** per role in Indonesian (`docs/panduan/`) and a UAT checklist (`docs/UAT.md`).

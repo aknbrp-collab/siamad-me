@@ -6,6 +6,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Support\SpreadsheetDownload;
 use Illuminate\Http\Testing\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -89,6 +90,20 @@ test('the credentials sheet holds working temporary passwords', function () {
     expect(array_values($row)[1])->toBe('2026010001')
         ->and(Hash::check(array_values($row)[2], $teacher->user->password))->toBeTrue()
         ->and($teacher->user->must_change_password)->toBeTrue();
+});
+
+test('the credentials sheet is not left on disk after download', function () {
+    $sheets = fn () => count(glob(SpreadsheetDownload::directory().'/*.xlsx') ?: []);
+    $before = $sheets();
+
+    Livewire::test('pages::admin.imports')
+        ->set('type', 'teachers')
+        ->set('file', spreadsheet([['nidm*' => '2026010003', 'name*' => 'Ustadz Umar', 'gender*' => 'L']], 'csv'))
+        ->call('check')
+        ->call('import')
+        ->assertFileDownloaded();
+
+    expect($sheets())->toBe($before);
 });
 
 test('an empty file is refused', function () {

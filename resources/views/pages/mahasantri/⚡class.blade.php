@@ -141,12 +141,19 @@ new #[Title('Class')] class extends Component {
         @enderror
     @endforeach
 
-    <flux:radio.group wire:model.live="tab" variant="segmented" class="mb-6 w-full overflow-x-auto">
-        <flux:radio value="overview" :label="__('Meetings')" />
-        <flux:radio value="materials" :label="__('Materials')" />
-        <flux:radio value="assignments" :label="__('Assignments')" />
-        <flux:radio value="quizzes" :label="__('Quizzes')" />
-        <flux:radio value="forum" :label="__('Forum')" />
+    @php($tabs = ['overview' => __('Meetings'), 'materials' => __('Materials'), 'assignments' => __('Assignments'), 'quizzes' => __('Quizzes'), 'forum' => __('Forum')])
+
+    {{-- Phones: a dropdown, since five segments do not fit. --}}
+    <flux:select wire:model.live="tab" class="mb-6 sm:hidden">
+        @foreach ($tabs as $value => $label)
+            <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+        @endforeach
+    </flux:select>
+
+    <flux:radio.group wire:model.live="tab" variant="segmented" class="mb-6 w-full max-sm:hidden">
+        @foreach ($tabs as $value => $label)
+            <flux:radio :value="$value" :label="$label" />
+        @endforeach
     </flux:radio.group>
 
     @if ($tab === 'overview')

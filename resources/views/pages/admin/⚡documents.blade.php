@@ -163,7 +163,7 @@ new #[Title('Documents')] class extends Component {
     @enderror
 
     <div class="overflow-x-auto">
-        <flux:table :paginate="$this->documents">
+        <flux:table class="table-stack" :paginate="$this->documents">
             <flux:table.columns>
                 <flux:table.column>{{ $owner === 'teachers' ? __('Ustadz') : __('Mahasantri') }}</flux:table.column>
                 <flux:table.column>{{ __('Document') }}</flux:table.column>

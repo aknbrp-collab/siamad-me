@@ -122,7 +122,7 @@ new #[Title('Cash handovers')] class extends Component {
 
     <flux:heading class="mb-2">{{ __('My handovers') }}</flux:heading>
     <div class="overflow-x-auto">
-        <flux:table :paginate="$this->handovers">
+        <flux:table class="table-stack" :paginate="$this->handovers">
             <flux:table.columns>
                 <flux:table.column>{{ __('Number') }}</flux:table.column>
                 <flux:table.column>{{ __('Submitted') }}</flux:table.column>

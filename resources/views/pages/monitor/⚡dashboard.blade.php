@@ -217,7 +217,7 @@ new #[Title('Academic monitor')] class extends Component {
     <div>
         <flux:heading size="lg" class="mb-3">{{ __('Offerings') }}</flux:heading>
         <div class="overflow-x-auto">
-            <flux:table>
+            <flux:table class="table-stack">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Subject') }}</flux:table.column>
                     <flux:table.column class="hidden md:table-cell">{{ __('Ustadz') }}</flux:table.column>

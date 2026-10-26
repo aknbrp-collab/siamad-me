@@ -73,7 +73,7 @@ new #[Title('Users & roles')] class extends Component {
     </div>
 
     <div class="overflow-x-auto">
-        <flux:table :paginate="$this->users">
+        <flux:table class="table-stack" :paginate="$this->users">
             <flux:table.columns>
                 <flux:table.column>{{ __('Login ID') }}</flux:table.column>
                 <flux:table.column>{{ __('Name') }}</flux:table.column>

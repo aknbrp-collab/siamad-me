@@ -255,7 +255,7 @@ new #[Title('Fees')] class extends Component {
             </div>
 
             <div class="overflow-x-auto">
-                <flux:table>
+                <flux:table class="table-stack">
                     <flux:table.columns>
                         <flux:table.column>{{ __('Fee') }}</flux:table.column>
                         <flux:table.column>{{ __('Applies to') }}</flux:table.column>

@@ -1,14 +1,10 @@
 @php
     /** @var \App\Enums\Role $role */
-    $upcoming = match ($role) {
-        \App\Enums\Role::Superadmin => [__('Users & roles'), __('Backups')],
-        \App\Enums\Role::Admin => [__('Attendance overview'), __('KHS & transcripts')],
-        \App\Enums\Role::AdminPayment => [__('Fee structure'), __('Bills'), __('Payments & handovers'), __('Scholarships')],
-        \App\Enums\Role::AcademicMonitor => [__('Attendance overview'), __('Academic progress'), __('Activity log')],
-        \App\Enums\Role::Teacher => [__('My classes'), __('Attendance'), __('Grades'), __('Assignments & quizzes')],
-        \App\Enums\Role::Student => [__('Schedule'), __('My classes'), __('KHS & transcript')],
-        \App\Enums\Role::Guardian => [__('Academic progress'), __('Attendance')],
-    };
+    // Shortcuts are the role's own sidebar menu (minus the dashboard), so they always match what exists.
+    $shortcuts = collect($role->navigation())
+        ->flatMap(fn (array $group) => $group['items'])
+        ->reject(fn (array $item) => $item['route'] === $role->homeRoute())
+        ->values();
 @endphp
 
 <x-layouts::app :title="__('Dashboard')">
@@ -30,12 +26,14 @@
         @include('partials.documents-reminder', ['role' => $role])
 
         <div>
-            <flux:heading size="lg" level="2">{{ __('Coming soon') }}</flux:heading>
-            <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach ($upcoming as $module)
-                    <div class="rounded-xl border border-dashed border-zinc-300 p-4 dark:border-zinc-600">
-                        <flux:text class="font-medium text-zinc-700 dark:text-zinc-200">{{ $module }}</flux:text>
-                    </div>
+            <flux:heading size="lg" level="2">{{ __('Quick links') }}</flux:heading>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-test="shortcuts">
+                @foreach ($shortcuts as $item)
+                    <a href="{{ route($item['route']) }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:border-zinc-600 dark:hover:bg-zinc-800">
+                        <flux:icon :icon="$item['icon']" class="size-5 shrink-0 text-zinc-500 dark:text-zinc-400" />
+                        <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $item['label'] }}</span>
+                    </a>
                 @endforeach
             </div>
         </div>

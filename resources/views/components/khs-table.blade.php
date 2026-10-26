@@ -5,8 +5,8 @@
 ])
 
 {{-- KHS of one semester. $attendance (optional): enrollment id => summary from AcademicRecord::attendance(). --}}
-<div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
-    <table class="min-w-full text-sm">
+<div class="overflow-x-auto border-zinc-200 md:rounded-lg md:border dark:border-zinc-700">
+    <table class="table-stack min-w-full text-sm">
         <thead class="bg-zinc-50 text-left dark:bg-zinc-800">
             <tr>
                 <th class="px-3 py-2 font-medium">{{ __('Subject') }}</th>

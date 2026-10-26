@@ -447,7 +447,7 @@ new #[Title('Semester')] class extends Component {
                     @endunless
 
                     <div class="overflow-x-auto">
-                        <flux:table>
+                        <flux:table class="table-stack">
                             <flux:table.columns>
                                 <flux:table.column>{{ __('NIM') }}</flux:table.column>
                                 <flux:table.column>{{ __('Name') }}</flux:table.column>
@@ -492,7 +492,7 @@ new #[Title('Semester')] class extends Component {
         @endunless
 
         <div class="overflow-x-auto">
-            <flux:table>
+            <flux:table class="table-stack">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Subject') }}</flux:table.column>
                     <flux:table.column>{{ __('Class') }}</flux:table.column>

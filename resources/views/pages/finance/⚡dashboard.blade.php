@@ -157,7 +157,7 @@ new #[Title('Finance')] class extends Component {
         <div>
             <flux:heading class="mb-2">{{ __('By class') }}</flux:heading>
             <div class="overflow-x-auto">
-                <flux:table>
+                <flux:table class="table-stack">
                     <flux:table.columns>
                         <flux:table.column>{{ __('Class') }}</flux:table.column>
                         <flux:table.column align="end">{{ __('Billed') }}</flux:table.column>

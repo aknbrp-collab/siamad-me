@@ -20,9 +20,9 @@ Phases 0–4 of the 6-phase plan are **done and tested**; Phase 5 (hardening) ha
 | 2 Finance | ✅ | Fee types & rates per academic year (most-specific rate wins; monthly ×6; once-only fees), idempotent bill generation, scholarships with quota (applied as discount lines), instalment rules (max 3, min Rp 200.000 unless settling), payment recording → cash handover → Admin verification (separation of duties), PDF receipts (provisional slip / official / void), finance dashboard, bill views for mahasantri and wali |
 | 3 Teaching & grades | ✅ | Meetings (in class / online link) & attendance, grade components (weights = 100), score grid + Excel import, finalise (locks; Admin unlock with reason), editable grade scale, KHS & transcript (web + PDF) for mahasantri / wali / admin, academic monitor dashboard (attendance below minimum, grade status, distribution) |
 | 4 LMS | ✅ | Materials, assignments + submissions + grading, quizzes (4 question types, server-side timer, auto-grading, essay grading), class forum (pin/lock/moderate), copy assignment/quiz scores into the grade sheet, pesantren activity log (monitor; shown to wali; never on KHS), missing-work count on the monitor dashboard |
-| 5 Hardening | ⏳ | Not started — see §3 |
+| 5 Hardening | 🟡 | Indonesian UI, phone layout (stacked tables), FK indexes + N+1 guard, daily backups with tested restore, user guides per role, UAT checklist. **UAT with real users is still to do** — see §5 |
 
-**Quality gates (all green at handover):** 170 Pest tests / 728 assertions pass on **both** SQLite and
+**Quality gates (all green at handover):** 187 Pest tests / 1,826 assertions pass on **both** SQLite and
 PostgreSQL · Larastan 0 errors · Pint clean. Every phase was also checked in the browser.
 
 ### Roles and where they land
@@ -69,7 +69,7 @@ app/
     Teaching/              ManageMeetings, ManageGrades, ImportScores, AcademicRecord (KHS/transcript/attendance)
     UpdateUserProfile.php
   Concerns/                Auditable (audit-log trait), IsPersonalDocument, validation-rule traits
-  Console/Commands/        CreateSuperadmin  (php artisan siakad:superadmin)
+  Console/Commands/        CreateSuperadmin (php artisan siakad:superadmin), BackupCommand (siakad:backup, daily)
   Enums/                   19 enums: Role (labels, areas, sidebar navigation!), statuses, types…
   Http/Controllers/        PrivateFileController (all private files + access rules), ReceiptController,
                            AcademicRecordPdfController, ImportTemplateController, ScoreTemplateController
@@ -88,7 +88,10 @@ database/
   migrations/              Starter-kit tables (users table modified) + 8 SIAKAD migrations, one per phase/domain
   factories/               Factories for people, academic structure, fee types
   seeders/DatabaseSeeder   Full demo data (refuses to run in production)
-docs/                      DESIGN.md (design + phase notes), HANDOVER.md (this file)
+docs/                      DESIGN.md (design + phase notes), HANDOVER.md (this file), OPERATIONS.md (server,
+                           scheduler, backups, restore), UAT.md (acceptance checklist), panduan/ (user guides per
+                           role, in Indonesian)
+lang/                      id.json (every UI string) + id/{validation,auth,passwords,pagination}.php
 resources/views/
   pages/                   Livewire pages, by area:
     admin/                 academic-years, semesters/show, study-programs, class-groups, subjects, grade-scale,
@@ -103,7 +106,8 @@ resources/views/
     superadmin/            settings, audit-logs, users/{index,form}
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades}
     wali/                  academic, bills
-  components/              page-header, offering-header (ustadz tabs), account-panel, bill-card, khs-table,
+  components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
+                           bill-card, khs-table,
                            transcript-table, user-menu-items + starter-kit components
   partials/                credentials-modal, documents-reminder
   receipts/, records/      dompdf templates (receipt, KHS, transcript)
@@ -121,18 +125,19 @@ tests/Feature/             Admin, Auth, Finance, Teaching, Lms, Superadmin, Sett
 
 - [x] **User & role management screen** (Superadmin → Users & roles) — done 2026-10-26, see DESIGN.md
       "User & role management" notes.
-- [ ] **Indonesian translation.** UI strings are English `__()` keys; `APP_LOCALE=en`; no `lang/id`
-      (including validation messages). PDFs (receipts, KHS, transcript) are already in Indonesian.
-- [ ] **Mobile polish.** Tables scroll horizontally on phones; the design called for stacked cards below `md`.
-- [ ] **Backups** (daily `pg_dump` + `storage/app/private`), not configured.
-- [ ] **User guide** for each role.
+- [x] **Indonesian translation** — `APP_LOCALE=id`, `lang/id.json` + validation messages (2026-10-26).
+- [x] **Mobile layout** — list tables become cards below `md`; every page checked at 375 px (2026-10-26).
+- [x] **Backups** — `siakad:backup` daily at 02:00, 30-day retention, restore tested; see OPERATIONS.md.
+- [x] **User guides** per role in `docs/panduan/` (Indonesian).
 - [ ] **Institution logo upload** in settings (design mentions it; only name/address/phone exist).
 - [ ] **Retaken subjects** are listed per attempt on the transcript, not merged (IPK counts both).
 - [ ] **Real-time forum** (Laravel Reverb); currently polls every 15 s.
-- [ ] **Queued imports / bill generation** — run synchronously in the request (fine for hundreds of rows).
+- [ ] **Queued imports / bill generation** — measured: 300 mahasantri placed in 0.9 s, billed in 1.7 s
+      (PostgreSQL), so they stay synchronous. Revisit above ~2,000 mahasantri.
 - [ ] **Online payment gateway** — explicitly deferred (design Q7).
 - [ ] **Notifications** (email/WhatsApp for bills, deadlines, verification) — not in scope so far.
-- [ ] **UAT with real data** and production deployment (env, `QUEUE_CONNECTION`, mail for password reset).
+- [ ] **UAT with real users and data** (checklist: `docs/UAT.md`) and production deployment
+      (`docs/OPERATIONS.md`: env, cron for the scheduler, off-server copy of backups, mail for password reset).
 
 ### Known issues / housekeeping
 
@@ -201,17 +206,15 @@ edition) · Tailwind 4 · Alpine (via Livewire) · Fortify (auth, 2FA, passkeys)
 
 ## 5. Immediate next steps (prioritised)
 
-1. ~~Git~~ and ~~user & role management (Superadmin)~~ — done 2026-10-26.
-2. **Phase 5 — hardening**, in this order:
-   1. Indonesian translation: `APP_LOCALE=id`, `lang/id.json` for all `__()` strings, `lang/id/validation.php`.
-   2. Mobile polish: stacked cards for the main tables below `md`; check every page at 375 px.
-   3. Performance pass: indexes for hot queries (bills by semester/status, attendances, submissions),
-      check N+1 on large rosters, consider queued imports/bill generation.
-   4. Backups: scheduled `pg_dump` + private storage, retention ≥ 30 days.
-   5. User guide per role; then UAT with real data.
-3. **Housekeeping:** remove the `boost:update` composer script (or install Boost), delete/adapt
+1. ~~Git~~, ~~user & role management~~ and the Phase 5 build work (translation, mobile, performance,
+   backups, guides) — done 2026-10-26. See DESIGN.md "Phase 5 notes".
+2. **UAT with the institution** using `docs/UAT.md` on a staging copy, with the role guides in
+   `docs/panduan/`. Fix what it finds; get sign-off. Have a native speaker skim the Indonesian wording.
+3. **Production deployment** following `docs/OPERATIONS.md`: cron for `schedule:run`, `BACKUP_PATH` on
+   another disk (or a daily off-server copy), 2FA for staff.
+4. **Housekeeping:** remove the `boost:update` composer script (or install Boost), delete/adapt
    `layouts/app/header.blade.php`, tidy `.env` spacing.
-4. **Later / optional:** transcript handling of retaken subjects, Reverb for the forum, institution logo,
+5. **Later / optional:** transcript handling of retaken subjects, Reverb for the forum, institution logo,
    notifications, payment gateway.
 
 ### How to work on it
@@ -223,14 +226,16 @@ php artisan test --compact           # fast suite (in-memory SQLite)
 composer test:pgsql                  # same suite on PostgreSQL (siakad_test)
 vendor/bin/pint --parallel           # format
 vendor/bin/phpstan analyse --memory-limit=1G   # static analysis
-npm run build                        # rebuild CSS after adding Tailwind classes
+npm run build                        # rebuild CSS/JS after adding Tailwind classes
 php artisan siakad:superadmin        # first account on a fresh/production install
+php artisan siakad:backup            # backup now (also runs daily via the scheduler)
 ```
 
 **Definition of done used so far:** tests for the rules and the pages (both DBs) · Pint + Larastan clean
-· seeder updated · checked in the browser · DESIGN.md "Phase N notes" updated.
+· seeder updated · checked in the browser (also at 375 px) · new UI strings in `lang/id.json`
+(`TranslationTest` fails otherwise) · new list tables get `class="table-stack"` · DESIGN.md notes updated.
 
 ### Suggested opening message for the new chat
 
 > Continue the SIAKAD Mahad Aly project in `D:\herd-laravel\ready`. Read `docs/HANDOVER.md` and
-> `docs/DESIGN.md` first. Continue with Phase 5 from the handover's "Immediate next steps".
+> `docs/DESIGN.md` first. Continue with the handover's "Immediate next steps".

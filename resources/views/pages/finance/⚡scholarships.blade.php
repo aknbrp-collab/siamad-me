@@ -297,7 +297,7 @@ new #[Title('Scholarships')] class extends Component {
                 @endif
 
                 <div class="overflow-x-auto">
-                    <flux:table>
+                    <flux:table class="table-stack">
                         <flux:table.columns>
                             <flux:table.column>{{ __('Mahasantri') }}</flux:table.column>
                             <flux:table.column>{{ __('Semester') }}</flux:table.column>

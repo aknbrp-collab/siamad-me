@@ -51,7 +51,7 @@ new #[Title('Wali santri')] class extends Component {
     <flux:input wire:model.live.debounce.400ms="search" icon="magnifying-glass" :placeholder="__('Search code, guardian, NIM or mahasantri…')" class="mb-4 sm:max-w-sm" />
 
     <div class="overflow-x-auto">
-        <flux:table :paginate="$this->guardians">
+        <flux:table class="table-stack" :paginate="$this->guardians">
             <flux:table.columns>
                 <flux:table.column>{{ __('Code') }}</flux:table.column>
                 <flux:table.column>{{ __('Name') }}</flux:table.column>

@@ -16,12 +16,26 @@
         <flux:callout icon="lock-closed" color="amber" :heading="__('Archive — read only')" :text="__('This semester is closed.')" />
     @endif
 
-    <flux:navbar scrollable class="-mb-px border-b border-zinc-200 dark:border-zinc-700">
-        <flux:navbar.item icon="calendar-days" :href="route('ustadz.offerings.meetings', $offering)" :current="$current === 'meetings'" wire:navigate>{{ __('Meetings') }}</flux:navbar.item>
-        <flux:navbar.item icon="document-text" :href="route('ustadz.offerings.materials', $offering)" :current="$current === 'materials'" wire:navigate>{{ __('Materials') }}</flux:navbar.item>
-        <flux:navbar.item icon="clipboard-document-list" :href="route('ustadz.offerings.assignments', $offering)" :current="$current === 'assignments'" wire:navigate>{{ __('Assignments') }}</flux:navbar.item>
-        <flux:navbar.item icon="question-mark-circle" :href="route('ustadz.offerings.quizzes', $offering)" :current="$current === 'quizzes'" wire:navigate>{{ __('Quizzes') }}</flux:navbar.item>
-        <flux:navbar.item icon="chat-bubble-left-right" :href="route('ustadz.offerings.forum', $offering)" :current="$current === 'forum'" wire:navigate>{{ __('Forum') }}</flux:navbar.item>
-        <flux:navbar.item icon="calculator" :href="route('ustadz.offerings.grades', $offering)" :current="$current === 'grades'" wire:navigate>{{ __('Grades') }}</flux:navbar.item>
+    @php($tabs = [
+        'meetings' => ['calendar-days', __('Meetings')],
+        'materials' => ['document-text', __('Materials')],
+        'assignments' => ['clipboard-document-list', __('Assignments')],
+        'quizzes' => ['question-mark-circle', __('Quizzes')],
+        'forum' => ['chat-bubble-left-right', __('Forum')],
+        'grades' => ['calculator', __('Grades')],
+    ])
+
+    {{-- Phones: every section visible as a grid instead of a tab bar that scrolls out of sight. --}}
+    <div class="grid grid-cols-3 gap-2 sm:hidden">
+        @foreach ($tabs as $tab => [$icon, $label])
+            <flux:button size="sm" :icon="$icon" :variant="$current === $tab ? 'primary' : 'outline'"
+                :href="route('ustadz.offerings.'.$tab, $offering)" wire:navigate>{{ $label }}</flux:button>
+        @endforeach
+    </div>
+
+    <flux:navbar scrollable class="-mb-px border-b border-zinc-200 max-sm:hidden dark:border-zinc-700">
+        @foreach ($tabs as $tab => [$icon, $label])
+            <flux:navbar.item :icon="$icon" :href="route('ustadz.offerings.'.$tab, $offering)" :current="$current === $tab" wire:navigate>{{ $label }}</flux:navbar.item>
+        @endforeach
     </flux:navbar>
 </div>

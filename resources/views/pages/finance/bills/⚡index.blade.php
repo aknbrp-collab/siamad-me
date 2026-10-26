@@ -139,7 +139,7 @@ new #[Title('Bills')] class extends Component {
             __('NIM') => $bill->student->nim,
             __('Name') => $bill->student->user->name,
             __('Net') => $bill->net_amount,
-            __('Paid') => $bill->paid_amount,
+            __('Paid amount') => $bill->paid_amount,
             __('Outstanding') => $bill->status === BillStatus::Void ? 0 : $bill->outstanding(),
             __('Due') => $bill->due_on?->format('Y-m-d'),
             __('Status') => $bill->status->label(),
@@ -175,13 +175,13 @@ new #[Title('Bills')] class extends Component {
     </div>
 
     <div class="overflow-x-auto">
-        <flux:table :paginate="$this->bills">
+        <flux:table class="table-stack" :paginate="$this->bills">
             <flux:table.columns>
                 <flux:table.column>{{ __('Bill') }}</flux:table.column>
                 <flux:table.column>{{ __('Mahasantri') }}</flux:table.column>
                 <flux:table.column class="hidden md:table-cell">{{ __('Class') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Net') }}</flux:table.column>
-                <flux:table.column align="end" class="hidden sm:table-cell">{{ __('Paid') }}</flux:table.column>
+                <flux:table.column align="end" class="hidden sm:table-cell">{{ __('Paid amount') }}</flux:table.column>
                 <flux:table.column>{{ __('Status') }}</flux:table.column>
             </flux:table.columns>
             <flux:table.rows>

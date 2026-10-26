@@ -118,7 +118,7 @@ new #[Title('Mahasantri')] class extends Component {
     </div>
 
     <div class="overflow-x-auto">
-        <flux:table :paginate="$this->students">
+        <flux:table class="table-stack" :paginate="$this->students">
             <flux:table.columns>
                 <flux:table.column>{{ __('NIM') }}</flux:table.column>
                 <flux:table.column>{{ __('Name') }}</flux:table.column>

@@ -153,7 +153,7 @@ new #[Title('Activity log')] class extends Component {
     </div>
 
     <div class="overflow-x-auto">
-        <flux:table :paginate="$this->logs">
+        <flux:table class="table-stack" :paginate="$this->logs">
             <flux:table.columns>
                 <flux:table.column>{{ __('Date') }}</flux:table.column>
                 <flux:table.column>{{ __('Mahasantri') }}</flux:table.column>

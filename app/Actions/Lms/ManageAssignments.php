@@ -8,6 +8,7 @@ use App\Models\CourseEnrollment;
 use App\Models\CourseOffering;
 use App\Models\Submission;
 use App\Models\User;
+use App\Support\Notify;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -41,7 +42,18 @@ class ManageAssignments
             return $assignment;
         }
 
-        return $offering->assignments()->create($data);
+        $created = $offering->assignments()->create($data);
+
+        Notify::send(
+            $offering->enrollments()->with('student.user')->get()->map(fn ($enrollment) => $enrollment->student->user),
+            'work',
+            __('New assignment: :title', ['title' => $created->title]),
+            __(':subject · due :date', ['subject' => $offering->subject_name, 'date' => $created->due_at->translatedFormat('j M Y H:i')]),
+            route('mahasantri.class', [$offering, 'tab' => 'assignments']),
+            'clipboard-document-list',
+        );
+
+        return $created;
     }
 
     public function delete(Assignment $assignment): void

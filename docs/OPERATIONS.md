@@ -31,7 +31,16 @@ Laravel runs scheduled tasks from one cron entry. Add it for the web server user
 ```
 
 On Windows use Task Scheduler: every minute, `php artisan schedule:run` in the project folder.
-Check what is scheduled with `php artisan schedule:list`.
+Check what is scheduled with `php artisan schedule:list`. Scheduled jobs:
+
+| Job | When | What |
+| --- | --- | --- |
+| `siakad:backup` | daily 02:00 | database + private files (section 3) |
+| `siakad:send-reminders` | hourly | in-app reminders: work due within 24 h, bills due in 7 days / today (each once per person) |
+
+Notifications themselves need no queue worker: they are written to the database while the request runs.
+Set `APP_URL` to the address people open; notification links are stored as paths, so a wrong
+`APP_URL` does not break them, but password-reset emails still use it.
 
 ## 3. Backups
 

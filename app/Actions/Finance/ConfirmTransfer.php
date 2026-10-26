@@ -4,9 +4,12 @@ namespace App\Actions\Finance;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentSource;
+use App\Enums\Role;
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Models\User;
+use App\Support\Money;
+use App\Support\Notify;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -47,11 +50,27 @@ class ConfirmTransfer
             'proof.required' => __('Attach the bank receipt (photo or PDF).'),
         ])->validate();
 
-        return $this->recordPayment->handle(
+        $payment = $this->recordPayment->handle(
             $bill,
             $payer,
             [...$input, 'method' => PaymentMethod::Transfer->value],
             PaymentSource::Payer,
         );
+
+        $bill->loadMissing('student.user');
+
+        Notify::send(
+            User::query()->whereHas('roles', fn ($query) => $query->where('role', Role::AdminPayment))->get(),
+            'payment',
+            __('Transfer confirmation from :name', ['name' => $bill->student->user->name]),
+            __(':amount for bill :number', ['amount' => Money::format($payment->amount), 'number' => $bill->number]),
+            route('finance.transfers'),
+            'building-library',
+            $payer,
+            group: 'transfer-queue',
+            countedBody: __(':count transfer confirmations are waiting.'),
+        );
+
+        return $payment;
     }
 }

@@ -12,6 +12,7 @@ use App\Models\Payment;
 use App\Models\PaymentHandover;
 use App\Models\User;
 use App\Support\Money;
+use App\Support\Notify;
 use App\Support\NumberSequence;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -120,6 +121,11 @@ class ReviewPayments
         $this->ensureMayReviewTransfer($payment, $verifier);
 
         DB::transaction(fn () => $this->confirm($payment, $verifier));
+
+        $this->notifyPayer($payment, __('Transfer verified'), __(':amount for bill :number is verified. The official receipt is ready.', [
+            'amount' => Money::format($payment->amount),
+            'number' => $payment->bill->number,
+        ]), 'check-badge');
     }
 
     public function rejectTransfer(Payment $payment, User $verifier, string $reason): void
@@ -135,6 +141,26 @@ class ReviewPayments
         }
 
         DB::transaction(fn () => $this->reject($payment, $verifier, $reason));
+
+        $this->notifyPayer($payment, __('Transfer rejected'), __(':amount for bill :number: :reason', [
+            'amount' => Money::format($payment->amount),
+            'number' => $payment->bill->number,
+            'reason' => trim($reason),
+        ]), 'x-circle');
+    }
+
+    /**
+     * Tell the mahasantri / wali who confirmed a transfer how it was reviewed.
+     */
+    private function notifyPayer(Payment $payment, string $title, string $body, string $icon): void
+    {
+        if ($payment->source !== PaymentSource::Payer) {
+            return;
+        }
+
+        $payer = $payment->loadMissing(['recorder.student', 'bill'])->recorder;
+
+        Notify::send([$payer], 'payment', $title, $body, route($payer->student ? 'mahasantri.bills' : 'wali.bills'), $icon);
     }
 
     /**

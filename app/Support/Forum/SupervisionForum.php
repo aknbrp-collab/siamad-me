@@ -7,6 +7,7 @@ use App\Models\Supervision;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 /**
  * A pembimbing akademik's group forum: the supervising muhadhir moderates;
@@ -53,6 +54,29 @@ final readonly class SupervisionForum implements ForumContext
     public function threads(): Builder
     {
         return ForumThread::query()->where('supervisor_id', $this->supervisor->id);
+    }
+
+    public function participants(): Collection
+    {
+        $students = Supervision::query()->current()
+            ->with('student.user')
+            ->where('teacher_id', $this->supervisor->id)
+            ->get()
+            ->map(fn (Supervision $supervision) => $supervision->student->user);
+
+        return Collection::make([$this->supervisor->loadMissing('user')->user])->merge($students);
+    }
+
+    public function name(): string
+    {
+        return __('the supervision group of :name', ['name' => $this->supervisor->loadMissing('user')->user->name]);
+    }
+
+    public function threadUrl(ForumThread $thread, User $user): string
+    {
+        return $this->moderates($user)
+            ? route('ustadz.supervision.forum', ['thread' => $thread->id])
+            : route('mahasantri.supervision', ['thread' => $thread->id]);
     }
 
     public function threadAttributes(): array

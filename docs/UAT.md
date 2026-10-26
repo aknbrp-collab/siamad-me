@@ -57,6 +57,11 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Sees only their own children; switches child and semester
 - [ ] Grades, attendance, activities, bills and receipts are correct and read-only
 
+## Notifications (any role)
+- [ ] A new forum message, a new assignment and a confirmed transfer each show on the bell of the right people
+- [ ] Clicking a notification opens the right page; "Tandai semua dibaca" clears the bell
+- [ ] With the scheduler running, an assignment due tomorrow and a bill due in 7 days send one reminder each
+
 ## Sign-off
 | Role | Tester | Date | Result |
 | --- | --- | --- | --- |

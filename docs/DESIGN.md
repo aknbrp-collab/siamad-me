@@ -702,3 +702,21 @@ v1 Step 5 (2026-10-27) — pembimbing akademik:
 - Translation fix found on the way: `trans_choice()` strings (28 plural messages such as
   ":count bills created.") were never extracted, so they showed in English. The extractor and
   `TranslationTest` now include them; Indonesian uses one form for both counts.
+
+v1 Step 6 (2026-10-27) — in-app notifications:
+- Laravel database notifications with one class, `SiakadNotice` (kind, title, body, link, icon), sent
+  through `App\Support\Notify`: never to the actor or to deactivated accounts. Text is stored translated
+  at send time.
+- Events: new forum topic and replies (class and supervision forums: the other participants, each with
+  the right link for their role); new assignment (on creation) and quiz (on first publish) to the class;
+  a transfer confirmation to Admin Keuangan; its verification / rejection (with the reason) to the payer.
+- Grouping: replies in one thread share one unread notification per person (":count pesan baru …"); so do
+  waiting transfer confirmations for the finance office.
+- Reminders: `siakad:send-reminders` (hourly) — assignments due within 24 h to those who have not handed
+  in, quizzes closing within 24 h to those who have not started, unpaid bills 7 days before and on the
+  due date to the mahasantri and their wali. `sent_reminders` makes each one go out once per person.
+- Links are stored as **paths**, not full URLs: reminders are created on the command line, where
+  `route()` uses `APP_URL` (found in the browser check: the dev `.env` has `http://ready.test:8000`).
+  Opening a notification marks it read and redirects only to a local path.
+- UI: "Notifikasi" with the unread count at the top of every sidebar, a bell in the phone header, and a
+  list page with "Tandai semua dibaca". Email can be added later as a second channel of `SiakadNotice`.

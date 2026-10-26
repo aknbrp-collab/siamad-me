@@ -34,6 +34,11 @@ diubah bagian akademik), ganti kata sandi,
 aktifkan autentikasi dua faktor atau passkey (**Keamanan**). Staf keuangan dan admin sangat dianjurkan
 mengaktifkan autentikasi dua faktor.
 
+**Notifikasi.** Lonceng di menu (dan di kanan atas pada ponsel) menunjukkan jumlah notifikasi yang
+belum dibaca: pesan forum baru, tugas dan kuis baru, tenggat tugas/kuis dalam 24 jam, tagihan yang jatuh
+tempo 7 hari lagi dan pada harinya, serta konfirmasi transfer. Klik notifikasi untuk langsung membuka
+halamannya; **Tandai semua dibaca** mengosongkan lonceng.
+
 **Di ponsel.** Semua halaman dapat dipakai di ponsel. Menu ada di tombol ☰ kiri atas; tabel tampil
 sebagai kartu.
 

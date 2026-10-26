@@ -95,7 +95,7 @@ New page **Profil saya** for mahasantri, muhadhir and wali santri, reusing the a
 - Mahasantri see their supervisor on the dashboard and can post in the group forum.
 - Subject instructors: no change (already manual, see §1).
 
-### Step 6 — Notifications (medium–large)
+### Step 6 — Notifications (medium–large) — ✅ done 2026-10-27
 In-app notifications (D5; email can be added later without changing the events): a bell with the unread count in the header and a list page; each links to the
 item. Events:
 

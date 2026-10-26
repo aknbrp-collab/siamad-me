@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Http\Controllers\AcademicRecordPdfController;
 use App\Http\Controllers\ImportTemplateController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ScoreTemplateController;
@@ -26,6 +27,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 Route::middleware('portal')->group(function () {
     Route::get('dashboard', fn () => redirect()->route(ActiveRole::get()->homeRoute()))->name('dashboard');
+
+    Route::livewire('notifications', 'pages::notifications')->name('notifications');
+    Route::get('notifications/{id}', NotificationController::class)->whereUuid('id')->name('notifications.open');
 
     Route::prefix('superadmin')->name('superadmin.')->middleware('role:superadmin')->group(function () {
         Route::view('/', 'dashboard', ['role' => Role::Superadmin])->name('dashboard');

@@ -10,6 +10,7 @@ use App\Models\Quiz;
 use App\Models\QuizAnswer;
 use App\Models\QuizAttempt;
 use App\Models\QuizQuestion;
+use App\Support\Notify;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -133,7 +134,21 @@ class ManageQuizzes
             $this->fail('quiz', __('Add at least one question before publishing.'));
         }
 
+        $wasPublished = $quiz->published_at !== null;
         $quiz->update(['published_at' => $publish ? now() : null]);
+
+        if ($publish && ! $wasPublished) {
+            $offering = $quiz->courseOffering;
+
+            Notify::send(
+                $offering->enrollments()->with('student.user')->get()->map(fn ($enrollment) => $enrollment->student->user),
+                'work',
+                __('New quiz: :title', ['title' => $quiz->title]),
+                __(':subject · open until :date', ['subject' => $offering->subject_name, 'date' => $quiz->closes_at->translatedFormat('j M Y H:i')]),
+                route('mahasantri.class', [$offering, 'tab' => 'quizzes']),
+                'question-mark-circle',
+            );
+        }
     }
 
     /**

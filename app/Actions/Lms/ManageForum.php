@@ -8,6 +8,7 @@ use App\Models\ForumThread;
 use App\Models\User;
 use App\Support\Forum\ForumContext;
 use App\Support\Forum\OfferingForum;
+use App\Support\Notify;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -35,13 +36,23 @@ class ManageForum
             $this->fail('body', __('Write a message (max 10,000 characters).'));
         }
 
-        return ForumThread::create([
+        $thread = ForumThread::create([
             ...$context->threadAttributes(),
             'user_id' => $user->id,
             'title' => $title,
             'body' => $body,
             'last_posted_at' => now(),
         ]);
+
+        Notify::send(
+            $context->participants(), 'forum',
+            __('New topic: :title', ['title' => $thread->title]),
+            __(':name in the forum of :forum', ['name' => $user->name, 'forum' => $context->name()]),
+            fn (User $recipient) => $context->threadUrl($thread, $recipient),
+            'chat-bubble-left-right', $user,
+        );
+
+        return $thread;
     }
 
     public function reply(ForumThread $thread, User $user, string $body): ForumPost
@@ -59,12 +70,25 @@ class ManageForum
             $this->fail('reply', __('Write a message (max 10,000 characters).'));
         }
 
-        return DB::transaction(function () use ($thread, $user, $body) {
+        $post = DB::transaction(function () use ($thread, $user, $body) {
             $post = $thread->posts()->create(['user_id' => $user->id, 'body' => $body]);
             $thread->update(['last_posted_at' => now()]);
 
             return $post;
         });
+
+        // One notification per thread while unread: a busy thread does not flood anyone.
+        Notify::send(
+            $context->participants(), 'forum',
+            __('Reply in: :title', ['title' => $thread->title]),
+            __(':name replied in the forum of :forum', ['name' => $user->name, 'forum' => $context->name()]),
+            fn (User $recipient) => $context->threadUrl($thread, $recipient),
+            'chat-bubble-left-right', $user,
+            group: 'forum-thread:'.$thread->id,
+            countedBody: __(':count new messages in the forum of :forum', ['forum' => $context->name()]),
+        );
+
+        return $post;
     }
 
     public function togglePin(ForumThread $thread, User $user): void

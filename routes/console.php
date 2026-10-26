@@ -12,3 +12,6 @@ Artisan::command('inspire', function () {
 Schedule::command('siakad:backup')
     ->dailyAt((string) config('siakad.backup.time'))
     ->withoutOverlapping();
+
+// Work due within 24 hours and bills due in 7 days / today; each reminder is sent once per person.
+Schedule::command('siakad:send-reminders')->hourly()->withoutOverlapping();

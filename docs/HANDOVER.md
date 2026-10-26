@@ -70,7 +70,8 @@ app/
     Teaching/              ManageMeetings, ManageGrades, ImportScores, AcademicRecord (KHS/transcript/attendance)
     UpdateUserProfile.php
   Concerns/                Auditable (audit-log trait), IsPersonalDocument, validation-rule traits
-  Console/Commands/        CreateSuperadmin (php artisan siakad:superadmin), BackupCommand (siakad:backup, daily)
+  Console/Commands/        CreateSuperadmin (php artisan siakad:superadmin), BackupCommand (siakad:backup, daily),
+                           SendReminders (siakad:send-reminders, hourly)
   Enums/                   19 enums: Role (labels, areas, sidebar navigation!), statuses, types…
   Http/Controllers/        PrivateFileController (all private files + access rules), ReceiptController,
                            AcademicRecordPdfController, ImportTemplateController, ScoreTemplateController

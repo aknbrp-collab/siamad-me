@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -145,5 +146,25 @@ class Student extends Model
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class)->latest('happened_on')->latest('id');
+    }
+
+    /**
+     * Every pembimbing akademik this mahasantri has had, newest first.
+     *
+     * @return HasMany<Supervision, $this>
+     */
+    public function supervisions(): HasMany
+    {
+        return $this->hasMany(Supervision::class)->latest('started_on')->latest('id');
+    }
+
+    /**
+     * The current pembimbing akademik, if any.
+     *
+     * @return HasOne<Supervision, $this>
+     */
+    public function currentSupervision(): HasOne
+    {
+        return $this->hasOne(Supervision::class)->whereNull('ended_on');
     }
 }

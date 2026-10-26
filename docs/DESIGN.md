@@ -684,3 +684,21 @@ v1 Step 4 (2026-10-26) — transfer confirmations from mahasantri and wali santr
 - Superadmin sets the institution's bank account(s) in Pengaturan (`payment.bank_accounts`).
 - `App\Livewire\BillsPage` + `Concerns\ConfirmsTransfers` hold the shared page logic (a PHP base class
   so Larastan analyses it, as with `PersonForm`).
+
+v1 Step 5 (2026-10-27) — pembimbing akademik:
+- `supervisions` (student, teacher, started_on, ended_on, assigned_by); a partial unique index allows one
+  open supervision per mahasantri. `ManageSupervision::assign()` closes a different open supervision
+  (ended today) before opening the new one — history is never overwritten; only active muhadhir and
+  active mahasantri. Admin page: **Pembimbing akademik** (`/admin/supervision`).
+- Muhadhir: **Mahasantri bimbingan** (`/muhadhir/supervision`) with class, attendance this semester, IPK
+  and SKS per supervisee; a read-only record page (KHS, transcript, activities) open only to the current
+  supervisor. The list computes each supervisee's transcript separately, so its queries grow with the
+  group size — fine for groups of tens; batch it if groups get much larger.
+- Forum generalised behind `App\Support\Forum\ForumContext`: `OfferingForum` (class: muhadhir +
+  enrolled mahasantri, read-only after the semester closes) and `SupervisionForum` (supervisor +
+  current supervisees, never read-only). `forum_threads.course_offering_id` is now nullable and
+  `supervisor_id` was added; `ForumThread::context()` picks the right one. A mahasantri moved to another
+  supervisor loses access to the old group forum.
+- Translation fix found on the way: `trans_choice()` strings (28 plural messages such as
+  ":count bills created.") were never extracted, so they showed in English. The extractor and
+  `TranslationTest` now include them; Indonesian uses one form for both counts.

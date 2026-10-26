@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Concerns\Auditable;
+use App\Support\Forum\ForumContext;
+use App\Support\Forum\OfferingForum;
+use App\Support\Forum\SupervisionForum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +16,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $course_offering_id
+ * @property int|null $course_offering_id Set for a class forum
+ * @property int|null $supervisor_id Set for a supervision group forum (the supervising muhadhir)
  * @property int $user_id
  * @property string $title
  * @property string $body
@@ -22,10 +26,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon $last_posted_at
  * @property Carbon $created_at
  * @property-read User $user
- * @property-read CourseOffering $courseOffering
+ * @property-read CourseOffering|null $courseOffering
+ * @property-read Teacher|null $supervisor
  * @property-read Collection<int, ForumPost> $posts
  */
-#[Fillable(['course_offering_id', 'user_id', 'title', 'body', 'is_pinned', 'is_locked', 'last_posted_at'])]
+#[Fillable(['course_offering_id', 'supervisor_id', 'user_id', 'title', 'body', 'is_pinned', 'is_locked', 'last_posted_at'])]
 class ForumThread extends Model
 {
     use Auditable, SoftDeletes;
@@ -66,6 +71,26 @@ class ForumThread extends Model
     public function courseOffering(): BelongsTo
     {
         return $this->belongsTo(CourseOffering::class);
+    }
+
+    /**
+     * The forum this thread belongs to: its class, or its supervision group.
+     */
+    public function context(): ForumContext
+    {
+        return $this->course_offering_id !== null
+            ? new OfferingForum($this->loadMissing('courseOffering')->courseOffering)
+            : new SupervisionForum($this->loadMissing('supervisor')->supervisor);
+    }
+
+    /**
+     * The supervising muhadhir, for a supervision group thread.
+     *
+     * @return BelongsTo<Teacher, $this>
+     */
+    public function supervisor(): BelongsTo
+    {
+        return $this->belongsTo(Teacher::class, 'supervisor_id');
     }
 
     /**

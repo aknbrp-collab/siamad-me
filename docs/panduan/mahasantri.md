@@ -34,6 +34,12 @@ Daftar mata kuliah semester ini sesuai jadwal. Buka kelas untuk melihat:
 
 Di ponsel, pilih bagian kelas lewat menu tarik-turun di atas halaman.
 
+## Pembimbing akademik
+
+Menu **Pembimbing akademik** menampilkan muhadhir pembimbing Anda beserta kontaknya, dan **forum
+bimbingan** untuk berdiskusi dengan pembimbing dan teman satu bimbingan. Pembimbing dapat melihat nilai,
+presensi, dan catatan kegiatan Anda untuk membantu studi Anda.
+
 ## KHS dan transkrip
 
 - **KHS**: pilih semester untuk melihat SKS, nilai, nilai huruf, dan IPS. Hanya nilai yang sudah final

@@ -4,7 +4,10 @@ use App\Actions\Lms\ManageForum;
 use App\Models\CourseOffering;
 use App\Models\ForumPost;
 use App\Models\ForumThread;
-use App\Support\OfferingAccess;
+use App\Models\Teacher;
+use App\Support\Forum\ForumContext;
+use App\Support\Forum\OfferingForum;
+use App\Support\Forum\SupervisionForum;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -13,11 +16,16 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Class discussion, embedded in the ustadz and mahasantri class pages.
+ * Forum discussion, embedded in the class pages (pass an offering) and the
+ * pembimbing akademik pages (pass the supervising muhadhir).
  */
 new class extends Component {
+    /** offering | supervision */
     #[Locked]
-    public int $offeringId;
+    public string $scope = 'offering';
+
+    #[Locked]
+    public int $scopeId;
 
     #[Url(as: 'thread')]
     public ?int $threadId = null;
@@ -26,23 +34,29 @@ new class extends Component {
     public string $newBody = '';
     public string $reply = '';
 
-    public function mount(CourseOffering $offering): void
+    public function mount(?CourseOffering $offering = null, ?Teacher $supervisor = null): void
     {
-        abort_unless(OfferingAccess::participates(auth()->user(), $offering), 403);
+        [$this->scope, $this->scopeId] = match (true) {
+            $offering !== null => ['offering', $offering->id],
+            $supervisor !== null => ['supervision', $supervisor->id],
+            default => abort(404),
+        };
 
-        $this->offeringId = $offering->id;
+        abort_unless($this->context->participates(auth()->user()), 403);
     }
 
     #[Computed]
-    public function offering(): CourseOffering
+    public function context(): ForumContext
     {
-        return CourseOffering::query()->with('semester')->findOrFail($this->offeringId);
+        return $this->scope === 'offering'
+            ? new OfferingForum(CourseOffering::query()->with('semester')->findOrFail($this->scopeId))
+            : new SupervisionForum(Teacher::query()->findOrFail($this->scopeId));
     }
 
     #[Computed]
     public function isTeacher(): bool
     {
-        return OfferingAccess::teaches(auth()->user(), $this->offering);
+        return $this->context->moderates(auth()->user());
     }
 
     /**
@@ -51,7 +65,7 @@ new class extends Component {
     #[Computed]
     public function threads(): Collection
     {
-        return $this->offering->forumThreads()
+        return $this->context->threads()
             ->with('user')
             ->withCount('posts')
             ->orderByDesc('is_pinned')
@@ -64,7 +78,7 @@ new class extends Component {
     {
         return $this->threadId === null
             ? null
-            : $this->offering->forumThreads()->with(['user', 'posts.user'])->find($this->threadId);
+            : $this->context->threads()->with(['user', 'posts.user'])->find($this->threadId);
     }
 
     public function open(int $id): void
@@ -83,7 +97,7 @@ new class extends Component {
     {
         $this->resetErrorBag();
 
-        $thread = $forum->startThread($this->offering, auth()->user(), $this->newTitle, $this->newBody);
+        $thread = $forum->startThread($this->context, auth()->user(), $this->newTitle, $this->newBody);
 
         $this->reset('newTitle', 'newBody');
         Flux::modal('new-thread')->close();
@@ -94,7 +108,7 @@ new class extends Component {
     {
         $this->resetErrorBag();
 
-        $forum->reply($this->offering->forumThreads()->findOrFail($this->threadId), auth()->user(), $this->reply);
+        $forum->reply($this->context->threads()->findOrFail($this->threadId), auth()->user(), $this->reply);
 
         $this->reply = '';
         unset($this->thread);
@@ -102,13 +116,13 @@ new class extends Component {
 
     public function togglePin(ManageForum $forum): void
     {
-        $forum->togglePin($this->offering->forumThreads()->findOrFail($this->threadId), auth()->user());
+        $forum->togglePin($this->context->threads()->findOrFail($this->threadId), auth()->user());
         unset($this->thread, $this->threads);
     }
 
     public function toggleLock(ManageForum $forum): void
     {
-        $forum->toggleLock($this->offering->forumThreads()->findOrFail($this->threadId), auth()->user());
+        $forum->toggleLock($this->context->threads()->findOrFail($this->threadId), auth()->user());
         unset($this->thread);
     }
 
@@ -116,7 +130,7 @@ new class extends Component {
     {
         $this->resetErrorBag();
 
-        $post = ForumPost::query()->whereIn('forum_thread_id', $this->offering->forumThreads()->select('id'))->findOrFail($postId);
+        $post = ForumPost::query()->whereIn('forum_thread_id', $this->context->threads()->select('id'))->findOrFail($postId);
         $forum->deletePost($post, auth()->user());
 
         unset($this->thread);
@@ -126,7 +140,7 @@ new class extends Component {
     {
         $this->resetErrorBag();
 
-        $forum->deleteThread($this->offering->forumThreads()->findOrFail($this->threadId), auth()->user());
+        $forum->deleteThread($this->context->threads()->findOrFail($this->threadId), auth()->user());
 
         $this->threadId = null;
         unset($this->threads);
@@ -134,7 +148,7 @@ new class extends Component {
 }; ?>
 
 <div wire:poll.visible.15s>
-    @php($readOnly = $this->offering->semester->isLocked())
+    @php($readOnly = $this->context->isReadOnly())
 
     @foreach (['reply', 'title', 'body', 'semester'] as $key)
         @error($key)

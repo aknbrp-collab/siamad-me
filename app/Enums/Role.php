@@ -101,8 +101,12 @@ enum Role: string
         ];
 
         $groups = [
-            ['heading' => $this->label(), 'items' => [$item(__('Dashboard'), 'home', $this->homeRoute(), $this === self::Teacher ? 'ustadz.*' : null)]],
+            ['heading' => $this->label(), 'items' => [$item(__('Dashboard'), 'home', $this->homeRoute(), $this === self::Teacher ? 'ustadz.dashboard|ustadz.offerings.*' : null)]],
         ];
+
+        if ($this === self::Teacher) {
+            $groups[0]['items'][] = $item(__('My supervisees'), 'user-group', 'ustadz.supervision', 'ustadz.supervision*');
+        }
 
         if ($this === self::AcademicMonitor) {
             $groups[0]['items'][] = $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities');
@@ -113,6 +117,7 @@ enum Role: string
             $groups[0]['items'][] = $item(__('KHS'), 'document-chart-bar', 'mahasantri.khs');
             $groups[0]['items'][] = $item(__('Transcript'), 'academic-cap', 'mahasantri.transcript');
             $groups[0]['items'][] = $item(__('My bills'), 'banknotes', 'mahasantri.bills');
+            $groups[0]['items'][] = $item(__('Academic supervisor'), 'user', 'mahasantri.supervision');
         }
 
         if ($this === self::Guardian) {
@@ -142,6 +147,7 @@ enum Role: string
                 $item(__('Mahasantri'), 'academic-cap', 'admin.students.index', 'admin.students.*'),
                 $item(__('Ustadz'), 'user', 'admin.teachers.index', 'admin.teachers.*'),
                 $item(__('Wali santri'), 'users', 'admin.guardians.index', 'admin.guardians.*'),
+                $item(__('Academic supervisors'), 'user-group', 'admin.supervision'),
                 $item(__('Documents'), 'document-check', 'admin.documents'),
                 $item(__('Import'), 'arrow-up-tray', 'admin.imports'),
             ]];

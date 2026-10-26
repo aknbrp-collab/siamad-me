@@ -103,7 +103,7 @@ resources/views/
     monitor/               dashboard, activities
     profile/               documents (owner upload), biodata (Profil saya: own profile, per role)
     settings/              starter-kit profile/security/appearance (profile adapted)
-    shared/                forum (embedded in ustadz + mahasantri pages)
+    shared/                forum (class forum or supervision group forum; embedded in several pages)
     superadmin/            settings, audit-logs, users/{index,form}
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades}
     wali/                  academic, bills

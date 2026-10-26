@@ -86,7 +86,7 @@ New page **Profil saya** for mahasantri, muhadhir and wali santri, reusing the a
   reason; the payer sees the status and the reason, and can submit again. Verified → official receipt,
   as today. Separation of duties holds: the payer submitted it, staff verify it.
 
-### Step 5 — Academic supervisor (Pembimbing Akademik) (medium)
+### Step 5 — Academic supervisor (Pembimbing Akademik) (medium) — ✅ done 2026-10-27
 - Admin assigns a muhadhir as **pembimbing akademik** to mahasantri (bulk, by class), with history
   (when the supervisor changes, the old assignment is closed, never overwritten).
 - The muhadhir gets **"Mahasantri bimbingan"**: their list with each one's KHS, attendance, and

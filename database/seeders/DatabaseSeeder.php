@@ -14,6 +14,7 @@ use App\Actions\Lms\ManageAssignments;
 use App\Actions\Lms\ManageForum;
 use App\Actions\Lms\ManageQuizzes;
 use App\Actions\Lms\RecordActivity;
+use App\Actions\Supervision\ManageSupervision;
 use App\Actions\Teaching\ManageGrades;
 use App\Actions\Teaching\ManageMeetings;
 use App\Enums\DocumentType;
@@ -34,6 +35,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\Subject;
 use App\Models\User;
+use App\Support\Forum\SupervisionForum;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -127,6 +129,12 @@ class DatabaseSeeder extends Seeder
 
         $this->seedTeaching($fiqhClass, $nahwuClass, $ahmad->user);
         $this->seedClassroom($fiqhClass, $ahmad->user, $staff['monitor']);
+
+        // Pembimbing akademik: Ahmad supervises the putra, Hasan the putri.
+        $supervision = app(ManageSupervision::class);
+        $supervision->assign($ahmad, array_values($putra->map(fn (Student $student) => $student->id)->all()), $staff['admin']);
+        $supervision->assign($hasan, array_values($putri->map(fn (Student $student) => $student->id)->all()), $staff['admin']);
+        app(ManageForum::class)->startThread(new SupervisionForum($ahmad), $ahmad->user, 'Rencana studi semester ini', 'Silakan tulis target hafalan dan kitab yang ingin diselesaikan semester ini.');
     }
 
     /**

@@ -98,4 +98,14 @@ class Teacher extends Model
     {
         return $this->hasMany(CourseOffering::class);
     }
+
+    /**
+     * Mahasantri this muhadhir supervises now or did before (pembimbing akademik).
+     *
+     * @return HasMany<Supervision, $this>
+     */
+    public function supervisions(): HasMany
+    {
+        return $this->hasMany(Supervision::class);
+    }
 }

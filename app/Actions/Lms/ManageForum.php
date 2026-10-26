@@ -6,19 +6,23 @@ use App\Models\CourseOffering;
 use App\Models\ForumPost;
 use App\Models\ForumThread;
 use App\Models\User;
-use App\Support\OfferingAccess;
+use App\Support\Forum\ForumContext;
+use App\Support\Forum\OfferingForum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Class discussion: the ustadz and enrolled mahasantri post; the ustadz
- * moderates (pin, lock, remove). Read-only once the semester is closed.
+ * Forum discussion, for a class (muhadhir and enrolled mahasantri) or a
+ * pembimbing akademik's supervision group (supervisor and supervisees). The
+ * muhadhir of the forum moderates (pin, lock, remove). A class forum is
+ * read-only once its semester is closed.
  */
 class ManageForum
 {
-    public function startThread(CourseOffering $offering, User $user, string $title, string $body): ForumThread
+    public function startThread(CourseOffering|ForumContext $forum, User $user, string $title, string $body): ForumThread
     {
-        $this->ensureParticipant($offering, $user);
+        $context = $forum instanceof CourseOffering ? new OfferingForum($forum) : $forum;
+        $this->ensureParticipant($context, $user);
 
         $title = trim($title);
         $body = trim($body);
@@ -31,7 +35,8 @@ class ManageForum
             $this->fail('body', __('Write a message (max 10,000 characters).'));
         }
 
-        return $offering->forumThreads()->create([
+        return ForumThread::create([
+            ...$context->threadAttributes(),
             'user_id' => $user->id,
             'title' => $title,
             'body' => $body,
@@ -41,10 +46,10 @@ class ManageForum
 
     public function reply(ForumThread $thread, User $user, string $body): ForumPost
     {
-        $offering = $thread->loadMissing('courseOffering')->courseOffering;
-        $this->ensureParticipant($offering, $user);
+        $context = $thread->context();
+        $this->ensureParticipant($context, $user);
 
-        if ($thread->is_locked && ! OfferingAccess::teaches($user, $offering)) {
+        if ($thread->is_locked && ! $context->moderates($user)) {
             $this->fail('reply', __('This topic is locked.'));
         }
 
@@ -75,14 +80,14 @@ class ManageForum
     }
 
     /**
-     * Authors remove their own posts; the ustadz can remove any.
+     * Authors remove their own posts; the forum's muhadhir can remove any.
      */
     public function deletePost(ForumPost $post, User $user): void
     {
-        $thread = $post->loadMissing('thread.courseOffering')->thread;
-        $this->ensureParticipant($thread->courseOffering, $user);
+        $context = $post->loadMissing('thread')->thread->context();
+        $this->ensureParticipant($context, $user);
 
-        if ($post->user_id !== $user->id && ! OfferingAccess::teaches($user, $thread->courseOffering)) {
+        if ($post->user_id !== $user->id && ! $context->moderates($user)) {
             $this->fail('reply', __('You can only remove your own messages.'));
         }
 
@@ -91,9 +96,10 @@ class ManageForum
 
     public function deleteThread(ForumThread $thread, User $user): void
     {
-        $this->ensureParticipant($thread->loadMissing('courseOffering')->courseOffering, $user);
+        $context = $thread->context();
+        $this->ensureParticipant($context, $user);
 
-        if ($thread->user_id !== $user->id && ! OfferingAccess::teaches($user, $thread->courseOffering)) {
+        if ($thread->user_id !== $user->id && ! $context->moderates($user)) {
             $this->fail('reply', __('You can only remove your own topics.'));
         }
 
@@ -102,19 +108,19 @@ class ManageForum
 
     private function ensureModerator(ForumThread $thread, User $user): void
     {
-        $offering = $thread->loadMissing('courseOffering')->courseOffering;
-        $this->ensureParticipant($offering, $user);
+        $context = $thread->context();
+        $this->ensureParticipant($context, $user);
 
-        if (! OfferingAccess::teaches($user, $offering)) {
+        if (! $context->moderates($user)) {
             $this->fail('reply', __('Only the ustadz can moderate the forum.'));
         }
     }
 
-    private function ensureParticipant(CourseOffering $offering, User $user): void
+    private function ensureParticipant(ForumContext $context, User $user): void
     {
-        $offering->loadMissing('semester')->semester->assertOpen();
+        $context->assertWritable();
 
-        abort_unless(OfferingAccess::participates($user, $offering), 403);
+        abort_unless($context->participates($user), 403);
     }
 
     private function fail(string $key, string $message): never

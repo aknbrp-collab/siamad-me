@@ -26,6 +26,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Open the next semester: copying rosters moves everyone up one semester into the same-gender class
 - [ ] Verify and reject an uploaded document (the owner sees the note)
 - [ ] Verify a cash handover (reject one payment in it) and a transfer
+- [ ] Assign a pembimbing akademik to a class of mahasantri; change one mahasantri's supervisor (the old one stays in the history)
 - [ ] Close the semester; check that it is read-only
 - [ ] A mahasantri who retook a subject: the transcript lists it once with the best grade and the IPK counts only that; the old semester's KHS is unchanged
 
@@ -40,6 +41,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Add meetings (one online) and take attendance
 - [ ] Materials, an assignment with grading, a quiz with an essay question
 - [ ] Grade components, enter scores by hand and by Excel import, copy assignment/quiz scores, finalise
+- [ ] As pembimbing akademik: the supervisee list matches; open one supervisee's record; post in the group forum
 
 ## Pemantau Akademik
 - [ ] Dashboard shows the right attendance percentages and the below-minimum list

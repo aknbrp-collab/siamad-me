@@ -4,13 +4,13 @@ use App\Enums\Role;
 use App\Models\User;
 
 /**
- * Every literal __('…') / #[Title('…')] key in app, views and routes.
+ * Every literal __('…') / trans_choice('…') / #[Title('…')] key in app, views and routes.
  *
  * @return list<string>
  */
 function translationKeys(): array
 {
-    $pattern = '/(?:\b__|@lang|\btrans|#\[Title|\$this->text)\(\s*(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")\s*[,)]/s';
+    $pattern = '/(?:\b__|@lang|\btrans_choice|\btrans|#\[Title|\$this->text)\(\s*(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")\s*[,)]/s';
     $keys = [];
 
     foreach (['app', 'resources/views', 'routes'] as $dir) {
@@ -49,12 +49,15 @@ test('translations keep their placeholders', function () {
     $translations = json_decode((string) file_get_contents(lang_path('id.json')), true);
 
     foreach ($translations as $key => $value) {
+        // Sets, not lists: a plural key ("…|…") repeats its placeholders; Indonesian needs one form.
         preg_match_all('/:[a-z_]+/', $key, $expected);
         preg_match_all('/:[a-z_]+/', $value, $actual);
-        sort($expected[0]);
-        sort($actual[0]);
+        $expected = array_values(array_unique($expected[0]));
+        $actual = array_values(array_unique($actual[0]));
+        sort($expected);
+        sort($actual);
 
-        expect($actual[0])->toBe($expected[0], "Placeholders differ in: {$key}");
+        expect($actual)->toBe($expected, "Placeholders differ in: {$key}");
     }
 });
 

@@ -36,6 +36,14 @@ sementara baru) dan **Nonaktifkan login**. Jangan menghapus orang; nonaktifkan a
 **Dokumen** — KTP, KK, dan ijazah yang diunggah mahasantri/muhadhir. Periksa lalu **Verifikasi**, atau
 **Tolak** dengan catatan (pemilik melihat catatan dan dapat mengunggah ulang).
 
+## Pembimbing akademik
+
+Menu **Data orang → Pembimbing akademik**. Pilih muhadhir di kiri, lalu centang mahasantri (saring per
+kelas, nama, atau **Hanya yang belum punya pembimbing**) dan klik **Tetapkan kepada …**. Setiap mahasantri
+memiliki satu pembimbing pada satu waktu; menetapkan pembimbing lain menutup yang lama, dan riwayatnya
+tetap tersimpan. **Akhiri** menghentikan bimbingan (mis. mahasantri lulus). Pembimbing melihat KHS,
+presensi, transkrip, dan catatan kegiatan mahasantri bimbingannya, dan berdiskusi di forum bimbingan.
+
 ## Membuka semester baru
 
 1. **Tahun akademik** → buka semester baru.

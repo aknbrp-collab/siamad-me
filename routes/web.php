@@ -59,6 +59,8 @@ Route::middleware('portal')->group(function () {
         Route::livewire('guardians/create', 'pages::admin.guardians.form')->name('guardians.create');
         Route::livewire('guardians/{guardian}', 'pages::admin.guardians.form')->name('guardians.edit');
 
+        Route::livewire('supervision', 'pages::admin.supervision')->name('supervision');
+
         Route::livewire('payments', 'pages::admin.payments')->name('payments');
 
         Route::livewire('documents', 'pages::admin.documents')->name('documents');
@@ -109,6 +111,11 @@ Route::middleware('portal')->group(function () {
         Route::livewire('offerings/{offering}/quizzes', 'pages::ustadz.offerings.quizzes')->name('offerings.quizzes');
         Route::livewire('offerings/{offering}/quizzes/{quiz}', 'pages::ustadz.offerings.quiz')->name('offerings.quiz');
         Route::livewire('offerings/{offering}/forum', 'pages::ustadz.offerings.forum')->name('offerings.forum');
+
+        // Pembimbing akademik: the muhadhir's supervisees and their group forum.
+        Route::livewire('supervision', 'pages::ustadz.supervision.index')->name('supervision');
+        Route::livewire('supervision/forum', 'pages::ustadz.supervision.forum')->name('supervision.forum');
+        Route::livewire('supervision/{student}', 'pages::ustadz.supervision.student')->name('supervision.student');
     });
 
     Route::prefix('mahasantri')->name('mahasantri.')->middleware('role:student')->group(function () {
@@ -119,6 +126,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('classes/{offering}', 'pages::mahasantri.class')->name('class');
         Route::livewire('quiz-attempts/{attempt}', 'pages::mahasantri.quiz-attempt')->name('quiz-attempt');
         Route::livewire('transcript', 'pages::mahasantri.transcript')->name('transcript');
+        Route::livewire('supervision', 'pages::mahasantri.supervision')->name('supervision');
     });
 
     Route::prefix('wali')->name('wali.')->middleware('role:guardian')->group(function () {

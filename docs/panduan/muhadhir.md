@@ -9,6 +9,14 @@ dan Google Scholar. NIDM (ID login Anda) dan status kepegawaian dikelola bagian 
 
 Anda juga diminta mengunggah KTP, KK, dan ijazah di **Dokumen saya**.
 
+## Mahasantri bimbingan (pembimbing akademik)
+
+Jika Anda ditetapkan sebagai pembimbing akademik, menu **Mahasantri bimbingan** menampilkan mahasantri
+bimbingan Anda: kelas, presensi semester ini (merah jika di bawah batas minimum), IPK, dan SKS. Klik nama
+untuk melihat KHS per semester, transkrip, dan catatan kegiatan pesantren (hanya baca). **Forum
+bimbingan** adalah forum bersama Anda dan semua mahasantri bimbingan; Anda dapat menyematkan, mengunci,
+dan menghapus topik/pesan. Penetapan pembimbing dilakukan Admin.
+
 ## Pertemuan dan presensi
 
 1. **Tambah pertemuan**: tanggal, topik, dan mode: **Tatap muka** atau **Daring** dengan tautan

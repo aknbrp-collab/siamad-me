@@ -2,6 +2,7 @@
 
 use App\Actions\Enrollment\ManageClassEnrollments;
 use App\Actions\Finance\GenerateBills;
+use App\Actions\Finance\ReviewPayments;
 use App\Enums\BillStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\Role;
@@ -229,3 +230,63 @@ test('amounts in words read correctly', function (int $amount, string $words) {
     [1_000, 'seribu rupiah'],
     [21_500_000, 'dua puluh satu juta lima ratus ribu rupiah'],
 ]);
+
+test('amounts accept any whole rupiah, not only steps of 1000 from 1', function () {
+    $fee = FeeType::factory()->create();
+    FeeRate::create(['fee_type_id' => $fee->id, 'academic_year_id' => $this->semester->academic_year_id, 'amount' => 3_000_000]);
+    app(GenerateBills::class)->handle($this->semester);
+    $bill = Bill::query()->sole();
+
+    actAs($this->cashier);
+
+    // The browser refuses a value that does not fit min + n × step: 2,000,000 failed with min=1, step=1000.
+    $this->get(route('finance.bills.show', $bill))->assertOk()->assertDontSee('step="1000"', false);
+    $this->get(route('finance.fees'))->assertOk()->assertDontSee('step="1000"', false);
+
+    Livewire::test('pages::finance.bills.show', ['bill' => $bill])
+        ->set('amount', 2_000_000)
+        ->set('paidOn', now()->toDateString())
+        ->call('recordPayment')
+        ->assertHasNoErrors();
+
+    expect($bill->payments()->sole()->amount)->toBe(2_000_000);
+});
+
+test('arrears of a closed semester are listed and can still be paid and verified', function () {
+    $fee = FeeType::factory()->create();
+    FeeRate::create(['fee_type_id' => $fee->id, 'academic_year_id' => $this->semester->academic_year_id, 'amount' => 1_000_000]);
+    app(GenerateBills::class)->handle($this->semester);
+    $bill = Bill::query()->sole();
+
+    $this->semester->update(['status' => 'closed']);
+    $next = Semester::factory()->active()->create();
+
+    actAs($this->cashier);
+
+    // The page opens on the active semester; "all semesters" + "not fully paid" shows the arrears.
+    Livewire::test('pages::finance.bills.index')
+        ->assertSet('semesterId', $next->id)
+        ->assertDontSee($bill->number)
+        ->set('semesterId', 0)
+        ->set('status', 'outstanding')
+        ->assertSee($bill->number)
+        ->assertSee($this->semester->label());
+
+    Livewire::test('pages::finance.bills.show', ['bill' => $bill])
+        ->set('amount', 1_000_000)
+        ->set('paidOn', now()->toDateString())
+        ->call('recordPayment')
+        ->assertHasNoErrors();
+
+    $payment = $bill->payments()->sole();
+    $handover = app(ReviewPayments::class)->handOver($this->cashier, [$payment->id]);
+    app(ReviewPayments::class)->completeHandover($handover, $this->admin);
+
+    expect($bill->fresh()->status)->toBe(BillStatus::Paid);
+
+    // Fully paid bills drop out of the arrears view.
+    Livewire::test('pages::finance.bills.index')
+        ->set('semesterId', 0)
+        ->set('status', 'outstanding')
+        ->assertDontSee($bill->number);
+});

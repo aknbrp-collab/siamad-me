@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard')->name('home');
 
+// The muhadhir area was /ustadz before it was renamed; keep old links working.
+Route::get('ustadz/{path?}', fn (?string $path = null) => redirect('/muhadhir'.($path ? '/'.$path : ''), 301))
+    ->where('path', '.*');
+
 Route::middleware(['auth', 'active'])->group(function () {
     Route::livewire('password/change', 'pages::auth.change-password')->name('password.change');
 
@@ -88,7 +92,8 @@ Route::middleware('portal')->group(function () {
         Route::livewire('activities', 'pages::monitor.activities')->name('activities');
     });
 
-    Route::prefix('ustadz')->name('ustadz.')->middleware('role:teacher')->group(function () {
+    // Shown to users as "muhadhir"; route names keep the internal "ustadz." prefix.
+    Route::prefix('muhadhir')->name('ustadz.')->middleware('role:teacher')->group(function () {
         Route::livewire('/', 'pages::ustadz.dashboard')->name('dashboard');
         Route::livewire('offerings/{offering}/meetings', 'pages::ustadz.offerings.meetings')->name('offerings.meetings');
         Route::livewire('offerings/{offering}/grades', 'pages::ustadz.offerings.grades')->name('offerings.grades');

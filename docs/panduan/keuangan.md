@@ -48,7 +48,11 @@ beserta nomor setoran (STR/…) kepada Admin. Admin menghitung dan memverifikasi
 kurang, pembayaran itu ditolak dengan alasan. Transfer tidak perlu disetor: Admin memverifikasinya
 langsung dari rekening koran.
 
-## 6. Membatalkan tagihan
+## 6. Tunggakan dan membatalkan tagihan
+
+**Tunggakan dari tahun akademik yang sudah ditutup** tetap dapat dibayar. Di **Tagihan**, pilih
+**Semua semester** dan status **Belum lunas** untuk melihat semua tagihan yang belum lunas dari semester
+mana pun, lalu buka tagihannya dan **Catat pembayaran** seperti biasa.
 
 Tagihan yang belum memiliki pembayaran dapat dibatalkan (**Batalkan tagihan**, wajib alasan), lalu dibuat
 ulang dengan **Buat tagihan**. Tagihan semester yang sudah ditutup tidak dapat dibatalkan, tetapi

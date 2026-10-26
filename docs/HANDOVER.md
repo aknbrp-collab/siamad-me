@@ -33,7 +33,7 @@ PostgreSQL · Larastan 0 errors · Pint clean. Every phase was also checked in t
 | Admin | username | `/admin` | academic setup, people, documents, import, payment verification, monitor |
 | Admin Payment | username | `/finance` | fees, bills, payments, cash handovers, scholarships |
 | Academic Monitor | username | `/monitor` | attendance/grade monitoring, activity log |
-| Ustadz (teacher) | NIDM | `/ustadz` | own classes: meetings, materials, assignments, quizzes, forum, grades |
+| Muhadhir (teacher; called Ustadz before v1) | NIDM | `/muhadhir` (old `/ustadz` links redirect) | own classes: meetings, materials, assignments, quizzes, forum, grades |
 | Mahasantri (student) | NIM | `/mahasantri` | my classes, KHS, transcript, bills, documents |
 | Wali santri (guardian) | `WS-XXXXXXXX` | `/wali` | children's academic progress, activities, bills (read-only) |
 

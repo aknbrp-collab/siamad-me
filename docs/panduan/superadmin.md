@@ -22,10 +22,10 @@ saring per peran atau status.
    **Unduh**. Pengguna wajib menggantinya saat login pertama.
 
 **Memberi peran tambahan.** Buka akun, centang peran staf di bagian **Peran**, lalu **Simpan peran**.
-Contoh umum: ustadz yang juga Pemantau Akademik. Peran berlaku sejak permintaan berikutnya dari pengguna.
+Contoh umum: muhadhir yang juga Pemantau Akademik. Peran berlaku sejak permintaan berikutnya dari pengguna.
 
 Aturan yang dijaga sistem:
-- Peran Ustadz, Mahasantri, dan Wali Santri melekat pada profilnya dan tidak diubah di sini. Nama dan
+- Peran Muhadhir, Mahasantri, dan Wali Santri melekat pada profilnya dan tidak diubah di sini. Nama dan
   biodata orang tersebut diubah di halaman profilnya (tautan tersedia di halaman akun).
 - Akun mahasantri dan wali santri tidak dapat diberi peran staf.
 - Anda tidak dapat menghapus peran Superadmin atau menonaktifkan login milik Anda sendiri.

@@ -630,3 +630,12 @@ Retaken subjects (2026-10-26, decided with the client):
   cover the listed rows only.
 - The **KHS is unchanged**: each semester keeps its own attempt and its IPS, as the historical record.
 - Logic: `AcademicRecord::transcript()` (web pages and PDF share it).
+
+v1 Step 1 (2026-10-26, see `docs/req/v1-plan.md`):
+- Amount inputs use `step="1"`: with `min="1" step="1000"` browsers refused every round amount
+  (2,000,000 → "nearest valid values 1,999,001 and 2,000,001").
+- Tagihan: semester filter **Semua semester** and status **Belum lunas** (unpaid + partly paid) show
+  arrears across closed years. Paying a closed semester's bill was already allowed; now tested end to end.
+- **Ustadz → Muhadhir** in every Indonesian string, guide and the URL (`/muhadhir`, `/ustadz/*` redirects
+  with 301). Internal names (`Teacher`, `teachers`, route names `ustadz.*`, English source strings) are
+  unchanged; `TranslationTest` fails if an Indonesian string says "ustadz" again.

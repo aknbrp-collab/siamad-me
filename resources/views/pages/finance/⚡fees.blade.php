@@ -326,7 +326,7 @@ new #[Title('Fees')] class extends Component {
                 </flux:select>
                 <flux:input wire:model="rateEntryYear" :label="__('Angkatan (entry year)')" type="number" :placeholder="__('All')" />
             </div>
-            <flux:input wire:model="rateAmount" :label="__('Amount (Rp)')" type="number" min="0" step="1000" required
+            <flux:input wire:model="rateAmount" :label="__('Amount (Rp)')" type="number" min="0" step="1" required
                 :description:trailing="__('For monthly fees, the amount per month.')" />
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>

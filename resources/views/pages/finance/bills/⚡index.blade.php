@@ -21,8 +21,14 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 new #[Title('Bills')] class extends Component {
     use WithPagination;
 
+    /** Semester to show; ALL_SEMESTERS lists bills of every semester (e.g. arrears of closed years). */
     #[Url(as: 'semester')]
     public ?int $semesterId = null;
+
+    public const ALL_SEMESTERS = 0;
+
+    /** Status filter value for unpaid and partly paid bills together. */
+    public const OUTSTANDING = 'outstanding';
 
     #[Url(except: '')]
     public string $status = '';
@@ -70,9 +76,10 @@ new #[Title('Bills')] class extends Component {
         $term = '%'.mb_strtolower(trim($this->search)).'%';
 
         return Bill::query()
-            ->with('student.user')
-            ->where('semester_id', $this->semesterId)
-            ->when($this->status !== '', fn (Builder $query) => $query->where('status', $this->status))
+            ->with(['student.user', 'semester.academicYear'])
+            ->when($this->semesterId !== self::ALL_SEMESTERS, fn (Builder $query) => $query->where('semester_id', $this->semesterId))
+            ->when($this->status === self::OUTSTANDING, fn (Builder $query) => $query->whereIn('status', [BillStatus::Unpaid, BillStatus::Partial]))
+            ->when(! in_array($this->status, ['', self::OUTSTANDING], true), fn (Builder $query) => $query->where('status', $this->status))
             ->when(trim($this->search) !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->whereRaw('lower(number) like ?', [$term])
                 ->orWhereHas('student', fn (Builder $query) => $query
@@ -91,18 +98,28 @@ new #[Title('Bills')] class extends Component {
     }
 
     /**
-     * Students' class names this semester, by student id.
+     * Each bill's class: the student's class in the bill's semester, by bill id.
      *
      * @return array<int, string>
      */
     #[Computed]
     public function classNames(): array
     {
-        return ClassEnrollment::query()
-            ->where('semester_id', $this->semesterId)
-            ->whereIn('student_id', $this->bills->pluck('student_id'))
-            ->pluck('class_name', 'student_id')
-            ->all();
+        $classes = ClassEnrollment::query()
+            ->whereIn('semester_id', $this->bills->pluck('semester_id')->unique())
+            ->whereIn('student_id', $this->bills->pluck('student_id')->unique())
+            ->get(['student_id', 'semester_id', 'class_name'])
+            ->keyBy(fn (ClassEnrollment $enrollment) => $enrollment->student_id.'-'.$enrollment->semester_id);
+
+        return $this->bills->mapWithKeys(fn (Bill $bill) => [
+            $bill->id => $classes->get($bill->student_id.'-'.$bill->semester_id)?->class_name ?? '—',
+        ])->all();
+    }
+
+    #[Computed]
+    public function allSemesters(): bool
+    {
+        return $this->semesterId === self::ALL_SEMESTERS;
     }
 
     public function openGenerate(GenerateBills $generate): void
@@ -136,6 +153,7 @@ new #[Title('Bills')] class extends Component {
     {
         $rows = $this->query()->lazy()->map(fn (Bill $bill) => [
             __('Bill') => $bill->number,
+            __('Semester') => $bill->semester->label(),
             __('NIM') => $bill->student->nim,
             __('Name') => $bill->student->user->name,
             __('Net') => $bill->net_amount,
@@ -161,12 +179,14 @@ new #[Title('Bills')] class extends Component {
 
     <div class="mb-4 flex flex-col gap-3 sm:flex-row">
         <flux:select wire:model.live="semesterId" class="sm:max-w-60">
+            <flux:select.option :value="0">{{ __('All semesters') }}</flux:select.option>
             @foreach ($this->semesters as $semester)
                 <flux:select.option :value="$semester->id">{{ $semester->label() }}</flux:select.option>
             @endforeach
         </flux:select>
         <flux:select wire:model.live="status" class="sm:max-w-44">
             <flux:select.option value="">{{ __('All statuses') }}</flux:select.option>
+            <flux:select.option value="outstanding">{{ __('Not fully paid') }}</flux:select.option>
             @foreach (BillStatus::cases() as $case)
                 <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
             @endforeach
@@ -179,6 +199,9 @@ new #[Title('Bills')] class extends Component {
             <flux:table.columns>
                 <flux:table.column>{{ __('Bill') }}</flux:table.column>
                 <flux:table.column>{{ __('Mahasantri') }}</flux:table.column>
+                @if ($this->allSemesters)
+                    <flux:table.column>{{ __('Semester') }}</flux:table.column>
+                @endif
                 <flux:table.column class="hidden md:table-cell">{{ __('Class') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Net') }}</flux:table.column>
                 <flux:table.column align="end" class="hidden sm:table-cell">{{ __('Paid amount') }}</flux:table.column>
@@ -194,14 +217,17 @@ new #[Title('Bills')] class extends Component {
                             <span class="font-mono text-zinc-500">{{ $bill->student->nim }}</span>
                             <span class="font-medium">{{ $bill->student->user->name }}</span>
                         </flux:table.cell>
-                        <flux:table.cell class="hidden md:table-cell">{{ $this->classNames[$bill->student_id] ?? '—' }}</flux:table.cell>
+                        @if ($this->allSemesters)
+                            <flux:table.cell>{{ $bill->semester->label() }}</flux:table.cell>
+                        @endif
+                        <flux:table.cell class="hidden md:table-cell">{{ $this->classNames[$bill->id] }}</flux:table.cell>
                         <flux:table.cell align="end" class="tabular-nums">{{ Money::format($bill->net_amount) }}</flux:table.cell>
                         <flux:table.cell align="end" class="hidden tabular-nums sm:table-cell">{{ Money::format($bill->paid_amount) }}</flux:table.cell>
                         <flux:table.cell><flux:badge size="sm" :color="$bill->status->color()">{{ $bill->status->label() }}</flux:badge></flux:table.cell>
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="6" class="text-center">{{ __('No bills for this semester yet.') }}</flux:table.cell>
+                        <flux:table.cell colspan="7" class="text-center">{{ $this->allSemesters ? __('No bills found.') : __('No bills for this semester yet.') }}</flux:table.cell>
                     </flux:table.row>
                 @endforelse
             </flux:table.rows>

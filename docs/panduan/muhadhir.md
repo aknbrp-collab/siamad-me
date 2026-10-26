@@ -1,4 +1,4 @@
-# Panduan Ustadz
+# Panduan Muhadhir
 
 Masuk dengan **NIDM**. **Dasbor** menampilkan kelas kuliah Anda semester ini; pilih semester lain untuk
 melihat arsip. Klik kelas untuk membuka ruang kelasnya: **Pertemuan**, **Materi**, **Tugas**, **Kuis**,

@@ -101,7 +101,7 @@ new #[Title('System settings')] class extends Component {
                     :description:trailing="__('A payment that settles the remaining balance may be smaller.')"
                     type="number"
                     min="0"
-                    step="1000"
+                    step="1"
                     required
                 />
             </div>

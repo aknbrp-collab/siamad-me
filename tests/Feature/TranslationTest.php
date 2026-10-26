@@ -77,3 +77,25 @@ test('validation messages are in Indonesian', function () {
     expect(validator(['name' => ''], ['name' => 'required'])->errors()->first('name'))
         ->toBe('Kolom nama wajib diisi.');
 });
+
+test('ustadz are called muhadhir throughout the Indonesian interface', function () {
+    $translations = json_decode((string) file_get_contents(lang_path('id.json')), true);
+
+    $stillUstadz = array_filter($translations, fn (string $value) => stripos($value, 'ustadz') !== false);
+
+    app()->setLocale('id');
+
+    expect($stillUstadz)->toBe([])
+        ->and(Role::Teacher->label())->toBe('Muhadhir');
+});
+
+test('the muhadhir area lives at /muhadhir and old /ustadz links redirect', function () {
+    expect(route('ustadz.dashboard', absolute: false))->toBe('/muhadhir');
+
+    $this->get('/ustadz')->assertRedirect('/muhadhir')->assertStatus(301);
+    $this->get('/ustadz/offerings/5/grades')->assertRedirect('/muhadhir/offerings/5/grades');
+
+    $this->actingAs(User::factory()->withRole(Role::Teacher)->create())
+        ->get('/muhadhir')
+        ->assertOk();
+});

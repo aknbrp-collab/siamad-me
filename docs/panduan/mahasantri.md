@@ -19,12 +19,12 @@ semua dokumen terverifikasi.
 Daftar mata kuliah semester ini sesuai jadwal. Buka kelas untuk melihat:
 - **Pertemuan**: jadwal, topik, dan tombol **Gabung lewat Zoom / Google Meet / Jitsi** untuk pertemuan
   daring.
-- **Materi** dari ustadz.
+- **Materi** dari muhadhir.
 - **Tugas**: lihat tenggat, lalu **Kumpulkan tugas** (teks dan/atau berkas, maks. 10 MB). Kiriman dapat
-  diganti sampai dinilai. Kiriman setelah tenggat ditandai *terlambat* (jika ustadz mengizinkan).
+  diganti sampai dinilai. Kiriman setelah tenggat ditandai *terlambat* (jika muhadhir mengizinkan).
 - **Kuis**: klik **Mulai** dan waktu langsung berjalan. Jawaban tersimpan otomatis; saat waktu habis,
   jawaban terkumpul sendiri. Jangan menunda: tenggat dihitung di server, bukan di perangkat Anda.
-- **Forum**: diskusi dengan ustadz dan teman sekelas.
+- **Forum**: diskusi dengan muhadhir dan teman sekelas.
 
 Di ponsel, pilih bagian kelas lewat menu tarik-turun di atas halaman.
 

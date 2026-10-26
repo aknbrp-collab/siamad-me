@@ -12,16 +12,16 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 
 ## Superadmin
 - [ ] Create accounts for Admin, Admin Keuangan and Pemantau Akademik; each logs in and must change the temporary password
-- [ ] Give one ustadz the Pemantau Akademik role; they get the role picker and can switch roles
-- [ ] Confirm an Admin cannot reset that ustadz's password
+- [ ] Give one muhadhir the Pemantau Akademik role; they get the role picker and can switch roles
+- [ ] Confirm an Admin cannot reset that muhadhir's password
 - [ ] Set institution name/address and payment rules; check they appear on a receipt and KHS PDF
 - [ ] Find a change in the Audit log (who, old → new)
 
 ## Admin
 - [ ] Study program, classes, subjects, grade scale, academic year
 - [ ] Import the real mahasantri list from Excel (check the error rows, then import); hand out the credentials sheet
-- [ ] Add ustadz and wali santri; link a wali to two siblings
-- [ ] Place mahasantri in classes; add course offerings with ustadz and schedules; activate the semester
+- [ ] Add muhadhir and wali santri; link a wali to two siblings
+- [ ] Place mahasantri in classes; add course offerings with muhadhir and schedules; activate the semester
 - [ ] Verify and reject an uploaded document (the owner sees the note)
 - [ ] Verify a cash handover (reject one payment in it) and a transfer
 - [ ] Close the semester; check that it is read-only
@@ -33,7 +33,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Record cash and transfer payments; try breaking the rules (4th instalment, below Rp 200.000, overpaying)
 - [ ] Hand over cash; print the provisional slip and, after verification, the official receipt
 
-## Ustadz
+## Muhadhir
 - [ ] Add meetings (one online) and take attendance
 - [ ] Materials, an assignment with grading, a quiz with an essay question
 - [ ] Grade components, enter scores by hand and by Excel import, copy assignment/quiz scores, finalise

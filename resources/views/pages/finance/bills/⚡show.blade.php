@@ -264,7 +264,7 @@ new #[Title('Bill')] class extends Component {
                                 'min' => Money::format($this->allowance['min']),
                             ]) }}
                         </flux:text>
-                        <flux:input wire:model="amount" :label="__('Amount (Rp)')" type="number" min="1" step="1000" required />
+                        <flux:input wire:model="amount" :label="__('Amount (Rp)')" type="number" min="1" step="1" required />
                         <flux:radio.group wire:model.live="method" variant="segmented">
                             @foreach (PaymentMethod::cases() as $case)
                                 <flux:radio :value="$case->value" :label="$case->label()" />

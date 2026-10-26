@@ -8,7 +8,7 @@ Pilih panduan sesuai peran Anda. Setiap panduan berdiri sendiri dan boleh diceta
 | Admin (bagian akademik) | ID login staf | [admin.md](admin.md) |
 | Admin Keuangan | ID login staf | [keuangan.md](keuangan.md) |
 | Pemantau Akademik | ID login staf | [pemantau.md](pemantau.md) |
-| Ustadz | NIDM | [ustadz.md](ustadz.md) |
+| Muhadhir | NIDM | [muhadhir.md](muhadhir.md) |
 | Mahasantri | NIM | [mahasantri.md](mahasantri.md) |
 | Wali santri | Kode wali (WS-…) | [wali.md](wali.md) |
 
@@ -24,7 +24,7 @@ berlaku lagi setelah itu.
 **Lupa kata sandi.** Jika akun Anda memiliki email, klik **Lupa kata sandi?** di halaman masuk. Jika
 tidak, minta bagian akademik membuatkan kata sandi sementara baru.
 
-**Lebih dari satu peran.** Contoh: ustadz yang juga pemantau akademik. Setelah masuk, pilih peran yang
+**Lebih dari satu peran.** Contoh: muhadhir yang juga pemantau akademik. Setelah masuk, pilih peran yang
 ingin dipakai. Untuk berpindah, buka menu nama Anda (pojok kiri bawah, atau kanan atas di ponsel) →
 **Ganti peran**.
 

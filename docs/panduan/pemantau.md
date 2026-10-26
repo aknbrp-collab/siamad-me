@@ -12,7 +12,7 @@ pesantren. Pemantau tidak mengubah nilai atau presensi.
   dihitung sebagai hadir);
 - **sebaran nilai** yang sudah final.
 
-Gunakan daftar ini untuk menindaklanjuti mahasantri bersama ustadz dan wali.
+Gunakan daftar ini untuk menindaklanjuti mahasantri bersama muhadhir dan wali.
 
 ## Catatan kegiatan
 
@@ -25,6 +25,6 @@ kedisiplinan, dan lainnya.
 Catatan ini tampil untuk wali santri sebagai bahan pemantauan, tetapi **tidak pernah masuk KHS atau
 transkrip**. Rekam akademik hanya berisi presensi kelas dan nilai.
 
-## Jika Anda juga ustadz
+## Jika Anda juga muhadhir
 
-Jika akun Anda juga ustadz, pilih peran saat masuk atau gunakan **Ganti peran** di menu nama Anda.
+Jika akun Anda juga muhadhir, pilih peran saat masuk atau gunakan **Ganti peran** di menu nama Anda.

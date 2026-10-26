@@ -19,6 +19,11 @@ class UpdateUserProfile
     {
         $input['email'] = filled($input['email'] ?? null) ? $input['email'] : null;
 
+        // A mahasantri's name is on official documents (KHS, transcript): only the academic office changes it.
+        if ($user->student()->exists()) {
+            $input['name'] = $user->name;
+        }
+
         $validated = Validator::make($input, $this->profileRules($user->id))->validate();
 
         $user->fill($validated)->save();

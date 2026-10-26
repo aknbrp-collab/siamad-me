@@ -28,7 +28,9 @@ tidak, minta bagian akademik membuatkan kata sandi sementara baru.
 ingin dipakai. Untuk berpindah, buka menu nama Anda (pojok kiri bawah, atau kanan atas di ponsel) →
 **Ganti peran**.
 
-**Profil dan keamanan.** Menu nama Anda → **Pengaturan**: ubah nama/email (**Profil**), ganti kata sandi,
+**Profil dan keamanan.** Mahasantri, muhadhir, dan wali santri melengkapi biodata di **Profil saya**
+(menu samping). Menu nama Anda → **Pengaturan**: ubah nama/email (**Profil**; nama mahasantri hanya dapat
+diubah bagian akademik), ganti kata sandi,
 aktifkan autentikasi dua faktor atau passkey (**Keamanan**). Staf keuangan dan admin sangat dianjurkan
 mengaktifkan autentikasi dua faktor.
 

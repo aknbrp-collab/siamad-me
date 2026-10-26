@@ -4,6 +4,9 @@ Masuk dengan **NIDM**. **Dasbor** menampilkan kelas kuliah Anda semester ini; pi
 melihat arsip. Klik kelas untuk membuka ruang kelasnya: **Pertemuan**, **Materi**, **Tugas**, **Kuis**,
 **Forum**, **Nilai**.
 
+Lengkapi data Anda di **Profil saya**: nama, gelar, NIK, email, data pribadi, foto, keahlian, Scopus,
+dan Google Scholar. NIDM (ID login Anda) dan status kepegawaian dikelola bagian akademik.
+
 Anda juga diminta mengunggah KTP, KK, dan ijazah di **Dokumen saya**.
 
 ## Pertemuan dan presensi

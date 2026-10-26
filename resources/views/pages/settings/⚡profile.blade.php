@@ -48,7 +48,11 @@ new #[Title('Profile settings')] class extends Component {
                 disabled
             />
 
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
+            @if (Auth::user()->student()->exists())
+                <flux:input wire:model="name" :label="__('Name')" :description:trailing="__('Your name is on official documents and can only be changed by the academic office.')" readonly disabled />
+            @else
+                <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
+            @endif
 
             <flux:input
                 wire:model="email"

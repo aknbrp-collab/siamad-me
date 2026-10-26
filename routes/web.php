@@ -68,6 +68,10 @@ Route::middleware('portal')->group(function () {
             ->name('imports.template');
     });
 
+    Route::livewire('my-profile', 'pages::profile.biodata')
+        ->middleware('role:student,teacher,guardian')
+        ->name('profile.mine');
+
     Route::livewire('my-documents', 'pages::profile.documents')
         ->middleware('role:student,teacher')
         ->name('documents.mine');

@@ -50,7 +50,7 @@ with tests (SQLite + PostgreSQL), Pint/Larastan, Indonesian strings, a 375 px ch
   headings, and the URL (`/ustadz` → `/muhadhir`, old URLs redirect). Internal names (`Teacher`,
   `teachers` table, NIDM) stay — renaming the database is risk without benefit.
 
-### Step 2 — Self-service profiles (medium)
+### Step 2 — Self-service profiles (medium) — ✅ done 2026-10-26
 New page **Profil saya** for mahasantri, muhadhir and wali santri, reusing the admin form's sections:
 
 | Who | Can edit | Read-only (shown, not editable) |

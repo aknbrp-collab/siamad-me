@@ -6,6 +6,9 @@ akun Anda; tidak ada data yang dapat diubah.
 
 Jika ada anak yang belum muncul, hubungi bagian akademik untuk menghubungkannya.
 
+Perbarui nama, hubungan dengan mahasantri, telepon, dan email Anda di **Profil saya**. Kode wali dan
+daftar anak dikelola bagian akademik.
+
 ## Perkembangan akademik
 
 Pilih anak dan semester untuk melihat:

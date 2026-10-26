@@ -120,6 +120,10 @@ enum Role: string
             $groups[0]['items'][] = $item(__('Bills'), 'banknotes', 'wali.bills');
         }
 
+        if (in_array($this, [self::Teacher, self::Student, self::Guardian], true)) {
+            $groups[0]['items'][] = $item(__('My profile'), 'identification', 'profile.mine');
+        }
+
         if (in_array($this, [self::Teacher, self::Student], true)) {
             $groups[0]['items'][] = $item(__('My documents'), 'document-text', 'documents.mine');
         }

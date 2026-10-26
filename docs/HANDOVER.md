@@ -100,7 +100,7 @@ resources/views/
     finance/               dashboard, fees, scholarships, bills/{index,show}, handovers
     mahasantri/            classes, class, quiz-attempt, khs, transcript, bills
     monitor/               dashboard, activities
-    profile/               documents (owner upload)
+    profile/               documents (owner upload), biodata (Profil saya: own profile, per role)
     settings/              starter-kit profile/security/appearance (profile adapted)
     shared/                forum (embedded in ustadz + mahasantri pages)
     superadmin/            settings, audit-logs, users/{index,form}

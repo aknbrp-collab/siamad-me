@@ -639,3 +639,13 @@ v1 Step 1 (2026-10-26, see `docs/req/v1-plan.md`):
 - **Ustadz → Muhadhir** in every Indonesian string, guide and the URL (`/muhadhir`, `/ustadz/*` redirects
   with 301). Internal names (`Teacher`, `teachers`, route names `ustadz.*`, English source strings) are
   unchanged; `TranslationTest` fails if an Indonesian string says "ustadz" again.
+
+v1 Step 2 (2026-10-26) — self-service profiles:
+- **Profil saya** (`/my-profile`, `pages::profile.biodata`) for mahasantri, muhadhir and wali santri,
+  chosen by the active role. Read-only facts on top (NIM/NIDM/code, academic data, linked children).
+- `UpdateOwnProfile` holds an allow-list per person type; anything else in the input is dropped before
+  validation (tested with a crafted request): mahasantri — Pribadi + Keluarga; muhadhir — everything
+  except NIDM and status; wali — name, email, relationship, phone.
+- A mahasantri's **name** is on official documents, so it is now read-only for them under
+  Pengaturan → Profil too (previously every user could rename themselves); enforced in
+  `UpdateUserProfile`, not only in the form.

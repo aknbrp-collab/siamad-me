@@ -8,6 +8,12 @@ sandi baru.
 Menampilkan pengingat jika dokumen Anda belum lengkap, dan pintasan ke semua menu. Jadwal, tugas, dan
 kuis yang masih terbuka ada di **Kelas saya**.
 
+## Profil saya
+
+Isi dan perbarui **Pribadi** (tempat dan tanggal lahir, telepon, alamat, foto) dan **Keluarga** (ayah,
+ibu, wali). NIM, nama, jenis kelamin, dan data akademik (program studi, angkatan, status) hanya dapat
+diubah oleh bagian akademik karena tercantum di dokumen resmi; hubungi mereka jika ada yang salah.
+
 ## Dokumen saya
 
 Unggah **KTP**, **KK**, dan **Ijazah** (PDF, JPG, atau PNG, maks. 2 MB). Bagian akademik memverifikasi

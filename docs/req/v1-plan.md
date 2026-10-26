@@ -76,7 +76,7 @@ New page **Profil saya** for mahasantri, muhadhir and wali santri, reusing the a
 - To avoid confusion with the academic *semester* (2026/2027 Ganjil), screens say "Semester III"
   for the class level and keep "2026/2027 · Ganjil" for the term.
 
-### Step 4 — Payment by transfer from mahasantri and wali (medium)
+### Step 4 — Payment by transfer from mahasantri and wali (medium) — ✅ done 2026-10-26
 - Superadmin sets the institution's **bank account(s)** in Pengaturan (bank, number, account name).
 - On *Tagihan saya* (mahasantri) and *Tagihan* (wali): **Konfirmasi transfer** — amount, transfer
   date, sender name/bank reference, and the **receipt** (photo/PDF, max 2 MB). It becomes an

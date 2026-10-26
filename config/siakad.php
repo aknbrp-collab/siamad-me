@@ -18,6 +18,8 @@ return [
         'institution.phone' => null,
         'payment.max_installments' => 3,
         'payment.min_installment_amount' => 200000,
+        // Shown to mahasantri and wali santri who pay by transfer, e.g. "BSI 7123456789 a.n. Yayasan …".
+        'payment.bank_accounts' => null,
         'receipt.footer' => null,
         'attendance.min_percent' => 75,
     ],

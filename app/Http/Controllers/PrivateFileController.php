@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentSource;
 use App\Enums\Role;
 use App\Models\Material;
 use App\Models\Payment;
@@ -36,8 +37,8 @@ class PrivateFileController extends Controller
             'teacher-photo' => $this->photo(Teacher::query()->findOrFail($id)),
             'student-document' => $this->document(StudentDocument::query()->with('student')->findOrFail($id)),
             'teacher-document' => $this->document(TeacherDocument::query()->with('teacher')->findOrFail($id)),
-            // Finance staff only: no owner.
-            'payment-proof' => [Payment::query()->findOrFail($id)->proof_path, null, null],
+            // Finance staff, plus the mahasantri / wali who uploaded it with their transfer confirmation.
+            'payment-proof' => $this->paymentProof(Payment::query()->findOrFail($id)),
             default => abort(404),
         };
 
@@ -83,6 +84,14 @@ class PrivateFileController extends Controller
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    /**
+     * @return array{0: string|null, 1: int|null, 2: string|null}
+     */
+    private function paymentProof(Payment $payment): array
+    {
+        return [$payment->proof_path, $payment->source === PaymentSource::Payer ? $payment->recorded_by : null, null];
     }
 
     /**

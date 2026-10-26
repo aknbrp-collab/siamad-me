@@ -1,12 +1,17 @@
 <?php
 
+use App\Livewire\BillsPage;
 use App\Models\Student;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Bills')] class extends Component {
+new #[Title('Bills')] class extends BillsPage {
+    protected function refreshBills(): void
+    {
+        unset($this->children);
+    }
+
     /**
      * The guardian's own children only, each with their full bill history.
      *
@@ -41,7 +46,7 @@ new #[Title('Bills')] class extends Component {
         <div wire:key="child-{{ $child->id }}" class="space-y-4">
             <flux:heading size="lg">{{ $child->user->name }} <span class="font-mono text-sm text-zinc-500">{{ $child->nim }}</span></flux:heading>
             @forelse ($child->bills as $bill)
-                <x-bill-card :bill="$bill" wire:key="bill-{{ $bill->id }}" />
+                <x-bill-card :bill="$bill" confirmable wire:key="bill-{{ $bill->id }}" />
             @empty
                 <flux:text>{{ __('No bills yet.') }}</flux:text>
             @endforelse
@@ -49,4 +54,6 @@ new #[Title('Bills')] class extends Component {
     @empty
         <flux:text>{{ __('No mahasantri are linked to your account. Please contact the academic office.') }}</flux:text>
     @endforelse
+
+    @include('partials.confirm-transfer-modal')
 </section>

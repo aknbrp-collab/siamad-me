@@ -47,3 +47,9 @@ Di ponsel, pilih bagian kelas lewat menu tarik-turun di atas halaman.
 Tagihan per semester, pembayaran, dan sisa tagihan. Pembayaran berstatus *menunggu* sampai
 diverifikasi bagian keuangan; setelah itu kuitansi resmi dapat diunduh. Simpan slip pembayaran sampai
 pembayaran terverifikasi.
+
+**Membayar dengan transfer.** Transfer ke rekening yang tertera, lalu klik **Konfirmasi transfer** pada
+tagihan: isi jumlah, tanggal transfer, nama pengirim/referensi bank, dan lampirkan **bukti transfer**
+(foto atau PDF, maks. 2 MB). Aturan cicilan sama seperti di loket (maks. 3 kali, minimal Rp 200.000
+kecuali melunasi). Bagian keuangan mencocokkan dengan rekening koran; jika ditolak, alasannya tampil di
+tagihan dan Anda dapat mengirim konfirmasi lagi.

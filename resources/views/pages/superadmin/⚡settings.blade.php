@@ -11,6 +11,7 @@ new #[Title('System settings')] class extends Component {
     public ?string $institutionPhone = null;
     public ?int $maxInstallments = null;
     public ?int $minInstallmentAmount = null;
+    public ?string $bankAccounts = null;
     public ?string $receiptFooter = null;
     public ?int $attendanceMinimum = null;
 
@@ -25,6 +26,7 @@ new #[Title('System settings')] class extends Component {
         'institution.phone' => 'institutionPhone',
         'payment.max_installments' => 'maxInstallments',
         'payment.min_installment_amount' => 'minInstallmentAmount',
+        'payment.bank_accounts' => 'bankAccounts',
         'receipt.footer' => 'receiptFooter',
         'attendance.min_percent' => 'attendanceMinimum',
     ];
@@ -47,6 +49,7 @@ new #[Title('System settings')] class extends Component {
             'institutionPhone' => ['nullable', 'string', 'max:50'],
             'maxInstallments' => ['required', 'integer', 'min:1', 'max:12'],
             'minInstallmentAmount' => ['required', 'integer', 'min:0'],
+            'bankAccounts' => ['nullable', 'string', 'max:1000'],
             'receiptFooter' => ['nullable', 'string', 'max:500'],
             'attendanceMinimum' => ['required', 'integer', 'between:0,100'],
         ];
@@ -104,6 +107,12 @@ new #[Title('System settings')] class extends Component {
                     step="1"
                     required
                 />
+            </div>
+
+            <div class="mt-6">
+                <flux:textarea wire:model="bankAccounts" :label="__('Bank accounts for transfers')" rows="3"
+                    placeholder="BSI 7123456789 a.n. Yayasan Ma'had Aly"
+                    :description:trailing="__('Shown to mahasantri and wali santri when they confirm a transfer. One account per line.')" />
             </div>
 
             <div class="mt-6">

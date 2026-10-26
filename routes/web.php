@@ -89,6 +89,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('bills', 'pages::finance.bills.index')->name('bills.index');
         Route::livewire('bills/{bill}', 'pages::finance.bills.show')->name('bills.show');
         Route::livewire('handovers', 'pages::finance.handovers')->name('handovers');
+        Route::livewire('transfers', 'pages::finance.transfers')->name('transfers');
     });
 
     Route::prefix('monitor')->name('monitor.')->middleware('role:academic_monitor,admin,superadmin')->group(function () {

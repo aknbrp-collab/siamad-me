@@ -23,5 +23,7 @@ Pilih anak dan semester untuk melihat:
 Tagihan dan riwayat pembayaran anak Anda. Pembayaran berstatus *menunggu* sampai diverifikasi bagian
 keuangan; pembayaran terverifikasi memiliki kuitansi resmi yang dapat diunduh.
 
-Pembayaran dilakukan di bagian keuangan (tunai) atau dengan transfer; SIAKAD belum menerima
-pembayaran daring.
+Pembayaran dilakukan tunai di bagian keuangan atau dengan transfer bank. Setelah mentransfer, klik
+**Konfirmasi transfer** pada tagihan anak Anda dan lampirkan bukti transfer (foto atau PDF). Bagian
+keuangan memverifikasinya; jika ditolak, alasannya tampil di tagihan dan Anda dapat mengirim lagi.
+SIAKAD belum menerima pembayaran daring otomatis (payment gateway).

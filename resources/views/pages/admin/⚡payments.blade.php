@@ -171,6 +171,9 @@ new #[Title('Payment verification')] class extends Component {
                             <flux:table.cell class="whitespace-normal">
                                 <span class="font-medium">{{ $payment->bill->student->user->name }}</span>
                                 <div class="text-xs text-zinc-500">{{ $payment->bill->number }} · {{ __('recorded by :name', ['name' => $payment->recorder->name]) }}</div>
+                                @if ($payment->source === \App\Enums\PaymentSource::Payer)
+                                    <flux:badge size="sm" color="blue" class="mt-1">{{ __('Sent by mahasantri / wali') }}</flux:badge>
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell class="whitespace-normal">
                                 {{ $payment->reference }}

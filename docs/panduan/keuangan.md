@@ -48,6 +48,14 @@ beserta nomor setoran (STR/…) kepada Admin. Admin menghitung dan memverifikasi
 kurang, pembayaran itu ditolak dengan alasan. Transfer tidak perlu disetor: Admin memverifikasinya
 langsung dari rekening koran.
 
+## 5a. Konfirmasi transfer dari mahasantri dan wali
+
+Mahasantri dan wali santri dapat mengonfirmasi transfer sendiri beserta bukti transfernya. Menu
+**Konfirmasi transfer** menampilkan yang menunggu: buka **Bukti transfer**, cocokkan dengan rekening koran, lalu
+**Verifikasi** (kuitansi resmi terbit) atau **Tolak** dengan alasan (pengirim melihat alasannya). Admin
+juga dapat memverifikasinya. Transfer yang Anda catat sendiri tetap diverifikasi oleh Admin.
+Rekening tujuan transfer diatur Superadmin di **Pengaturan**.
+
 ## 6. Tunggakan dan membatalkan tagihan
 
 **Tunggakan dari tahun akademik yang sudah ditutup** tetap dapat dibayar. Di **Tagihan**, pilih

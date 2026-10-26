@@ -151,6 +151,7 @@ enum Role: string
             $finance = [
                 $item(__('Bills'), 'document-currency-dollar', 'finance.bills.index', 'finance.bills.*'),
                 $item(__('Cash handovers'), 'inbox-arrow-down', 'finance.handovers'),
+                $item(__('Transfer confirmations'), 'building-library', 'finance.transfers'),
                 $item(__('Fees'), 'tag', 'finance.fees'),
                 $item(__('Scholarships'), 'gift', 'finance.scholarships'),
             ];

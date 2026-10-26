@@ -669,3 +669,18 @@ v1 Step 3 (2026-10-26) — classes by semester level, Putra / Putri:
   at three putra.
 - Dev databases seeded before v1 keep their old mixed class ("Marhalah 1 A") with no gender; re-seed
   (`migrate:fresh --seed`) for the new demo. Real installations have no data yet.
+
+v1 Step 4 (2026-10-26) — transfer confirmations from mahasantri and wali santri:
+- `payments.source` (`PaymentSource`: staff | payer). On *Tagihan saya* / wali *Tagihan*, **Konfirmasi
+  transfer** (`ConfirmTransfer`) checks the payer may pay the bill (their own, or a linked child's),
+  requires the reference and the bank receipt (PDF/JPG/PNG, 2 MB), then records an unverified transfer
+  through `RecordPayment` — the same instalment rules as the finance counter.
+- Verification (decision D3): `ReviewPayments::mayReviewTransfer()` — payer-sent transfers may be
+  verified by Admin Keuangan, Admin or Superadmin; transfers recorded by staff still need Admin or
+  Superadmin. The recorder ≠ verifier rule is unchanged. Finance queue: **Konfirmasi transfer**
+  (`/finance/transfers`); Admin's *Verifikasi pembayaran* shows the same items with a badge.
+- Rejected payer confirmations stay visible on the bill card with the reason; the payer can send again.
+  The payer can open their own uploaded receipt (`PrivateFileController`).
+- Superadmin sets the institution's bank account(s) in Pengaturan (`payment.bank_accounts`).
+- `App\Livewire\BillsPage` + `Concerns\ConfirmsTransfers` hold the shared page logic (a PHP base class
+  so Larastan analyses it, as with `PersonForm`).

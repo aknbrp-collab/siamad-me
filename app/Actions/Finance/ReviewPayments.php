@@ -4,7 +4,9 @@ namespace App\Actions\Finance;
 
 use App\Enums\HandoverStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentSource;
 use App\Enums\PaymentStatus;
+use App\Enums\Role;
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Models\PaymentHandover;
@@ -115,6 +117,8 @@ class ReviewPayments
             $this->fail('payment', __('Cash payments are verified through a handover.'));
         }
 
+        $this->ensureMayReviewTransfer($payment, $verifier);
+
         DB::transaction(fn () => $this->confirm($payment, $verifier));
     }
 
@@ -123,6 +127,8 @@ class ReviewPayments
         if ($payment->method !== PaymentMethod::Transfer) {
             $this->fail('payment', __('Cash payments are reviewed through a handover.'));
         }
+
+        $this->ensureMayReviewTransfer($payment, $verifier);
 
         if (trim($reason) === '') {
             $this->fail('rejectionReason', __('Give a reason for rejecting the payment.'));
@@ -197,6 +203,27 @@ class ReviewPayments
 
         if ($payment->recorded_by === $verifier->id) {
             $this->fail('payment', __('You recorded this payment; another person must verify it.'));
+        }
+    }
+
+    /**
+     * Transfers the finance office recorded are verified by an Admin (the
+     * recorder is Admin Keuangan). Transfers a mahasantri or wali confirmed
+     * were recorded by no staff member, so Admin Keuangan may verify them too.
+     */
+    public function mayReviewTransfer(Payment $payment, User $verifier): bool
+    {
+        $roles = $payment->source === PaymentSource::Payer
+            ? [Role::Admin, Role::Superadmin, Role::AdminPayment]
+            : [Role::Admin, Role::Superadmin];
+
+        return $verifier->hasRole(...$roles);
+    }
+
+    private function ensureMayReviewTransfer(Payment $payment, User $verifier): void
+    {
+        if (! $this->mayReviewTransfer($payment, $verifier)) {
+            $this->fail('payment', __('Only an Admin can verify transfers recorded by the finance office.'));
         }
     }
 

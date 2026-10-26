@@ -29,6 +29,7 @@ use App\Models\FeeRate;
 use App\Models\FeeType;
 use App\Models\Scholarship;
 use App\Models\Semester;
+use App\Models\Setting;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\Subject;
@@ -177,6 +178,9 @@ class DatabaseSeeder extends Seeder
      */
     private function seedFinance(int $academicYearId, Semester $semester, array $students, User $cashier, User $admin): void
     {
+        // Shown to mahasantri and wali who confirm a transfer (sample account).
+        Setting::set('payment.bank_accounts', "BSI 7123456789 a.n. Yayasan Ma'had Aly (contoh)");
+
         $spp = FeeType::create(['name' => 'SPP', 'frequency' => FeeFrequency::PerSemester]);
         $dorm = FeeType::create(['name' => 'Asrama', 'frequency' => FeeFrequency::Monthly]);
         $registration = FeeType::create(['name' => 'Daftar Ulang', 'frequency' => FeeFrequency::Once]);

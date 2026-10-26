@@ -4,6 +4,7 @@ namespace App\Actions\Finance;
 
 use App\Enums\BillStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentSource;
 use App\Enums\PaymentStatus;
 use App\Models\Bill;
 use App\Models\Payment;
@@ -32,7 +33,7 @@ class RecordPayment
     /**
      * @param  array<string, mixed>  $input
      */
-    public function handle(Bill $bill, User $recorder, array $input): Payment
+    public function handle(Bill $bill, User $recorder, array $input, PaymentSource $source = PaymentSource::Staff): Payment
     {
         $data = Validator::make($input, [
             'amount' => ['required', 'integer', 'min:1'],
@@ -44,7 +45,7 @@ class RecordPayment
             'reference.required_if' => __('Enter the bank reference of the transfer.'),
         ])->validate();
 
-        return DB::transaction(function () use ($bill, $recorder, $data) {
+        return DB::transaction(function () use ($bill, $recorder, $data, $source) {
             $bill = Bill::query()->lockForUpdate()->findOrFail($bill->id);
             $amount = (int) $data['amount'];
 
@@ -53,6 +54,7 @@ class RecordPayment
             return $bill->payments()->create([
                 'amount' => $amount,
                 'method' => $data['method'],
+                'source' => $source,
                 'paid_on' => $data['paid_on'],
                 'reference' => $data['reference'] ?? null,
                 'proof_path' => $this->storeProof($data['proof'] ?? null, $bill),

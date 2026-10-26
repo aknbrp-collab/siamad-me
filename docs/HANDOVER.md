@@ -98,7 +98,7 @@ resources/views/
     admin/                 academic-years, semesters/show, study-programs, class-groups, subjects, grade-scale,
                            students|teachers|guardians/{index,form}, students/record, documents, imports, payments
     auth/                  login (ID number), change-password, select-role (+ Fortify views)
-    finance/               dashboard, fees, scholarships, bills/{index,show}, handovers
+    finance/               dashboard, fees, scholarships, bills/{index,show}, handovers, transfers (payer confirmations)
     mahasantri/            classes, class, quiz-attempt, khs, transcript, bills
     monitor/               dashboard, activities
     profile/               documents (owner upload), biodata (Profil saya: own profile, per role)

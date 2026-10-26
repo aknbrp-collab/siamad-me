@@ -39,6 +39,7 @@ yang dinonaktifkan langsung keluar pada permintaan berikutnya.
 ## Pengaturan sistem
 
 **Sistem → Pengaturan**: nama, alamat, dan telepon lembaga (tampil di kuitansi, KHS, transkrip),
+**rekening untuk transfer** (ditampilkan kepada mahasantri dan wali saat konfirmasi transfer),
 catatan kaki kuitansi, **Maksimal cicilan per tagihan** (bawaan 3), **Cicilan minimal (Rp)** (bawaan
 200.000), dan **Kehadiran minimal (%)** (bawaan 75). Perubahan berlaku untuk tagihan dan perhitungan
 berikutnya; data lama tidak berubah.

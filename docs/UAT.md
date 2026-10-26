@@ -34,6 +34,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Award a scholarship; generate bills; check amounts against the manual calculation
 - [ ] Record cash and transfer payments; try breaking the rules (4th instalment, below Rp 200.000, overpaying)
 - [ ] Hand over cash; print the provisional slip and, after verification, the official receipt
+- [ ] Verify one transfer confirmation from a mahasantri and reject another with a reason
 
 ## Muhadhir
 - [ ] Add meetings (one online) and take attendance
@@ -48,6 +49,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] First login, password change, document upload
 - [ ] Join an online meeting, submit an assignment, take the quiz until the time runs out
 - [ ] KHS and transcript (and PDFs) after grades are final; bills with pending and verified payments
+- [ ] Pay a bill by transfer and send the confirmation with a photo of the receipt
 
 ## Wali santri (on a phone)
 - [ ] Sees only their own children; switches child and semester

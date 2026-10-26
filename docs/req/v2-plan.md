@@ -38,7 +38,7 @@ Admin Keuangan sees and records every bill. So she needs a new, narrower role (S
   the finance overview, or change bills (void, instalment limit).
 - Verification of her entries: **Admin Keuangan or Admin** (D1).
 
-### Step 2 — Schedule: clash check and timetable (small–medium)
+### Step 2 — Schedule: clash check and timetable (small–medium) — ✅ done 2026-10-27
 - Saving a course offering is refused when, in the same semester and overlapping time on the same day,
   the **muhadhir**, the **class** or the **room** is already booked (message names the clash). Copying
   offerings from another semester reports clashes instead of failing silently.

@@ -150,3 +150,16 @@ select:focus[data-flux-control] {
         justify-content: flex-end;
     }
 }
+
+/* Printing (timetables, records): only the page content, no sidebar or header. */
+@media print {
+    [data-flux-sidebar],
+    [data-flux-header],
+    ui-toast-group {
+        display: none !important;
+    }
+
+    [data-flux-main] {
+        padding: 0 !important;
+    }
+}

@@ -49,6 +49,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('classes', 'pages::admin.class-groups')->name('class-groups');
         Route::livewire('subjects', 'pages::admin.subjects')->name('subjects');
         Route::livewire('grade-scale', 'pages::admin.grade-scale')->name('grade-scale');
+        Route::livewire('timetable', 'pages::admin.timetable')->name('timetable');
 
         Route::livewire('students', 'pages::admin.students.index')->name('students.index');
         Route::livewire('students/create', 'pages::admin.students.form')->name('students.create');
@@ -114,6 +115,7 @@ Route::middleware('portal')->group(function () {
     // Shown to users as "muhadhir"; route names keep the internal "ustadz." prefix.
     Route::prefix('muhadhir')->name('ustadz.')->middleware('role:teacher')->group(function () {
         Route::livewire('/', 'pages::ustadz.dashboard')->name('dashboard');
+        Route::livewire('timetable', 'pages::ustadz.timetable')->name('timetable');
         Route::livewire('offerings/{offering}/meetings', 'pages::ustadz.offerings.meetings')->name('offerings.meetings');
         Route::livewire('offerings/{offering}/grades', 'pages::ustadz.offerings.grades')->name('offerings.grades');
         Route::get('offerings/{offering}/grades/template', ScoreTemplateController::class)->name('offerings.grades.template');

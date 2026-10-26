@@ -735,3 +735,13 @@ v2 Step 1 (2026-10-27) — Petugas Pembayaran (see `docs/req/v2-plan.md`):
   `mayReceive()` (receiving a handover had no role check before; it was only protected by the Admin
   route). Finance queue *Konfirmasi transfer* now also lists collector transfers and handovers; Admin
   Keuangan is notified of a collector's handover.
+
+v2 Step 2 (2026-10-27) — schedule clash check and timetable:
+- `App\Support\ScheduleClashes`: course offerings in the same semester and day whose times overlap
+  (`start < other.end && other.start < end`; back-to-back is fine) and that share the **muhadhir**, the
+  **class** or the **room** (case-insensitive). Only slots with day, start and end are compared.
+  `ManageCourseOfferings::save()` refuses a clash (message names each clashing offering, shown on the
+  time field); `copy()` skips clashing offerings and returns `clashes` alongside `copied`/`skipped`.
+- Weekly timetable component (`x-timetable`, a column per day, stacked on phones, printable): Admin
+  **Jadwal** (`/admin/timetable`, by class / muhadhir / room, any semester) and muhadhir **Jadwal
+  mengajar** (`/muhadhir/timetable`). Print CSS hides the sidebar and header.

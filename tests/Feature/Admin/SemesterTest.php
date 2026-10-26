@@ -239,7 +239,7 @@ test('copying offerings snapshots the current subject and skips duplicates', fun
 
     $copy = fn () => app(ManageCourseOfferings::class)->copy($semester, $next);
 
-    expect($copy())->toBe(['copied' => 1, 'skipped' => 0])
-        ->and($copy())->toBe(['copied' => 0, 'skipped' => 1])
+    expect($copy())->toBe(['copied' => 1, 'skipped' => 0, 'clashes' => 0])
+        ->and($copy())->toBe(['copied' => 0, 'skipped' => 1, 'clashes' => 0])
         ->and(CourseOffering::query()->where('semester_id', $next->id)->sole()->day_of_week)->toBe(2);
 });

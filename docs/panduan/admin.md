@@ -36,6 +36,16 @@ sementara baru) dan **Nonaktifkan login**. Jangan menghapus orang; nonaktifkan a
 **Dokumen** — KTP, KK, dan ijazah yang diunggah mahasantri/muhadhir. Periksa lalu **Verifikasi**, atau
 **Tolak** dengan catatan (pemilik melihat catatan dan dapat mengunggah ulang).
 
+## Jadwal
+
+Jadwal dibuat dari **kelas kuliah**: mata kuliah × kelas × muhadhir × **hari, jam mulai–selesai, ruang**
+(halaman semester → tab **Kelas kuliah**). SIAKAD menolak jadwal yang **bentrok**: muhadhir, kelas, atau
+ruang yang sama pada jam yang tumpang tindih di hari yang sama; pesannya menyebut kelas kuliah yang
+bentrok. Saat menyalin kelas kuliah dari semester lain, yang bentrok tidak disalin dan dilaporkan.
+
+Menu **Akademik → Jadwal** menampilkan jadwal mingguan per **kelas**, **muhadhir**, atau **ruang**, dan
+dapat dicetak (**Cetak**).
+
 ## Pembimbing akademik
 
 Menu **Data orang → Pembimbing akademik**. Pilih muhadhir di kiri, lalu centang mahasantri (saring per

@@ -111,6 +111,7 @@ enum Role: string
         ];
 
         if ($this === self::Teacher) {
+            $groups[0]['items'][] = $item(__('My timetable'), 'calendar', 'ustadz.timetable');
             $groups[0]['items'][] = $item(__('My supervisees'), 'user-group', 'ustadz.supervision', 'ustadz.supervision*');
         }
 
@@ -150,6 +151,7 @@ enum Role: string
                 $item(__('Study programs'), 'building-library', 'admin.study-programs'),
                 $item(__('Classes'), 'user-group', 'admin.class-groups'),
                 $item(__('Subjects'), 'book-open', 'admin.subjects'),
+                $item(__('Timetable'), 'calendar', 'admin.timetable'),
                 $item(__('Grade scale'), 'scale', 'admin.grade-scale'),
                 $item(__('Academic monitor'), 'chart-bar', 'monitor.dashboard'),
                 $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities'),

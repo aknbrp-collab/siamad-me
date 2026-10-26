@@ -9,6 +9,11 @@ dan Google Scholar. NIDM (ID login Anda) dan status kepegawaian dikelola bagian 
 
 Anda juga diminta mengunggah KTP, KK, dan ijazah di **Dokumen saya**.
 
+## Jadwal mengajar
+
+Menu **Jadwal mengajar** menampilkan jadwal mingguan Anda semester ini (kelas dan ruang) dan dapat
+dicetak. Jadwal diatur bagian akademik.
+
 ## Mahasantri bimbingan (pembimbing akademik)
 
 Jika Anda ditetapkan sebagai pembimbing akademik, menu **Mahasantri bimbingan** menampilkan mahasantri

@@ -363,7 +363,11 @@ new #[Title('Semester')] class extends Component {
 
         Flux::modal('copy-offerings')->close();
         unset($this->offerings);
-        Flux::toast(variant: 'success', text: __(':copied offerings copied, :skipped skipped.', $result));
+        Flux::toast(
+            variant: $result['clashes'] > 0 ? 'warning' : 'success',
+            text: __(':copied offerings copied, :skipped skipped.', $result)
+                .($result['clashes'] > 0 ? ' '.__(':clashes not copied because their time clashes with this semester\'s schedule; add them by hand.', $result) : ''),
+        );
     }
 }; ?>
 

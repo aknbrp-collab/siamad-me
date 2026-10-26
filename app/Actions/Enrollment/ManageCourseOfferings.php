@@ -6,6 +6,7 @@ use App\Enums\TeacherStatus;
 use App\Models\CourseOffering;
 use App\Models\Semester;
 use App\Models\Subject;
+use App\Support\ScheduleClashes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -43,6 +44,16 @@ class ManageCourseOfferings
         ], [
             'subject_id.unique' => __('This class already has this subject in the semester.'),
         ])->validate();
+
+        // The same muhadhir, class or room cannot be in two places at once.
+        $slot = $this->slot($data);
+        $clashes = ScheduleClashes::for($semester->id, $slot, $offering?->id);
+
+        if ($clashes->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'starts_at' => __('This time clashes with :clashes.', ['clashes' => ScheduleClashes::describe($slot, $clashes)]),
+            ]);
+        }
 
         return DB::transaction(function () use ($semester, $offering, $data) {
             $offering ??= new CourseOffering(['semester_id' => $semester->id]);
@@ -86,10 +97,11 @@ class ManageCourseOfferings
 
     /**
      * Copy offerings (subject × class × teacher × schedule) from another
-     * semester, skipping ones that already exist or whose subject, class or
-     * teacher is no longer available.
+     * semester, skipping ones that already exist, whose subject, class or
+     * teacher is no longer available, or whose time clashes with an offering
+     * already in the target semester (counted separately).
      *
-     * @return array{copied: int, skipped: int}
+     * @return array{copied: int, skipped: int, clashes: int}
      */
     public function copy(Semester $from, Semester $to): array
     {
@@ -102,6 +114,7 @@ class ManageCourseOfferings
         return DB::transaction(function () use ($from, $to) {
             $copied = 0;
             $skipped = 0;
+            $clashes = 0;
 
             $sources = CourseOffering::query()
                 ->with(['subject', 'classGroup', 'teacher'])
@@ -125,6 +138,12 @@ class ManageCourseOfferings
                     continue;
                 }
 
+                if (ScheduleClashes::for($to->id, $this->slot($source->only(['day_of_week', 'starts_at', 'ends_at', 'teacher_id', 'class_group_id', 'room'])))->isNotEmpty()) {
+                    $clashes++;
+
+                    continue;
+                }
+
                 $offering = CourseOffering::create([
                     ...$source->only(['subject_id', 'class_group_id', 'teacher_id', 'day_of_week', 'starts_at', 'ends_at', 'room']),
                     'semester_id' => $to->id,
@@ -137,7 +156,23 @@ class ManageCourseOfferings
                 $copied++;
             }
 
-            return ['copied' => $copied, 'skipped' => $skipped];
+            return ['copied' => $copied, 'skipped' => $skipped, 'clashes' => $clashes];
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array{day_of_week: int|null, starts_at: string|null, ends_at: string|null, teacher_id: int, class_group_id: int, room: string|null}
+     */
+    private function slot(array $data): array
+    {
+        return [
+            'day_of_week' => isset($data['day_of_week']) ? (int) $data['day_of_week'] : null,
+            'starts_at' => isset($data['starts_at']) ? (string) $data['starts_at'] : null,
+            'ends_at' => isset($data['ends_at']) ? (string) $data['ends_at'] : null,
+            'teacher_id' => (int) $data['teacher_id'],
+            'class_group_id' => (int) $data['class_group_id'],
+            'room' => isset($data['room']) ? (string) $data['room'] : null,
+        ];
     }
 }

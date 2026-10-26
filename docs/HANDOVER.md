@@ -98,7 +98,7 @@ docs/                      DESIGN.md (design + phase notes), HANDOVER.md (this f
 lang/                      id.json (every UI string) + id/{validation,auth,passwords,pagination}.php
 resources/views/
   pages/                   Livewire pages, by area:
-    admin/                 academic-years, semesters/show, study-programs, class-groups, subjects, grade-scale,
+    admin/                 timetable, academic-years, semesters/show, study-programs, class-groups, subjects, grade-scale,
                            students|teachers|guardians/{index,form}, students/record, documents, imports, payments
     auth/                  login (ID number), change-password, select-role (+ Fortify views)
     finance/               dashboard, fees, scholarships, bills/{index,show}, handovers, transfers (payer confirmations)

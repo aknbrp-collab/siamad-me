@@ -23,6 +23,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Add muhadhir and wali santri; link a wali to two siblings
 - [ ] Classes per semester level, Putra and Putri; placing a mahasantri in a class of the other gender is refused
 - [ ] Place mahasantri in classes; add course offerings with muhadhir and schedules; activate the semester
+- [ ] Try to book a muhadhir, a class and a room twice at the same time (refused); print the timetable of a class
 - [ ] Open the next semester: copying rosters moves everyone up one semester into the same-gender class
 - [ ] Verify and reject an uploaded document (the owner sees the note)
 - [ ] Verify a cash handover (reject one payment in it) and a transfer

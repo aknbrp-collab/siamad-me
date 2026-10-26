@@ -130,7 +130,8 @@ tests/Feature/             Admin, Auth, Finance, Teaching, Lms, Superadmin, Sett
 - [x] **Backups** — `siakad:backup` daily at 02:00, 30-day retention, restore tested; see OPERATIONS.md.
 - [x] **User guides** per role in `docs/panduan/` (Indonesian).
 - [ ] **Institution logo upload** in settings (design mentions it; only name/address/phone exist).
-- [ ] **Retaken subjects** are listed per attempt on the transcript, not merged (IPK counts both).
+- [x] **Retaken subjects** — the transcript lists a subject once, with its best grade; only that attempt
+      counts toward total SKS and IPK. The KHS keeps every semester's own attempt (2026-10-26).
 - [ ] **Real-time forum** (Laravel Reverb); currently polls every 15 s.
 - [ ] **Queued imports / bill generation** — measured: 300 mahasantri placed in 0.9 s, billed in 1.7 s
       (PostgreSQL), so they stay synchronous. Revisit above ~2,000 mahasantri.
@@ -214,7 +215,7 @@ edition) · Tailwind 4 · Alpine (via Livewire) · Fortify (auth, 2FA, passkeys)
    another disk (or a daily off-server copy), 2FA for staff.
 4. **Housekeeping:** remove the `boost:update` composer script (or install Boost), delete/adapt
    `layouts/app/header.blade.php`, tidy `.env` spacing.
-5. **Later / optional:** transcript handling of retaken subjects, Reverb for the forum, institution logo,
+5. **Later / optional:** Reverb for the forum, institution logo,
    notifications, payment gateway.
 
 ### How to work on it

@@ -12,7 +12,8 @@ Pilih anak dan semester untuk melihat:
 - **nilai** per mata kuliah dan IPS (hanya nilai yang sudah final);
 - **presensi** per mata kuliah. Persentase merah berarti di bawah batas minimum kehadiran;
 - **catatan kegiatan pesantren** (halaqah, tahfidz, kajian…) dari pemantau akademik;
-- unduhan **PDF KHS** semester itu dan **PDF transkrip** (seluruh semester, dengan IPK).
+- unduhan **PDF KHS** semester itu dan **PDF transkrip** (seluruh semester, dengan IPK). Di transkrip,
+  mata kuliah yang diulang hanya tampil sekali dengan nilai terbaik.
 
 ## Tagihan
 

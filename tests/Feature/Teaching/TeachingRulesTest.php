@@ -180,3 +180,92 @@ test('the transcript lists finalised grades by semester with IPK', function () {
         ->and($transcript['semesters'])->toHaveCount(1)
         ->and($transcript['semesters'][0]['rows'][0]['letter'])->toBe('A');
 });
+
+/**
+ * Finalise $offering with one UAS component and the given score per student.
+ *
+ * @param  array<int, int>  $scores  student id => score
+ */
+function finaliseWith(CourseOffering $offering, array $scores): void
+{
+    $grades = app(ManageGrades::class);
+    $grades->saveComponents($offering, [['name' => 'UAS', 'weight' => 100]]);
+    $component = $offering->components()->sole();
+
+    foreach ($scores as $studentId => $score) {
+        $enrollment = CourseEnrollment::query()->where('student_id', $studentId)->where('course_offering_id', $offering->id)->sole();
+        $grades->saveScores($offering, [$enrollment->id => [$component->id => $score]]);
+    }
+
+    $grades->finalize($offering, User::factory()->create());
+}
+
+/**
+ * The same subject again in the even semester of the same academic year.
+ */
+function retakeOffering(Semester $first, ClassGroup $classGroup, Teacher $teacher, CourseOffering $original, array $studentIds): CourseOffering
+{
+    $second = Semester::factory()->even()->create(['academic_year_id' => $first->academic_year_id]);
+    app(ManageClassEnrollments::class)->enroll($second, $classGroup, $studentIds);
+
+    return app(ManageCourseOfferings::class)->save($second, null, [
+        'subject_id' => $original->subject_id, 'class_group_id' => $classGroup->id, 'teacher_id' => $teacher->id,
+    ]);
+}
+
+test('a retaken subject counts once on the transcript, with its best grade', function () {
+    finaliseWith($this->offering, [$this->a->id => 50, $this->b->id => 50]);
+    $retake = retakeOffering($this->semester, $this->classGroup, $this->teacher, $this->offering, [$this->a->id, $this->b->id]);
+    finaliseWith($retake, [$this->a->id => 90, $this->b->id => 50]);
+
+    $transcript = app(AcademicRecord::class)->transcript($this->a);
+    $rows = $transcript['semesters']->flatMap(fn (array $entry) => $entry['rows']);
+
+    // Only the better retake is listed; the first semester has nothing left to show.
+    expect($rows)->toHaveCount(1)
+        ->and($rows->first()['enrollment_id'])->toBe(enrollmentOf($this->a, $retake)->id)
+        ->and($rows->first()['letter'])->toBe('A')
+        ->and($transcript['semesters'])->toHaveCount(1)
+        ->and($transcript['credits'])->toBe(3)
+        ->and($transcript['ipk'])->toBe(4.0);
+
+    // The KHS keeps each semester's own attempt.
+    $firstKhs = app(AcademicRecord::class)->khs($this->a, $this->semester);
+    expect($firstKhs['rows']->first()['score'])->toEqual(50)
+        ->and($firstKhs['credits'])->toBe(3);
+});
+
+test('a worse retake does not replace the earlier grade', function () {
+    finaliseWith($this->offering, [$this->a->id => 90, $this->b->id => 90]);
+    $retake = retakeOffering($this->semester, $this->classGroup, $this->teacher, $this->offering, [$this->a->id, $this->b->id]);
+    finaliseWith($retake, [$this->a->id => 40, $this->b->id => 40]);
+
+    $transcript = app(AcademicRecord::class)->transcript($this->a);
+
+    expect($transcript['semesters'])->toHaveCount(1)
+        ->and($transcript['semesters'][0]['semester']->is($this->semester))->toBeTrue()
+        ->and($transcript['ipk'])->toBe(4.0)
+        ->and($transcript['credits'])->toBe(3);
+});
+
+test('equal retakes keep the latest attempt', function () {
+    finaliseWith($this->offering, [$this->a->id => 90, $this->b->id => 90]);
+    $retake = retakeOffering($this->semester, $this->classGroup, $this->teacher, $this->offering, [$this->a->id, $this->b->id]);
+    finaliseWith($retake, [$this->a->id => 90, $this->b->id => 90]);
+
+    $rows = app(AcademicRecord::class)->transcript($this->a)['semesters']->flatMap(fn (array $entry) => $entry['rows']);
+
+    expect($rows)->toHaveCount(1)
+        ->and($rows->first()['enrollment_id'])->toBe(enrollmentOf($this->a, $retake)->id);
+});
+
+test('a retake of a renamed subject is still the same subject', function () {
+    finaliseWith($this->offering, [$this->a->id => 50, $this->b->id => 50]);
+    $this->offering->subject->update(['code' => 'FQH1-NEW', 'name' => 'Fiqh Ibadah']);
+    $retake = retakeOffering($this->semester, $this->classGroup, $this->teacher, $this->offering, [$this->a->id, $this->b->id]);
+    finaliseWith($retake, [$this->a->id => 90, $this->b->id => 90]);
+
+    $rows = app(AcademicRecord::class)->transcript($this->a)['semesters']->flatMap(fn (array $entry) => $entry['rows']);
+
+    expect($rows)->toHaveCount(1)->and($rows->first()['code'])->toBe('FQH1-NEW');
+});

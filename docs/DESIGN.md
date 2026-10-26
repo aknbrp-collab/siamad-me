@@ -620,3 +620,13 @@ Phase 5 notes (2026-10-26; UAT with the institution still to do):
 - **Dashboards** of Superadmin, Admin, mahasantri and wali showed Phase 0 "Coming soon" placeholders;
   they now show shortcuts built from the role's own menu.
 - **User guides** per role in Indonesian (`docs/panduan/`) and a UAT checklist (`docs/UAT.md`).
+
+Retaken subjects (2026-10-26, decided with the client):
+- The **transcript** shows a retaken subject **once, with its best grade**; other attempts are hidden.
+  Best = highest grade point, then highest score, then the latest semester. Attempts are matched on
+  `subject_id`, so a subject renamed between attempts is still one subject.
+- Only that attempt counts toward the transcript's total SKS and **IPK**. A semester whose subjects were
+  all bettered later no longer appears on the transcript; the SKS/IP shown per semester on the transcript
+  cover the listed rows only.
+- The **KHS is unchanged**: each semester keeps its own attempt and its IPS, as the historical record.
+- Logic: `AcademicRecord::transcript()` (web pages and PDF share it).

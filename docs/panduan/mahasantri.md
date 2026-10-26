@@ -32,7 +32,9 @@ Di ponsel, pilih bagian kelas lewat menu tarik-turun di atas halaman.
 
 - **KHS**: pilih semester untuk melihat SKS, nilai, nilai huruf, dan IPS. Hanya nilai yang sudah final
   dihitung. Unduh **PDF** bila perlu.
-- **Transkrip**: semua nilai final dari seluruh semester, IPK, dan total SKS, beserta PDF.
+- **Transkrip**: semua nilai final dari seluruh semester, IPK, dan total SKS, beserta PDF. Mata
+  kuliah yang diulang hanya tampil sekali dengan **nilai terbaik**, dan hanya nilai itu yang dihitung
+  dalam IPK. KHS semester lama tetap menampilkan nilai saat itu.
 
 ## Tagihan saya
 

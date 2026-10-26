@@ -25,6 +25,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Verify and reject an uploaded document (the owner sees the note)
 - [ ] Verify a cash handover (reject one payment in it) and a transfer
 - [ ] Close the semester; check that it is read-only
+- [ ] A mahasantri who retook a subject: the transcript lists it once with the best grade and the IPK counts only that; the old semester's KHS is unchanged
 
 ## Admin Keuangan
 - [ ] Fee types and rates (one class-specific); copy rates to next year

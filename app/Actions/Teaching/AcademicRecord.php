@@ -32,7 +32,9 @@ class AcademicRecord
     }
 
     /**
-     * Finalised grades of every semester, grouped by semester.
+     * Finalised grades of every semester, grouped by semester. A retaken
+     * subject appears once: only its best attempt is listed and counted
+     * toward the total SKS and IPK. The KHS of each semester is unaffected.
      *
      * @return array{semesters: Collection<int, array{semester: Semester, rows: Collection<int, array{enrollment_id: int, code: string, name: string, credits: int, score: string|null, letter: string|null, point: string|null, final: bool}>, credits: int, ip: float|null}>, credits: int, ipk: float|null}
      */
@@ -42,6 +44,8 @@ class AcademicRecord
             ->with('courseOffering.semester.academicYear')
             ->whereNotNull('finalized_at')
             ->get();
+
+        $enrollments = $this->bestAttempts($enrollments);
 
         $semesters = $enrollments
             ->groupBy('courseOffering.semester_id')
@@ -55,13 +59,42 @@ class AcademicRecord
                     'ip' => $summary['ip'],
                 ];
             })
-            // Chronological: academic year, then odd before even.
-            ->sortBy(fn (array $entry) => $entry['semester']->academicYear->name.'-'.($entry['semester']->term->value === 'odd' ? 1 : 2))
+            ->sortBy(fn (array $entry) => $this->chronology($entry['semester']))
             ->values();
 
         $all = $this->summarise($enrollments);
 
         return ['semesters' => $semesters, 'credits' => $all['credits'], 'ipk' => $all['ip']];
+    }
+
+    /**
+     * One enrolment per subject: the highest grade point, then the highest
+     * score, then the latest semester. Matched on subject_id, so a subject
+     * renamed between attempts still counts as the same subject.
+     *
+     * @param  Collection<int, CourseEnrollment>  $enrollments
+     * @return Collection<int, CourseEnrollment>
+     */
+    private function bestAttempts(Collection $enrollments): Collection
+    {
+        return $enrollments
+            ->groupBy('courseOffering.subject_id')
+            ->map(fn (Collection $attempts) => $attempts
+                ->sortByDesc(fn (CourseEnrollment $attempt) => [
+                    (float) $attempt->final_point,
+                    (float) $attempt->final_score,
+                    $this->chronology($attempt->courseOffering->semester),
+                ])
+                ->first())
+            ->values();
+    }
+
+    /**
+     * Sort key putting semesters in order: academic year, then odd before even.
+     */
+    private function chronology(Semester $semester): string
+    {
+        return $semester->academicYear->name.'-'.($semester->term->value === 'odd' ? 1 : 2);
     }
 
     /**

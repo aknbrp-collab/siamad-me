@@ -41,6 +41,8 @@ class RecordPayment
             'paid_on' => ['required', 'date', 'before_or_equal:today'],
             'reference' => ['nullable', 'string', 'max:255', 'required_if:method,'.PaymentMethod::Transfer->value],
             'proof' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+            // The account the money goes into (cash book); left empty, it is set when verified.
+            'cash_account_id' => ['nullable', 'integer', Rule::exists('cash_accounts', 'id')->where('is_active', true)],
         ], [
             'reference.required_if' => __('Enter the bank reference of the transfer.'),
         ])->validate();
@@ -60,6 +62,7 @@ class RecordPayment
                 'proof_path' => $this->storeProof($data['proof'] ?? null, $bill),
                 'status' => PaymentStatus::Unverified,
                 'recorded_by' => $recorder->id,
+                'cash_account_id' => $data['cash_account_id'] ?? null,
             ]);
         });
     }

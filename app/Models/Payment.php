@@ -32,6 +32,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $status_note
  * @property int|null $payment_handover_id
  * @property string|null $receipt_number
+ * @property int|null $cash_account_id
+ * @property-read CashAccount|null $cashAccount
  * @property-read Bill $bill
  * @property-read User $recorder
  * @property-read User|null $verifier
@@ -39,7 +41,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'bill_id', 'amount', 'method', 'source', 'paid_on', 'reference', 'proof_path', 'status', 'recorded_by',
-    'verified_by', 'verified_at', 'status_note', 'payment_handover_id', 'receipt_number',
+    'verified_by', 'verified_at', 'status_note', 'payment_handover_id', 'receipt_number', 'cash_account_id',
 ])]
 class Payment extends Model
 {
@@ -91,6 +93,16 @@ class Payment extends Model
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /**
+     * The account the money went into (cash book, v3 D9).
+     *
+     * @return BelongsTo<CashAccount, $this>
+     */
+    public function cashAccount(): BelongsTo
+    {
+        return $this->belongsTo(CashAccount::class);
     }
 
     /**

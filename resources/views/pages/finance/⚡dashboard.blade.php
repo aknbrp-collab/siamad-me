@@ -127,6 +127,24 @@ new #[Title('Finance')] class extends Component {
         </x-slot:actions>
     </x-page-header>
 
+    @php($balances = \App\Support\CashBook::balances())
+    @if ($balances->isNotEmpty())
+        <div data-test="account-balances">
+            <div class="mb-3 flex items-center justify-between">
+                <flux:heading size="lg">{{ __('Account balances') }}</flux:heading>
+                <flux:button size="sm" variant="ghost" icon="book-open" :href="route('finance.cashbook')" wire:navigate>{{ __('Cash book') }}</flux:button>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach ($balances as $row)
+                    <flux:card wire:key="balance-{{ $row['account']->id }}" class="p-4">
+                        <flux:text class="text-xs">{{ $row['account']->label() }}</flux:text>
+                        <div class="mt-1 text-lg font-semibold tabular-nums">{{ Money::format($row['balance']) }}</div>
+                    </flux:card>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @foreach ([
             ['label' => __('Billed'), 'value' => $this->totals['billed'], 'hint' => trans_choice(':count bill|:count bills', $this->bills->count())],

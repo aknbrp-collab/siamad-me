@@ -12,6 +12,7 @@ enum PrintDocument: string
     case Transcript = 'transcript';
     case ExamCard = 'exam_card';
     case Receipt = 'receipt';
+    case CashReport = 'cash_report';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum PrintDocument: string
             self::Transcript => __('Transcript'),
             self::ExamCard => __('Exam card'),
             self::Receipt => __('Payment receipt'),
+            self::CashReport => __('Cash report'),
         };
     }
 
@@ -29,7 +31,7 @@ enum PrintDocument: string
     public function fallbackTitle(): string
     {
         return match ($this) {
-            self::Receipt => 'Bagian Keuangan',
+            self::Receipt, self::CashReport => 'Bagian Keuangan',
             default => 'Bagian Akademik',
         };
     }

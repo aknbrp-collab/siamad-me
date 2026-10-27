@@ -8,9 +8,11 @@ use App\Enums\PaymentSource;
 use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Models\Bill;
+use App\Models\CashAccount;
 use App\Models\Payment;
 use App\Models\PaymentHandover;
 use App\Models\User;
+use App\Support\CashBook;
 use App\Support\Money;
 use App\Support\Notify;
 use App\Support\NumberSequence;
@@ -79,9 +81,12 @@ class ReviewPayments
      * The Admin counts the money of a handover: every payment is verified
      * except the ones listed in $rejections (payment id => reason).
      *
+     * The money goes into $cashAccountId (default: the cash account set as
+     * default), unless the recorder already chose an account.
+     *
      * @param  array<int, string>  $rejections
      */
-    public function completeHandover(PaymentHandover $handover, User $verifier, array $rejections = []): void
+    public function completeHandover(PaymentHandover $handover, User $verifier, array $rejections = [], ?int $cashAccountId = null): void
     {
         if ($handover->status !== HandoverStatus::Submitted) {
             $this->fail('handover', __('This handover was already reviewed.'));
@@ -101,12 +106,12 @@ class ReviewPayments
             }
         }
 
-        DB::transaction(function () use ($handover, $verifier, $rejections) {
+        DB::transaction(function () use ($handover, $verifier, $rejections, $cashAccountId) {
             foreach ($handover->payments()->get() as $payment) {
                 if (array_key_exists($payment->id, $rejections)) {
                     $this->reject($payment, $verifier, $rejections[$payment->id]);
                 } else {
-                    $this->confirm($payment, $verifier);
+                    $this->confirm($payment, $verifier, $cashAccountId);
                 }
             }
 
@@ -126,9 +131,11 @@ class ReviewPayments
     }
 
     /**
-     * Verify a bank transfer on its own. Cash goes through a handover.
+     * Verify a bank transfer on its own. Cash goes through a handover. The
+     * money goes into $cashAccountId (default: the bank account set as
+     * default), unless the recorder already chose an account.
      */
-    public function verifyTransfer(Payment $payment, User $verifier): void
+    public function verifyTransfer(Payment $payment, User $verifier, ?int $cashAccountId = null): void
     {
         if ($payment->method !== PaymentMethod::Transfer) {
             $this->fail('payment', __('Cash payments are verified through a handover.'));
@@ -136,7 +143,7 @@ class ReviewPayments
 
         $this->ensureMayReviewTransfer($payment, $verifier);
 
-        DB::transaction(fn () => $this->confirm($payment, $verifier));
+        DB::transaction(fn () => $this->confirm($payment, $verifier, $cashAccountId));
 
         $this->notifyPayer($payment, __('Transfer verified'), __(':amount for bill :number is verified. The official receipt is ready.', [
             'amount' => Money::format($payment->amount),
@@ -199,7 +206,7 @@ class ReviewPayments
         });
     }
 
-    private function confirm(Payment $payment, User $verifier): void
+    private function confirm(Payment $payment, User $verifier, ?int $cashAccountId = null): void
     {
         $this->ensureReviewable($payment, $verifier);
 
@@ -218,6 +225,8 @@ class ReviewPayments
             'verified_by' => $verifier->id,
             'verified_at' => now(),
             'receipt_number' => NumberSequence::next('KW'),
+            // Income of this account in the cash book from now on (v3 D9).
+            'cash_account_id' => $payment->cash_account_id ?? $this->activeAccount($cashAccountId) ?? CashBook::defaultAccountId($payment->method),
         ]);
 
         $bill->recalculate();
@@ -287,6 +296,11 @@ class ReviewPayments
         if (! $this->mayReviewTransfer($payment, $verifier)) {
             $this->fail('payment', __('Only an Admin can verify transfers recorded by the finance office.'));
         }
+    }
+
+    private function activeAccount(?int $id): ?int
+    {
+        return $id !== null && CashAccount::query()->whereKey($id)->where('is_active', true)->exists() ? $id : null;
     }
 
     private function lockedBill(Payment $payment): Bill

@@ -114,7 +114,7 @@ some pages were never checked in dark.
 - The exam card shows the room and seat once, at the top, with the subject schedule below.
 - Existing seats are migrated: a period whose seats were assigned asks for one new shuffle.
 
-### Step 5 — Cash book: income, expenses, accounts (large, D8)
+### Step 5 — Cash book: income, expenses, accounts (large, D8) — ✅ done 2026-10-28 (no approval step: the default)
 - **Accounts** (Kas tunai, and each bank account), each with an opening balance and date. Admin
   Keuangan manages them; Superadmin sees all of them.
 - **Income:**

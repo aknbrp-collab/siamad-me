@@ -176,7 +176,13 @@ enum Role: string
                 $item(__('Transfer confirmations'), 'building-library', 'finance.transfers'),
                 $item(__('Fees'), 'tag', 'finance.fees'),
                 $item(__('Scholarships'), 'gift', 'finance.scholarships'),
+                $item(__('Cash book'), 'book-open', 'finance.cashbook', 'finance.cashbook|finance.cash-accounts'),
             ];
+
+            // Superadmin reaches the same page from the Academic menu.
+            if ($this === self::AdminPayment) {
+                $finance[] = $item(__('Previous-year data'), 'archive-box', 'finance.history');
+            }
 
             if ($this === self::Superadmin) {
                 array_unshift($finance, $item(__('Overview'), 'chart-pie', 'finance.dashboard'));

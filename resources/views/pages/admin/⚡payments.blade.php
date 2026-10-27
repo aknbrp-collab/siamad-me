@@ -4,6 +4,7 @@ use App\Actions\Finance\ReviewPayments;
 use App\Enums\HandoverStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Support\CashBook;
 use App\Models\Payment;
 use App\Models\PaymentHandover;
 use App\Support\Money;
@@ -15,6 +16,17 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new #[Title('Payment verification')] class extends Component {
+    /** Accounts verified money goes into (cash book, v3 D9); the recorder's choice wins. */
+    public ?int $transferAccountId = null;
+
+    public ?int $handoverAccountId = null;
+
+    public function mount(): void
+    {
+        $this->transferAccountId = CashBook::defaultAccountId(PaymentMethod::Transfer);
+        $this->handoverAccountId = CashBook::defaultAccountId(PaymentMethod::Cash);
+    }
+
     #[Url]
     public string $tab = 'handovers';
 
@@ -88,7 +100,7 @@ new #[Title('Payment verification')] class extends Component {
             ->mapWithKeys(fn ($flag, $id) => [(int) $id => (string) ($this->reasons[$id] ?? '')])
             ->all();
 
-        $review->completeHandover(PaymentHandover::query()->findOrFail($this->reviewingId), auth()->user(), $rejections);
+        $review->completeHandover(PaymentHandover::query()->findOrFail($this->reviewingId), auth()->user(), $rejections, $this->handoverAccountId);
 
         Flux::modal('review-handover')->close();
         unset($this->handovers);
@@ -99,7 +111,7 @@ new #[Title('Payment verification')] class extends Component {
     {
         $this->resetErrorBag();
 
-        $review->verifyTransfer(Payment::query()->findOrFail($id), auth()->user());
+        $review->verifyTransfer(Payment::query()->findOrFail($id), auth()->user(), $this->transferAccountId);
 
         unset($this->transfers);
         Flux::toast(variant: 'success', text: __('Transfer verified.'));
@@ -136,6 +148,10 @@ new #[Title('Payment verification')] class extends Component {
         <flux:radio value="handovers" :label="__('Cash handovers (:count)', ['count' => $this->handovers->count()])" />
         <flux:radio value="transfers" :label="__('Transfers (:count)', ['count' => $this->transfers->count()])" />
     </flux:radio.group>
+
+    @if ($tab === 'transfers')
+        <x-cash-account-select wire:model="transferAccountId" :method="PaymentMethod::Transfer" :label="__('Verified transfers go into')" class="mb-4 sm:max-w-sm" data-test="transfer-account" />
+    @endif
 
     @if ($tab === 'handovers')
         <div class="flex flex-col gap-3">
@@ -205,6 +221,8 @@ new #[Title('Payment verification')] class extends Component {
                     <flux:heading size="lg">{{ __('Handover :number', ['number' => $this->reviewing->number]) }}</flux:heading>
                     <flux:text class="mt-1">{{ __('Count the cash. Tick a payment only if its money is missing; it will be rejected with your reason.') }}</flux:text>
                 </div>
+
+                <x-cash-account-select wire:model="handoverAccountId" :method="PaymentMethod::Cash" :label="__('Cash goes into')" data-test="handover-account" />
 
                 <div class="divide-y divide-zinc-200 dark:divide-zinc-700">
                     @foreach ($this->reviewing->payments as $payment)

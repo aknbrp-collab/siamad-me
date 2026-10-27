@@ -15,6 +15,12 @@ interface HistoryImporter
     public function label(): string;
 
     /**
+     * Whether rows belong to one closed semester chosen on the page (class
+     * placements, grades, bills) or carry their own date (cash entries).
+     */
+    public function needsSemester(): bool;
+
+    /**
      * Template columns: header => description.
      *
      * @return array<string, string>
@@ -35,14 +41,15 @@ interface HistoryImporter
 
     /**
      * Check one row. "input" is what import() needs; "errors" skip the row.
+     * $semester is set exactly when needsSemester() is true.
      *
      * @param  array<string, string>  $row
      * @return array{input: array<string, mixed>, errors: list<string>}
      */
-    public function check(Semester $semester, array $row): array;
+    public function check(?Semester $semester, array $row): array;
 
     /**
      * @param  array<string, mixed>  $input
      */
-    public function import(Semester $semester, array $input, User $by): void;
+    public function import(?Semester $semester, array $input, User $by): void;
 }

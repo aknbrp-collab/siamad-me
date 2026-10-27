@@ -1,15 +1,20 @@
 <?php
 
 use App\Enums\SemesterStatus;
+use App\Enums\Role;
+use App\Imports\History\BillHistory;
+use App\Imports\History\CashHistory;
 use App\Imports\History\GradeHistory;
 use App\Imports\History\HistoryImporter;
 use App\Imports\History\PlacementHistory;
+use App\Support\ActiveRole;
 use App\Imports\Importers;
 use App\Models\Semester;
 use App\Support\MaintenanceMode;
 use App\Support\SpreadsheetDownload;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -21,7 +26,17 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 new #[Title('Previous-year data')] class extends Component {
     use WithFileUploads;
 
-    private const TYPES = ['placements' => PlacementHistory::class, 'grades' => GradeHistory::class];
+    /**
+     * Academic data for Admin, finance data for Admin Keuangan; Superadmin all.
+     *
+     * @var array<string, array{0: class-string<HistoryImporter>, 1: list<Role>}>
+     */
+    private const TYPES = [
+        'placements' => [PlacementHistory::class, [Role::Admin, Role::Superadmin]],
+        'grades' => [GradeHistory::class, [Role::Admin, Role::Superadmin]],
+        'bills' => [BillHistory::class, [Role::AdminPayment, Role::Superadmin]],
+        'cash' => [CashHistory::class, [Role::AdminPayment, Role::Superadmin]],
+    ];
 
     private const MAX_ROWS = 2000;
 
@@ -42,11 +57,29 @@ new #[Title('Previous-year data')] class extends Component {
 
     public function mount(): void
     {
-        if (! isset(self::TYPES[$this->type])) {
-            $this->type = 'placements';
+        abort_if($this->types === [], 403);
+
+        if (! array_key_exists($this->type, $this->types)) {
+            $this->type = array_key_first($this->types);
         }
 
         $this->semesterId ??= $this->semesters->first()?->id;
+    }
+
+    /**
+     * The imports the active role may run: key => label.
+     *
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function types(): array
+    {
+        $role = ActiveRole::get();
+
+        return collect(self::TYPES)
+            ->filter(fn (array $type) => in_array($role, $type[1], true))
+            ->map(fn (array $type) => app($type[0])->label())
+            ->all();
     }
 
     /**
@@ -70,7 +103,9 @@ new #[Title('Previous-year data')] class extends Component {
     #[Computed]
     public function importer(): HistoryImporter
     {
-        return app(self::TYPES[$this->type]);
+        abort_unless(array_key_exists($this->type, $this->types), 403);
+
+        return app(self::TYPES[$this->type][0]);
     }
 
     #[Computed]
@@ -121,8 +156,9 @@ new #[Title('Previous-year data')] class extends Component {
     private function run(bool $import): array
     {
         abort_unless($this->open, 403);
-        $semester = $this->semester;
-        abort_if($semester === null, 404);
+        $importer = $this->importer;
+        $semester = $importer->needsSemester() ? $this->semester : null;
+        abort_if($importer->needsSemester() && $semester === null, 404);
 
         $this->validate(['file' => ['required', 'file', 'mimes:xlsx,csv,txt', 'max:5120']]);
 
@@ -137,7 +173,6 @@ new #[Title('Previous-year data')] class extends Component {
             throw ValidationException::withMessages(['file' => __('Import at most :max rows at a time.', ['max' => self::MAX_ROWS])]);
         }
 
-        $importer = $this->importer;
         $seen = [];
         $valid = 0;
         $imported = 0;
@@ -146,6 +181,7 @@ new #[Title('Previous-year data')] class extends Component {
         foreach ($rows as $index => $row) {
             $line = $index + 2;
             $key = $importer->key($row);
+            $id = trim(($row['nim'] ?? $row['date'] ?? '').' '.($row['subject_code'] ?? $row['description'] ?? ''));
             $checked = $importer->check($semester, $row);
             $messages = $checked['errors'];
 
@@ -155,7 +191,7 @@ new #[Title('Previous-year data')] class extends Component {
             $seen[$key] ??= $line;
 
             if ($messages !== []) {
-                $errors[] = ['row' => $line, 'id' => trim(($row['nim'] ?? '').' '.($row['subject_code'] ?? '')), 'messages' => $messages];
+                $errors[] = ['row' => $line, 'id' => Str::limit($id, 40), 'messages' => $messages];
 
                 continue;
             }
@@ -193,7 +229,7 @@ new #[Title('Previous-year data')] class extends Component {
 }; ?>
 
 <section class="w-full max-w-4xl">
-    <x-page-header :title="__('Previous-year data')" :subtitle="__('Class placements and final grades of closed semesters, from your offline records, so KHS, transcripts and IPK are complete.')" />
+    <x-page-header :title="__('Previous-year data')" :subtitle="__('Data of previous years from your offline records: class placements and grades, bills and payments, income and expenses, so KHS, transcripts, IPK and the cash book are complete.')" />
 
     @unless ($this->open)
         <flux:callout icon="lock-closed" color="amber" class="mb-6" data-test="history-locked"
@@ -201,26 +237,33 @@ new #[Title('Previous-year data')] class extends Component {
             :text="__('Closed semesters are read-only. Ask the Superadmin to turn maintenance mode on (with the reason) while you enter previous-year data.')" />
     @endunless
 
-    @if ($this->semesters->isEmpty())
+    <div class="mb-6">
+        <flux:radio.group wire:model.live="type" variant="segmented">
+            @foreach ($this->types as $key => $label)
+                <flux:radio :value="$key" :label="$label" />
+            @endforeach
+        </flux:radio.group>
+    </div>
+
+    @if ($this->importer->needsSemester() && $this->semesters->isEmpty())
         <flux:text>{{ __('There is no closed semester yet. While maintenance mode is on, add the previous academic year on the Academic years page: its semesters are created closed.') }}</flux:text>
     @else
         <div class="space-y-6">
-            <div class="flex flex-wrap items-end gap-4">
+            @if ($this->importer->needsSemester())
                 <flux:select wire:model.live="semesterId" :label="__('Semester')" class="sm:max-w-60">
                     @foreach ($this->semesters as $semester)
                         <flux:select.option :value="$semester->id">{{ $semester->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:radio.group wire:model.live="type" variant="segmented">
-                    <flux:radio value="placements" :label="__('Class placements')" />
-                    <flux:radio value="grades" :label="__('Final grades')" />
-                </flux:radio.group>
-            </div>
+            @endif
 
             <flux:text class="text-sm">
-                {{ $type === 'placements'
-                    ? __('Import the class placements first: grades are matched to the class each mahasantri was in.')
-                    : __('Each grade is stored as final. Rows for a subject and class without a class offering create it, with the muhadhir given in teacher_nidm.') }}
+                {{ match ($type) {
+                    'placements' => __('Import the class placements first: grades are matched to the class each mahasantri was in.'),
+                    'grades' => __('Each grade is stored as final. Rows for a subject and class without a class offering create it, with the muhadhir given in teacher_nidm.'),
+                    'bills' => __('One row per mahasantri: the bill of the semester and what was paid on it. Payments are stored as verified and booked to the account given.'),
+                    default => __('Other income and expenses, each with its date. Set the accounts and their opening balance first (Accounts & categories).'),
+                } }}
             </flux:text>
 
             <flux:card class="space-y-4">

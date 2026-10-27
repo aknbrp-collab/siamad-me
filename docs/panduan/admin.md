@@ -133,6 +133,8 @@ sendiri.
   **tidak ada** (beri alasan), lalu **Hitung & verifikasi**. Yang tidak dicentang menjadi terverifikasi
   dan mendapat kuitansi resmi.
 - **Transfer**: cocokkan dengan rekening koran, lalu **Verifikasi** atau **Tolak** dengan alasan.
+- Pilih rekening tujuan (**Transfer yang diverifikasi masuk ke**, **Uang tunai masuk ke**) agar
+  pembayaran masuk ke buku kas rekening yang benar; rekening bawaan sudah terpilih.
 
 ## Nilai dan pemantauan
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentSource;
 use App\Enums\Role;
+use App\Models\CashEntry;
 use App\Models\Material;
 use App\Models\Payment;
 use App\Models\Student;
@@ -24,7 +25,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class PrivateFileController extends Controller
 {
-    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'material', 'submission'];
+    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'material', 'submission'];
 
     public function __invoke(Request $request, string $kind, int $id): StreamedResponse
     {
@@ -39,10 +40,12 @@ class PrivateFileController extends Controller
             'teacher-document' => $this->document(TeacherDocument::query()->with('teacher')->findOrFail($id)),
             // Finance staff, plus the mahasantri / wali who uploaded it with their transfer confirmation.
             'payment-proof' => $this->paymentProof(Payment::query()->findOrFail($id)),
+            // Receipts of cash book entries (expenses): finance staff only.
+            'cash-proof' => [CashEntry::query()->findOrFail($id)->proof_path, null, null],
             default => abort(404),
         };
 
-        $isStaff = in_array(ActiveRole::get(), $kind === 'payment-proof'
+        $isStaff = in_array(ActiveRole::get(), in_array($kind, ['payment-proof', 'cash-proof'], true)
             ? [Role::Admin, Role::AdminPayment, Role::Superadmin]
             : [Role::Admin, Role::Superadmin], true);
 

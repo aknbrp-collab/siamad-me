@@ -102,7 +102,8 @@ resources/views/
     admin/                 timetable, rooms, exams/{index,show}, academic-years, semesters/show, study-programs, class-groups, subjects, grade-scale,
                            students|teachers|guardians/{index,form}, students/record, documents, imports, history, payments
     auth/                  login (ID number), change-password, select-role (+ Fortify views)
-    finance/               dashboard, fees, scholarships, bills/{index,show}, handovers, transfers (payer confirmations)
+    finance/               dashboard, fees, scholarships, bills/{index,show}, handovers, transfers (payer confirmations),
+                           cashbook (ledger, report), cash-accounts (accounts, categories, defaults)
     mahasantri/            classes, class, quiz-attempt, khs, transcript, bills, exams (exam card)
     monitor/               dashboard, activities
     profile/               documents (owner upload), biodata (Profil saya: own profile, per role)

@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Http\Controllers\AcademicRecordPdfController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CashReportController;
 use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\NotificationController;
@@ -113,6 +114,11 @@ Route::middleware('portal')->group(function () {
         Route::livewire('fees', 'pages::finance.fees')->name('fees');
         Route::livewire('scholarships', 'pages::finance.scholarships')->name('scholarships');
         Route::livewire('transfers', 'pages::finance.transfers')->name('transfers');
+        Route::livewire('cashbook', 'pages::finance.cashbook')->name('cashbook');
+        Route::livewire('cash-accounts', 'pages::finance.cash-accounts')->name('cash-accounts');
+        Route::get('cash-report', CashReportController::class)->name('cash-report');
+        // Previous-year bills, payments, income and expenses (maintenance mode); same page as Admin's.
+        Route::livewire('history', 'pages::admin.history')->name('history');
     });
 
     // Also open to the Petugas Pembayaran; which bills they see is limited by App\Support\BillAccess.

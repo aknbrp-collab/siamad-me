@@ -865,3 +865,29 @@ v2 Step 3):
   each exam's rooms are derived from where its mahasantri sit.
 - `phpunit.xml` sets `memory_limit` 512M: the whole suite in one process outgrew the 128M CLI default.
 
+v3 Step 5 (2026-10-28) — cash book (D8, D9):
+- `cash_accounts` (Kas / bank, opening balance at the start of `opening_date`), `cash_categories`
+  (income / expense, seeded with starter categories), `cash_entries` (other income, expense, transfer
+  halves sharing `transfer_id` and one MUT number; BKM/BKK/MUT numbers per year via NumberSequence;
+  voided with reason, never deleted), `payments.cash_account_id`.
+- Tuition is **not copied** into cash entries: a verified payment is income of `payments.cash_account_id`,
+  dated `paid_on`. A void payment drops out by itself. The account is chosen when staff record the
+  payment (Petugas Pembayaran: no choice), or when a transfer / handover is verified
+  (`ReviewPayments::verifyTransfer|completeHandover(..., $cashAccountId)`), falling back to the default
+  account per method (settings `cashbook.default_cash_account|default_bank_account`). Payments verified
+  before the cash book are booked once per method (`ManageCashBook::assignUnbooked`).
+- `App\Support\CashBook`: `balance()` (opening + payments + entries from `opening_date`), `ledger()` with
+  running balance, `summary()` by category (transfers excluded), `balances()`, `accountsFor()`.
+  `App\Actions\Finance\ManageCashBook`: accounts, defaults, categories, `record()`, `transfer()`,
+  `void()`, `closeThrough()` (setting `cashbook.closed_through`, only forward, only ended months;
+  entries on or before it need maintenance mode), `assignUnbooked()`.
+- Pages (Admin Keuangan, Superadmin): **Buku kas** (`/finance/cashbook`: ledger, entry/transfer/void
+  dialogs, Excel export, close books; report tab) and **Rekening & kategori** (`/finance/cash-accounts`).
+  Cash report PDF `/finance/cash-report?from=Y-m&to=Y-m` (`PrintDocument::CashReport`, letterhead,
+  signature dialog). Finance dashboard shows account balances. Expense proofs: private file kind
+  `cash-proof`, finance staff only.
+- Previous-year finance on the shared **Data tahun sebelumnya** page (`finance.history`, same component as
+  `admin.history`; types filtered by role; `HistoryImporter::needsSemester()`): `BillHistory` (one row per
+  mahasantri: bill with one line + one verified payment, `PaymentSource::Import`) and `CashHistory`
+  (income/expense rows via `ManageCashBook::record`).
+

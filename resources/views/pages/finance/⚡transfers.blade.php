@@ -5,6 +5,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentSource;
 use App\Enums\PaymentStatus;
 use App\Enums\HandoverStatus;
+use App\Support\CashBook;
 use App\Models\Payment;
 use App\Models\PaymentHandover;
 use App\Support\Money;
@@ -15,6 +16,17 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Transfer confirmations')] class extends Component {
+    /** Accounts verified money goes into (cash book, v3 D9); the recorder's choice wins. */
+    public ?int $transferAccountId = null;
+
+    public ?int $handoverAccountId = null;
+
+    public function mount(): void
+    {
+        $this->transferAccountId = CashBook::defaultAccountId(PaymentMethod::Transfer);
+        $this->handoverAccountId = CashBook::defaultAccountId(PaymentMethod::Cash);
+    }
+
     /** Not recorded by the finance office: Admin Keuangan may verify these (v1 D3, v2 D1). */
     private const SOURCES = [PaymentSource::Payer, PaymentSource::Collector];
 
@@ -67,7 +79,7 @@ new #[Title('Transfer confirmations')] class extends Component {
     {
         $this->resetErrorBag();
 
-        $review->verifyTransfer($this->payment($id), auth()->user());
+        $review->verifyTransfer($this->payment($id), auth()->user(), $this->transferAccountId);
 
         unset($this->waiting, $this->reviewed);
         Flux::toast(variant: 'success', text: __('Transfer verified.'));
@@ -143,7 +155,7 @@ new #[Title('Transfer confirmations')] class extends Component {
             }
         }
 
-        $review->completeHandover($this->reviewing, auth()->user(), $rejections);
+        $review->completeHandover($this->reviewing, auth()->user(), $rejections, $this->handoverAccountId);
 
         Flux::modal('count-handover')->close();
         unset($this->handovers, $this->reviewing, $this->reviewed);
@@ -166,6 +178,8 @@ new #[Title('Transfer confirmations')] class extends Component {
     @error('payment')
         <flux:callout variant="danger" icon="exclamation-triangle" class="mb-4" :text="$message" />
     @enderror
+
+    <x-cash-account-select wire:model="transferAccountId" :method="PaymentMethod::Transfer" :label="__('Verified transfers go into')" class="mb-4 sm:max-w-sm" data-test="transfer-account" />
 
     <div class="overflow-x-auto">
         <flux:table class="table-stack">
@@ -250,6 +264,8 @@ new #[Title('Transfer confirmations')] class extends Component {
                     <flux:heading size="lg">{{ __('Handover :number', ['number' => $this->reviewing->number]) }}</flux:heading>
                     <flux:text class="mt-1">{{ __('Count the cash. Tick a payment only if its money is missing; it will be rejected with your reason.') }}</flux:text>
                 </div>
+
+                <x-cash-account-select wire:model="handoverAccountId" :method="PaymentMethod::Cash" :label="__('Cash goes into')" data-test="handover-account" />
 
                 <div class="divide-y divide-zinc-200 dark:divide-zinc-700">
                     @foreach ($this->reviewing->payments as $payment)

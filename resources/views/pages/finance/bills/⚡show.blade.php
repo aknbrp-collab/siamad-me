@@ -9,11 +9,14 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Models\Bill;
+use App\Models\CashAccount;
 use App\Models\Payment;
 use App\Support\ActiveRole;
 use App\Support\BillAccess;
+use App\Support\CashBook;
 use App\Support\Money;
 use Flux\Flux;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -31,6 +34,9 @@ new #[Title('Bill')] class extends Component {
     public ?string $reference = null;
     public $proof = null;
 
+    /** Account the money goes into (cash book); the default for the method is preselected. */
+    public ?int $cashAccountId = null;
+
     public string $voidReason = '';
     public ?int $voidingPaymentId = null;
     public ?int $maxInstallments = null;
@@ -43,6 +49,21 @@ new #[Title('Bill')] class extends Component {
 
         $this->bill = $bill;
         $this->paidOn = now()->format('Y-m-d');
+        $this->cashAccountId = CashBook::defaultAccountId(PaymentMethod::Cash);
+    }
+
+    public function updatedMethod(): void
+    {
+        $this->cashAccountId = CashBook::defaultAccountId(PaymentMethod::from($this->method));
+    }
+
+    /**
+     * @return Collection<int, CashAccount>
+     */
+    #[Computed]
+    public function cashAccounts(): Collection
+    {
+        return CashBook::accountsFor(PaymentMethod::from($this->method));
     }
 
     #[Computed]
@@ -84,6 +105,8 @@ new #[Title('Bill')] class extends Component {
             'paid_on' => $this->paidOn,
             'reference' => $this->reference ?: null,
             'proof' => $this->proof,
+            // A Petugas Pembayaran hands cash over; the receiving Admin books it.
+            'cash_account_id' => $this->administers ? $this->cashAccountId : null,
         ], BillAccess::source(ActiveRole::get()));
 
         $this->reset('amount', 'reference', 'proof');
@@ -286,6 +309,14 @@ new #[Title('Bill')] class extends Component {
                             @endforeach
                         </flux:radio.group>
                         <flux:input wire:model="paidOn" :label="__('Paid on')" type="date" required />
+                        @if ($this->administers && $this->cashAccounts->isNotEmpty())
+                            <flux:select wire:model="cashAccountId" :label="__('Into account')" data-test="payment-account">
+                                <flux:select.option value="">{{ __('— decide when verifying —') }}</flux:select.option>
+                                @foreach ($this->cashAccounts as $account)
+                                    <flux:select.option :value="$account->id">{{ $account->label() }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        @endif
                         @if ($method === PaymentMethod::Transfer->value)
                             <flux:input wire:model="reference" :label="__('Bank reference')" required />
                             <div>

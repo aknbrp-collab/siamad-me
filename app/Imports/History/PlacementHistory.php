@@ -8,6 +8,7 @@ use App\Models\Semester;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Str;
+use LogicException;
 
 /**
  * Which class each mahasantri was in, in a past semester. Mahasantri of any
@@ -18,6 +19,11 @@ class PlacementHistory implements HistoryImporter
 {
     /** @var array<string, list<ClassGroup>>|null classes by lower-case name */
     private ?array $classes = null;
+
+    public function needsSemester(): bool
+    {
+        return true;
+    }
 
     public function label(): string
     {
@@ -42,8 +48,12 @@ class PlacementHistory implements HistoryImporter
         return Str::lower(trim($row['nim'] ?? ''));
     }
 
-    public function check(Semester $semester, array $row): array
+    public function check(?Semester $semester, array $row): array
     {
+        if ($semester === null) {
+            throw new LogicException('A semester is required.');
+        }
+
         $errors = [];
         $nim = trim($row['nim'] ?? '');
         $className = trim($row['class'] ?? '');
@@ -81,8 +91,12 @@ class PlacementHistory implements HistoryImporter
         return ['input' => ['student_id' => $student?->id, 'class_group_id' => $class?->id, 'class_name' => $class?->name], 'errors' => $errors];
     }
 
-    public function import(Semester $semester, array $input, User $by): void
+    public function import(?Semester $semester, array $input, User $by): void
     {
+        if ($semester === null) {
+            throw new LogicException('A semester is required.');
+        }
+
         ClassEnrollment::create([
             'semester_id' => $semester->id,
             'student_id' => $input['student_id'],

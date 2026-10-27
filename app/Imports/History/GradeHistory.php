@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use LogicException;
 
 /**
  * Final grades of a past semester. The mahasantri must be placed in a class
@@ -35,6 +36,11 @@ class GradeHistory implements HistoryImporter
     private array $planned = [];
 
     public function __construct(private readonly ManageGrades $grades) {}
+
+    public function needsSemester(): bool
+    {
+        return true;
+    }
 
     public function label(): string
     {
@@ -68,8 +74,12 @@ class GradeHistory implements HistoryImporter
         return Str::lower(trim($row['nim'] ?? '').'|'.trim($row['subject_code'] ?? ''));
     }
 
-    public function check(Semester $semester, array $row): array
+    public function check(?Semester $semester, array $row): array
     {
+        if ($semester === null) {
+            throw new LogicException('A semester is required.');
+        }
+
         $errors = [];
         $nim = trim($row['nim'] ?? '');
         $code = trim($row['subject_code'] ?? '');
@@ -160,8 +170,12 @@ class GradeHistory implements HistoryImporter
         ], 'errors' => $errors];
     }
 
-    public function import(Semester $semester, array $input, User $by): void
+    public function import(?Semester $semester, array $input, User $by): void
     {
+        if ($semester === null) {
+            throw new LogicException('A semester is required.');
+        }
+
         DB::transaction(function () use ($semester, $input, $by) {
             $offering = $input['offering_id'] !== null
                 ? CourseOffering::query()->whereKey($input['offering_id'])->firstOrFail()

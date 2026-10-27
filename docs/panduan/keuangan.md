@@ -74,3 +74,52 @@ pembayaran tunggakannya tetap dapat dicatat.
 
 Menu **Ringkasan** (Superadmin) dan halaman tagihan menampilkan yang ditagihkan, terkumpul
 (terverifikasi), menunggu verifikasi, dan tunggakan terbesar.
+
+## 8. Buku kas
+
+Menu **Keuangan → Buku kas**.
+
+**Persiapan (sekali).** Di **Rekening & kategori**, tambahkan **kas tunai** dan setiap **rekening bank**
+beserta **saldo awal** dan **tanggal saldo awal** (jumlah uang pada awal hari itu; buku kas hanya
+menghitung transaksi sejak tanggal itu). Pilih **rekening bawaan** untuk pembayaran tunai dan transfer.
+Kategori pemasukan lain dan pengeluaran sudah tersedia (Honorarium, ATK, Listrik, Konsumsi, …) dan
+dapat ditambah atau dinonaktifkan.
+
+**Pembayaran tagihan** otomatis menjadi pemasukan setelah **diverifikasi**, masuk ke rekening yang
+dipilih: saat mencatat pembayaran (**Ke rekening**), atau saat memverifikasi transfer / menerima setoran
+(pilihan **Transfer yang diverifikasi masuk ke** / **Uang tunai masuk ke**). Pembayaran yang sudah
+terverifikasi sebelum buku kas dipakai dibukukan sekali melalui kartu **Pembayaran tagihan yang belum
+dibukukan** di halaman Rekening & kategori.
+
+**Buku besar**: pilih rekening dan bulan untuk melihat saldo awal, uang masuk, keluar, dan saldo
+berjalan.
+- **Pemasukan lain** (infaq, hibah, …) dan **Pengeluaran**: rekening, tanggal, jumlah, kategori,
+  diterima dari / dibayar kepada, keterangan, dan **bukti** (foto/PDF kuitansi). Nomor bukti dibuat
+  otomatis: **BKM** (kas masuk) dan **BKK** (kas keluar).
+- **Pindah dana**: memindahkan uang antarrekening, mis. menyetor kas ke bank (nomor **MUT**); bukan
+  pemasukan atau pengeluaran.
+- Catatan yang salah **dibatalkan** (ikon larangan) dengan alasan; catatan tetap ada di log audit.
+  Kedua sisi pindah dana ikut dibatalkan.
+- **Excel** mengunduh buku besar bulan itu.
+- **Tutup buku**: setelah satu bulan diperiksa, tutup buku sampai bulan itu. Catatan pada bulan yang
+  sudah ditutup hanya bisa ditambah atau dibatalkan selama **mode pemeliharaan** aktif.
+
+**Laporan**: pilih rentang bulan untuk melihat pemasukan (pembayaran tagihan dan per kategori),
+pengeluaran per kategori, dan surplus/defisit. **Cetak laporan** membuat PDF berkop dengan saldo setiap
+rekening dan tanda tangan (pilih penanda tangan dan stempel saat mencetak). Saldo setiap rekening juga
+tampil di **Ringkasan**.
+
+## 9. Data keuangan tahun sebelumnya
+
+Menu **Keuangan → Data tahun sebelumnya**, hanya selama Superadmin mengaktifkan **mode pemeliharaan**.
+- **Tagihan & pembayaran** (per semester yang sudah ditutup): satu baris per mahasantri — `nim`,
+  `billed` (total tagihan), `paid` (total dibayar), `paid_on`, `method` (tunai/transfer), `account`
+  (nama rekening), `description`. Tagihan dibuat dengan satu baris; pembayaran disimpan terverifikasi
+  (sumber: arsip) dan dibukukan ke rekening itu. Mahasantri yang sudah punya tagihan semester itu
+  dilewati.
+- **Pemasukan & pengeluaran**: `date`, `type` (masuk/keluar), `category`, `amount`, `account`, `party`,
+  `description`. Tercatat seperti catatan buku kas biasa dengan nomor BKM/BKK tahunnya.
+
+Atur dulu rekening dan **saldo awal** pada tanggal awal pembukuan (mis. 1 Juli 2025); transaksi sebelum
+tanggal itu ditolak karena sudah termasuk dalam saldo awal.
+

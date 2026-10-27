@@ -46,6 +46,9 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Hand over cash; print the provisional slip and, after verification, the official receipt
 - [ ] Verify one transfer confirmation from a mahasantri and reject another with a reason
 - [ ] Receive a cash handover from the putri payment collector and verify one of her transfers
+- [ ] Cash book: add Kas and the bank account with their opening balance and set the defaults; record a cash payment into Kas, verify it, and see it in the Kas ledger; record an expense with a receipt photo, an infaq, and a deposit from Kas to the bank; void one entry with a reason; check the balances against the real ones
+- [ ] Close the books through last month; an entry dated in it is refused (allowed only in maintenance mode); print the cash report for the semester with the Bendahara signature
+- [ ] In maintenance mode, import last year's bills & payments and income & expenses (Data tahun sebelumnya); the semester's bills show lunas/sisa and the cash report includes them
 
 ## Muhadhir
 - [ ] Add meetings (one online) and take attendance

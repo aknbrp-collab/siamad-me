@@ -192,7 +192,7 @@ test('the notifications page offers the device switch and the app is installable
         ->assertSee('<meta name="push-key" content="BPublicKeyForTests">', false)
         ->assertSee('<link rel="manifest" href="/manifest.webmanifest">', false);
 
-    $manifest = json_decode((string) file_get_contents(public_path('manifest.webmanifest')), true);
+    $manifest = $this->get('/manifest.webmanifest')->assertOk()->json();
     expect($manifest['display'])->toBe('standalone')
         ->and(collect($manifest['icons'])->pluck('sizes')->unique()->values()->all())->toBe(['192x192', '512x512'])
         ->and(file_exists(public_path('sw.js')))->toBeTrue();

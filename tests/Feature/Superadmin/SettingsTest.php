@@ -17,12 +17,10 @@ test('superadmin can change settings', function () {
 
     Livewire::test('pages::superadmin.settings')
         ->assertSet('maxInstallments', 3)
-        ->set('institutionName', "Ma'had Aly Contoh")
         ->set('maxInstallments', 4)
         ->call('save')
         ->assertHasNoErrors();
 
-    expect(Setting::get('institution.name'))->toBe("Ma'had Aly Contoh");
     expect(Setting::get('payment.max_installments'))->toBe(4);
     expect(Setting::query()->find('payment.min_installment_amount'))->toBeNull();
 });
@@ -31,11 +29,10 @@ test('settings are validated', function () {
     $this->actingAs(User::factory()->withRole(Role::Superadmin)->create());
 
     Livewire::test('pages::superadmin.settings')
-        ->set('institutionName', '')
         ->set('maxInstallments', 0)
         ->set('minInstallmentAmount', null)
         ->call('save')
-        ->assertHasErrors(['institutionName', 'maxInstallments', 'minInstallmentAmount']);
+        ->assertHasErrors(['maxInstallments', 'minInstallmentAmount']);
 });
 
 test('other roles can not open settings', function (Role $role) {

@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Exams\ExamEligibility;
+use App\Enums\PrintDocument;
 use App\Enums\Role;
 use App\Models\ExamPeriod;
-use App\Models\Setting;
 use App\Models\Student;
 use App\Support\ActiveRole;
+use App\Support\PrintMarks;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -46,10 +47,8 @@ class ExamCardController extends Controller
             'subjects' => $subjects,
             'dispensation' => $status['dispensation'],
             'photo' => $photo,
-            'institution' => [
-                'name' => Setting::get('institution.name'),
-                'address' => Setting::get('institution.address'),
-            ],
+            'document' => PrintDocument::ExamCard,
+            'marks' => PrintMarks::for(PrintDocument::ExamCard, $request),
         ])->setPaper('a5', 'portrait')->stream('Kartu-Ujian-'.$period->type->short().'-'.$student->nim.'.pdf');
     }
 }

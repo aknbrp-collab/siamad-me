@@ -12,10 +12,7 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>{{ $institution['name'] }}</h1>
-        @if ($institution['address'])<p>{{ $institution['address'] }}</p>@endif
-    </div>
+    @include('records.letterhead')
 
     <h2>KARTU UJIAN {{ $period->type->short() }}</h2>
     <p class="center muted" style="margin-top: -6px">{{ $period->semester->label() }}</p>
@@ -58,8 +55,6 @@
 
     <p class="muted" style="margin-top: 8px">Bawa kartu ini setiap ujian. Duduk sesuai nomor kursi.</p>
 
-    <div class="sign">
-        {{ now()->translatedFormat('j F Y') }}<br>Bagian Akademik<br><br><br><br>____________________
-    </div>
+    @include('records.signature')
 </body>
 </html>

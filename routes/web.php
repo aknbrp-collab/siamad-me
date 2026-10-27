@@ -2,6 +2,7 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\AcademicRecordPdfController;
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\NotificationController;
@@ -14,6 +15,12 @@ use App\Support\ActiveRole;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard')->name('home');
+
+// Logo and app icons are public: the login page and installed-app icons need them.
+Route::get('brand/{asset}', [BrandController::class, 'asset'])
+    ->whereIn('asset', ['app-logo', 'icon-192', 'icon-512', 'apple-touch-icon'])
+    ->name('brand.asset');
+Route::get('manifest.webmanifest', [BrandController::class, 'manifest'])->name('brand.manifest');
 
 // The muhadhir area was /ustadz before it was renamed; keep old links working.
 Route::get('ustadz/{path?}', fn (?string $path = null) => redirect('/muhadhir'.($path ? '/'.$path : ''), 301))
@@ -38,6 +45,9 @@ Route::middleware('portal')->group(function () {
     Route::prefix('superadmin')->name('superadmin.')->middleware('role:superadmin')->group(function () {
         Route::view('/', 'dashboard', ['role' => Role::Superadmin])->name('dashboard');
         Route::livewire('settings', 'pages::superadmin.settings')->name('settings');
+        Route::livewire('identity', 'pages::superadmin.identity')->name('identity');
+        Route::livewire('signatures', 'pages::superadmin.signatures')->name('signatures');
+        Route::get('identity/preview', [AcademicRecordPdfController::class, 'preview'])->name('identity.preview');
         Route::livewire('audit-logs', 'pages::superadmin.audit-logs')->name('audit-logs');
         Route::livewire('users', 'pages::superadmin.users.index')->name('users.index');
         Route::livewire('users/create', 'pages::superadmin.users.form')->name('users.create');

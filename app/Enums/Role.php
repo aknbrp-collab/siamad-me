@@ -193,6 +193,8 @@ enum Role: string
         if ($this === self::Superadmin) {
             $groups[] = ['heading' => __('System'), 'items' => [
                 $item(__('Users & roles'), 'user-plus', 'superadmin.users.index', 'superadmin.users.*'),
+                $item(__('Identity'), 'building-library', 'superadmin.identity'),
+                $item(__('Signatures & stamps'), 'pencil', 'superadmin.signatures'),
                 $item(__('Settings'), 'adjustments-horizontal', 'superadmin.settings'),
                 $item(__('Audit log'), 'clipboard-document-list', 'superadmin.audit-logs'),
             ]];

@@ -6,9 +6,6 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('System settings')] class extends Component {
-    public string $institutionName = '';
-    public ?string $institutionAddress = null;
-    public ?string $institutionPhone = null;
     public ?int $maxInstallments = null;
     public ?int $minInstallmentAmount = null;
     public ?string $bankAccounts = null;
@@ -21,9 +18,6 @@ new #[Title('System settings')] class extends Component {
      * @var array<string, string>
      */
     private const FIELDS = [
-        'institution.name' => 'institutionName',
-        'institution.address' => 'institutionAddress',
-        'institution.phone' => 'institutionPhone',
         'payment.max_installments' => 'maxInstallments',
         'payment.min_installment_amount' => 'minInstallmentAmount',
         'payment.bank_accounts' => 'bankAccounts',
@@ -44,9 +38,6 @@ new #[Title('System settings')] class extends Component {
     protected function rules(): array
     {
         return [
-            'institutionName' => ['required', 'string', 'max:255'],
-            'institutionAddress' => ['nullable', 'string', 'max:500'],
-            'institutionPhone' => ['nullable', 'string', 'max:50'],
             'maxInstallments' => ['required', 'integer', 'min:1', 'max:12'],
             'minInstallmentAmount' => ['required', 'integer', 'min:0'],
             'bankAccounts' => ['nullable', 'string', 'max:1000'],
@@ -73,19 +64,9 @@ new #[Title('System settings')] class extends Component {
 
 <section class="w-full max-w-2xl">
     <flux:heading size="xl" level="1">{{ __('System settings') }}</flux:heading>
-    <flux:subheading>{{ __('Institution details and payment rules used across SIAKAD.') }}</flux:subheading>
+    <flux:subheading>{{ __('Payment and academic rules used across SIAKAD. The details and logos of the institution are under Identity.') }}</flux:subheading>
 
     <form wire:submit="save" class="mt-6 space-y-8">
-        <flux:fieldset>
-            <flux:legend>{{ __('Institution') }}</flux:legend>
-
-            <div class="space-y-6">
-                <flux:input wire:model="institutionName" :label="__('Name')" required />
-                <flux:textarea wire:model="institutionAddress" :label="__('Address')" rows="2" />
-                <flux:input wire:model="institutionPhone" :label="__('Phone')" />
-            </div>
-        </flux:fieldset>
-
         <flux:fieldset>
             <flux:legend>{{ __('Payments') }}</flux:legend>
 

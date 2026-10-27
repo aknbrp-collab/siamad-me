@@ -6,10 +6,7 @@
     @include('records.style')
 </head>
 <body>
-    <div class="header">
-        <h1>{{ $institution['name'] }}</h1>
-        @if ($institution['address'])<p>{{ $institution['address'] }}</p>@endif
-    </div>
+    @include('records.letterhead')
 
     <h2>KARTU HASIL STUDI (KHS)</h2>
 
@@ -49,8 +46,6 @@
         <tr><td>Indeks Prestasi Semester (IPS)</td><td>: <strong>{{ $khs['ip'] !== null ? number_format($khs['ip'], 2) : '—' }}</strong></td></tr>
     </table>
 
-    <div class="sign">
-        {{ now()->translatedFormat('j F Y') }}<br>Bagian Akademik<br><br><br><br>____________________
-    </div>
+    @include('records.signature')
 </body>
 </html>

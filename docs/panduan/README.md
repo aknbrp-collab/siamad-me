@@ -35,6 +35,13 @@ diubah bagian akademik), ganti kata sandi,
 aktifkan autentikasi dua faktor atau passkey (**Keamanan**). Staf keuangan dan admin sangat dianjurkan
 mengaktifkan autentikasi dua faktor.
 
+**Tampilan terang/gelap.** Tombol matahari / bulan / layar di bawah menu samping (di ponsel: di atas)
+memilih tampilan terang, gelap, atau mengikuti perangkat. Pilihan disimpan di peramban itu.
+
+**Mencetak (staf).** Tombol cetak KHS, transkrip, kartu ujian, dan kwitansi menanyakan dulu: dengan
+gambar tanda tangan dan stempel atau tanpa, siapa yang menandatangani, dan stempel mana (pilihan bawaan
+sudah terisi). Klik **Cetak** untuk membuka PDF.
+
 **Notifikasi.** Lonceng di menu (dan di kanan atas pada ponsel) menunjukkan jumlah notifikasi yang
 belum dibaca: pesan forum baru, tugas dan kuis baru, tenggat tugas/kuis dalam 24 jam, tagihan yang jatuh
 tempo 7 hari lagi dan pada harinya, serta konfirmasi transfer. Klik notifikasi untuk langsung membuka

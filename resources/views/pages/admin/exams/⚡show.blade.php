@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PrintDocument;
 use App\Actions\Exams\ExamEligibility;
 use App\Actions\Exams\ManageExams;
 use App\Enums\TeacherStatus;
@@ -393,7 +394,7 @@ new #[Title('Exam period')] class extends Component {
                             </flux:table.cell>
                             <flux:table.cell align="end">
                                 @if ($status['eligible'] && $subjects->where('ok', true)->every(fn ($subject) => $subject['seat'] !== null))
-                                    <flux:button size="sm" icon="printer" :href="route('exams.card', [$period, $student])" target="_blank">{{ __('Card') }}</flux:button>
+                                    <x-print-button size="sm" icon="printer" :href="route('exams.card', [$period, $student])" :document="PrintDocument::ExamCard">{{ __('Card') }}</x-print-button>
                                 @elseif (! $status['dispensation'] && ! $period->semester->isLocked())
                                     <flux:button size="sm" variant="ghost" icon="document-check" wire:click="openDispensation({{ $student->id }})" data-test="dispensation-{{ $student->id }}">{{ __('Dispensation') }}</flux:button>
                                 @endif

@@ -6,10 +6,7 @@
     @include('records.style')
 </head>
 <body>
-    <div class="header">
-        <h1>{{ $institution['name'] }}</h1>
-        @if ($institution['address'])<p>{{ $institution['address'] }}</p>@endif
-    </div>
+    @include('records.letterhead')
 
     <h2>TRANSKRIP NILAI</h2>
 
@@ -46,8 +43,6 @@
         <tr><td>Indeks Prestasi Kumulatif (IPK)</td><td>: <strong>{{ $transcript['ipk'] !== null ? number_format($transcript['ipk'], 2) : '—' }}</strong></td></tr>
     </table>
 
-    <div class="sign">
-        {{ now()->translatedFormat('j F Y') }}<br>Bagian Akademik<br><br><br><br>____________________
-    </div>
+    @include('records.signature')
 </body>
 </html>

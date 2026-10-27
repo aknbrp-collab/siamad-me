@@ -788,3 +788,30 @@ v2 Step 4 (2026-10-27) — Web Push (D4):
 - Windows: PHP's OpenSSL needs `OPENSSL_CONF` to create EC keys (key generation and payload
   encryption); the two tests that encrypt for real skip without it.
 
+v3 Step 1 (2026-10-28) — identity, signatures and stamps, green theme, dark mode:
+- Identity text in settings (`institution.*`: name, short_name, foundation, address, city, phone, email,
+  website, licence, head), edited on Superadmin **Identitas** (moved from Pengaturan). Images
+  (`branding.app_logo|institution_logo|arabic_name`) are stored by `App\Support\Branding::storeImage()`
+  on the private disk as PNG (GD, transparency kept, scaled to 1000 px; signatures/stamps 600 px). A
+  removed image only clears the setting; the file stays.
+- `BrandController` (public, no login): `/brand/app-logo`, `/brand/icon-192|icon-512|apple-touch-icon`
+  (made once per logo on a white square, cached under `branding/icons/`, built-in files as fallback) and
+  `/manifest.webmanifest` (replaces the static file). Signatures and stamps are never served; Superadmin
+  previews use data URIs.
+- `signatories` (name, position, office, signature image, active) and `stamps` (name, image, active);
+  deactivated, not deleted. `App\Enums\PrintDocument` (KHS, transcript, exam card, receipt) with a
+  default per document in settings `print.{document}.signatory|stamp|images`.
+- `App\Support\PrintMarks::for($document, $request)`: the default, or for staff roles the choice from the
+  print dialog (`?marks=0|1&signatory=ID&stamp=ID`, 0 = none; inactive ids are ignored). Mahasantri and
+  wali always get the default. Unverified/void receipts never print the images.
+- PDFs share `records.letterhead` (logo, Arabic name, foundation, name, licence, address, contact, green
+  double rule) and `records.signature` (city + date, position, stamp over the signature image, name; or the
+  old blank line titled "Bagian Akademik/Keuangan"). Preview: `superadmin/identity/preview?document=`.
+- `<x-print-button>`: staff get the dialog (`<x-print-options>`, one per page in the app layout, defaults
+  preselected); others a plain link. Used on the student record, exam participants and bill pages.
+- Theme: `--color-brand` #66BB6A, `--color-brand-tint` #A5D6A7, `--color-brand-strong` #2E7D32 (text on
+  white), `--color-brand-soft`. Flux accent = brand with near-black text on it (white on #66BB6A is about
+  2.3:1); links and the current item use the strong shade; the current menu item gets the soft tint and a
+  green bar; a green line runs along the top of every page. Dark mode (Flux appearance) switch
+  `<x-theme-switch>` in the sidebar, the phone header and the login page.
+

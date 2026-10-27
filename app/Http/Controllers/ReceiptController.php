@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentStatus;
+use App\Enums\PrintDocument;
 use App\Enums\Role;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Support\ActiveRole;
+use App\Support\PrintMarks;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -32,13 +34,17 @@ class ReceiptController extends Controller
 
         abort_unless($allowed, 403);
 
+        $marks = PrintMarks::for(PrintDocument::Receipt, $request);
+
+        // Only the official receipt carries the signature and stamp images.
+        if ($payment->status !== PaymentStatus::Verified) {
+            $marks = new PrintMarks($marks->signatory, $marks->stamp, false);
+        }
+
         $pdf = Pdf::loadView('receipts.payment', [
             'payment' => $payment,
-            'institution' => [
-                'name' => Setting::get('institution.name'),
-                'address' => Setting::get('institution.address'),
-                'phone' => Setting::get('institution.phone'),
-            ],
+            'document' => PrintDocument::Receipt,
+            'marks' => $marks,
             'footer' => Setting::get('receipt.footer'),
         ])->setPaper('a5', 'landscape');
 

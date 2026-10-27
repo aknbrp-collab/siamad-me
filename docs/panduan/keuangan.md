@@ -39,7 +39,8 @@ bank (wajib untuk transfer), dan bukti (opsional). Aturan cicilan:
 - tidak boleh melebihi sisa tagihan; cicilan terakhir harus melunasi.
 
 Setelah dicatat, Anda dapat mencetak slip bertanda *BELUM TERVERIFIKASI* untuk pembayar. Kuitansi resmi
-baru tersedia setelah Admin memverifikasi.
+baru tersedia setelah Admin memverifikasi. Saat mencetak kwitansi, pilih dicetak dengan gambar tanda
+tangan dan stempel (mis. Bendahara dan stempel keuangan) atau tanpa, untuk ditandatangani basah.
 
 ## 5. Menyetor uang tunai
 

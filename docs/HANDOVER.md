@@ -107,10 +107,12 @@ resources/views/
     profile/               documents (owner upload), biodata (Profil saya: own profile, per role)
     settings/              starter-kit profile/security/appearance (profile adapted)
     shared/                forum (class forum or supervision group forum; embedded in several pages)
-    superadmin/            settings, audit-logs, users/{index,form}
+    superadmin/            identity, signatures (signatories, stamps, print defaults), settings, audit-logs,
+                           users/{index,form}
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades}
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
+                           print-button + print-options (staff print dialog), theme-switch, app-logo-mark,
                            bill-card, khs-table,
                            transcript-table, user-menu-items + starter-kit components
   partials/                credentials-modal, documents-reminder

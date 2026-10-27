@@ -23,16 +23,28 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    /*
+     * SIAKAD green (v3 D5): #66BB6A with the #A5D6A7 tint on a white base. Text on the
+     * green is near-black (white on #66BB6A is too faint to read); green text on white
+     * uses the darker #2E7D32. Change the shades here only.
+     */
+    --color-brand: #66bb6a;
+    --color-brand-tint: #a5d6a7;
+    --color-brand-strong: #2e7d32;
+    --color-brand-soft: #edf7ee;
+
+    --color-accent: var(--color-brand);
+    --color-accent-content: var(--color-brand-strong);
+    --color-accent-foreground: var(--color-zinc-950);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-brand-soft: #1d2b1e;
+
+        --color-accent: var(--color-brand);
+        --color-accent-content: var(--color-brand-tint);
+        --color-accent-foreground: var(--color-zinc-950);
     }
 }
 
@@ -58,7 +70,23 @@
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-white dark:ring-offset-zinc-900;
+}
+
+/* The current menu item: green tint with a green bar on the left. */
+[data-flux-sidebar-item][data-current] {
+    background-color: var(--color-brand-soft) !important;
+    border-color: var(--color-brand-tint) !important;
+    box-shadow: inset 3px 0 0 var(--color-brand);
+}
+
+.dark [data-flux-sidebar-item][data-current] {
+    border-color: transparent !important;
+}
+
+/* A thin green line along the top of every page. */
+.brand-bar {
+    background: linear-gradient(90deg, var(--color-brand-strong), var(--color-brand) 55%, var(--color-brand-tint));
 }
 
 /* \[:where(&)\]:size-4 {

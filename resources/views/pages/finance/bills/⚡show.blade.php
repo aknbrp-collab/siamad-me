@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PrintDocument;
 use App\Actions\Finance\AdjustBill;
 use App\Actions\Finance\RecordPayment;
 use App\Actions\Finance\ReviewPayments;
@@ -242,9 +243,9 @@ new #[Title('Bill')] class extends Component {
                                     </flux:table.cell>
                                     <flux:table.cell align="end">
                                         @if (in_array($payment->status, [PaymentStatus::Unverified, PaymentStatus::Verified], true))
-                                            <flux:button size="sm" variant="ghost" icon="printer" :href="route('receipts.show', $payment)" target="_blank">
+                                            <x-print-button size="sm" variant="ghost" icon="printer" :href="route('receipts.show', $payment)" :document="PrintDocument::Receipt">
                                                 {{ $payment->status === PaymentStatus::Verified ? __('Receipt') : __('Slip') }}
-                                            </flux:button>
+                                            </x-print-button>
                                         @endif
                                         @if ($payment->proof_path)
                                             <flux:button size="sm" variant="ghost" icon="paper-clip" :href="route('files.show', ['payment-proof', $payment->id])" target="_blank" :aria-label="__('Proof')" />

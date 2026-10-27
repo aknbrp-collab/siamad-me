@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PrintDocument;
 use App\Actions\Teaching\AcademicRecord;
 use App\Livewire\AcademicRecordPage;
 use App\Models\Student;
@@ -32,7 +33,7 @@ new #[Title('Academic record')] class extends AcademicRecordPage {
 <section class="w-full max-w-5xl space-y-8">
     <x-page-header :title="$record->user->name" :subtitle="__('NIM :nim · :program · angkatan :year', ['nim' => $record->nim, 'program' => $record->studyProgram->name, 'year' => $record->entry_year])">
         <x-slot:actions>
-            <flux:button size="sm" icon="arrow-down-tray" :href="route('records.transcript', $record)" target="_blank">{{ __('Transcript PDF') }}</flux:button>
+            <x-print-button size="sm" icon="printer" :href="route('records.transcript', $record)" :document="PrintDocument::Transcript">{{ __('Transcript PDF') }}</x-print-button>
             <flux:button size="sm" variant="ghost" icon="arrow-left" :href="route('admin.students.edit', $record)" wire:navigate>{{ __('Biodata') }}</flux:button>
         </x-slot:actions>
     </x-page-header>
@@ -47,7 +48,7 @@ new #[Title('Academic record')] class extends AcademicRecordPage {
                     @endforeach
                 </flux:select>
                 @if ($this->semester)
-                    <flux:button size="sm" icon="arrow-down-tray" :href="route('records.khs', [$record, $this->semester])" target="_blank">{{ __('PDF') }}</flux:button>
+                    <x-print-button size="sm" icon="printer" :href="route('records.khs', [$record, $this->semester])" :document="PrintDocument::Khs">{{ __('PDF') }}</x-print-button>
                 @endif
             @endif
         </div>

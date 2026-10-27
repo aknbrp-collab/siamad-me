@@ -14,8 +14,17 @@ return [
 
     'settings' => [
         'institution.name' => env('APP_NAME', 'SIAKAD Mahad Aly'),
+        'institution.short_name' => null,
+        'institution.foundation' => null,
         'institution.address' => null,
+        'institution.city' => null,
         'institution.phone' => null,
+        'institution.email' => null,
+        'institution.website' => null,
+        // Operating licence (SK izin operasional), printed on the letterhead.
+        'institution.licence' => null,
+        // The head of the institution (Mudir), used by letters.
+        'institution.head' => null,
         'payment.max_installments' => 3,
         'payment.min_installment_amount' => 200000,
         // Shown to mahasantri and wali santri who pay by transfer, e.g. "BSI 7123456789 a.n. Yayasan …".

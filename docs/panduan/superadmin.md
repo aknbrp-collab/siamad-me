@@ -41,10 +41,35 @@ kepada mahasantri (bukan wali santri). Pilih *Bukan petugas pembayaran* untuk me
 **Atur ulang kata sandi / Nonaktifkan login** ada di kartu **Akun login** di setiap halaman akun. Akun
 yang dinonaktifkan langsung keluar pada permintaan berikutnya.
 
+## Identitas lembaga
+
+**Sistem → Identitas**: nama dan nama singkat lembaga, yayasan, SK izin operasional, alamat, **kota**
+(dicetak sebelum tanggal pada blok tanda tangan), telepon, email, situs web, dan nama pimpinan (Mudir).
+Di bagian **Gambar**, unggah:
+- **Logo aplikasi**: tampil di menu samping, halaman masuk, tab peramban, dan ikon aplikasi terpasang;
+- **Logo lembaga**: di sisi kiri kop surat setiap PDF;
+- **Nama dalam kaligrafi Arab**: di atas nama lembaga pada kop surat.
+
+Gunakan PNG berlatar transparan; JPG/WebP juga diterima dan gambar besar diperkecil otomatis.
+**Pratinjau kop surat** membuka contoh PDF dengan kop dan blok tanda tangan.
+
+## Tanda tangan & stempel
+
+**Sistem → Tanda tangan & stempel** menyimpan **daftar** penanda tangan (nama, jabatan, bagian, gambar
+tanda tangan) dan **daftar** stempel, karena tiap bagian berbeda (mis. Mudir dengan stempel lembaga,
+Bendahara dengan stempel keuangan). Penanda tangan/stempel yang tidak dipakai lagi dinonaktifkan, tidak
+dihapus.
+
+Di **Bawaan per dokumen**, tentukan untuk KHS, transkrip, kartu ujian, dan kwitansi: siapa yang
+menandatangani, stempel mana, dan apakah gambarnya dicetak. Tanpa penanda tangan, PDF mencetak baris
+tanda tangan kosong seperti sebelumnya. Mahasantri dan wali selalu mendapat bawaan ini. Staf yang
+mencetak akan ditanya: **dengan** gambar tanda tangan dan stempel atau **tanpa** (untuk tanda tangan dan
+stempel basah), dan penanda tangan serta stempel mana; bawaan sudah terpilih. Kwitansi yang belum
+diverifikasi tidak pernah memuat gambar tanda tangan dan stempel.
+
 ## Pengaturan sistem
 
-**Sistem → Pengaturan**: nama, alamat, dan telepon lembaga (tampil di kuitansi, KHS, transkrip),
-**rekening untuk transfer** (ditampilkan kepada mahasantri dan wali saat konfirmasi transfer),
+**Sistem → Pengaturan**: **rekening untuk transfer** (ditampilkan kepada mahasantri dan wali saat konfirmasi transfer),
 catatan kaki kuitansi, **Maksimal cicilan per tagihan** (bawaan 3), **Cicilan minimal (Rp)** (bawaan
 200.000), dan **Kehadiran minimal (%)** (bawaan 75). Perubahan berlaku untuk tagihan dan perhitungan
 berikutnya; data lama tidak berubah.

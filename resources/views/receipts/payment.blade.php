@@ -17,9 +17,6 @@
     <style>
         @page { margin: 24px 32px; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #18181b; }
-        .header { border-bottom: 2px solid #18181b; padding-bottom: 8px; margin-bottom: 14px; }
-        .header h1 { font-size: 16px; margin: 0; }
-        .header p { margin: 2px 0 0; color: #52525b; }
         .title { font-size: 14px; font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; }
         table { width: 100%; border-collapse: collapse; }
         td { padding: 3px 0; vertical-align: top; }
@@ -27,7 +24,6 @@
         .amount { font-size: 18px; font-weight: bold; }
         .words { font-style: italic; text-transform: capitalize; }
         .notice { margin-top: 10px; padding: 6px 8px; border: 1px solid #d97706; color: #92400e; }
-        .sign { margin-top: 18px; width: 40%; float: right; text-align: center; }
         .footer { clear: both; padding-top: 18px; color: #71717a; font-size: 9px; }
         .watermark { position: fixed; top: 38%; left: 8%; width: 84%; text-align: center; font-size: 46px;
             font-weight: bold; color: rgba(220, 38, 38, 0.16); transform: rotate(-18deg); }
@@ -38,12 +34,7 @@
         <div class="watermark">{{ $watermark }}</div>
     @endif
 
-    <div class="header">
-        <h1>{{ $institution['name'] }}</h1>
-        @if ($institution['address'] || $institution['phone'])
-            <p>{{ $institution['address'] }} @if ($institution['phone']) · Telp. {{ $institution['phone'] }} @endif</p>
-        @endif
-    </div>
+    @include('records.letterhead')
 
     <div class="title">{{ $payment->status === PaymentStatus::Unverified ? 'SLIP PEMBAYARAN (SEMENTARA)' : 'KWITANSI PEMBAYARAN' }}</div>
 
@@ -63,11 +54,10 @@
         <div class="notice">Pembayaran ini dibatalkan: {{ $payment->status_note }}</div>
     @endif
 
-    <div class="sign">
-        {{ ($payment->verified_at ?? $payment->created_at)->translatedFormat('j F Y') }}<br>
-        {{ $payment->status === PaymentStatus::Unverified ? 'Dicatat oleh' : 'Diverifikasi oleh' }}<br><br><br>
-        <strong>{{ ($payment->verifier ?? $payment->recorder)->name }}</strong>
-    </div>
+    @include('records.signature', [
+        'date' => $payment->verified_at ?? $payment->created_at,
+        'note' => ($payment->status === PaymentStatus::Unverified ? 'Dicatat oleh ' : 'Diverifikasi oleh ').($payment->verifier ?? $payment->recorder)->name,
+    ])
 
     <div class="footer">{{ $footer }}</div>
 </body>

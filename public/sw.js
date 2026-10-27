@@ -15,8 +15,8 @@ self.addEventListener('push', (event) => {
 
     event.waitUntil(self.registration.showNotification(data.title || 'SIAKAD', {
         body: data.body || '',
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
+        icon: '/brand/icon-192',
+        badge: '/brand/icon-192',
         // Same tag (e.g. one forum thread): the new pop-up replaces the old one.
         tag: data.tag || undefined,
         renotify: Boolean(data.tag),

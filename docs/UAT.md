@@ -14,7 +14,10 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Create accounts for Admin, Admin Keuangan and Pemantau Akademik; each logs in and must change the temporary password
 - [ ] Give one muhadhir the Pemantau Akademik role; they get the role picker and can switch roles
 - [ ] Confirm an Admin cannot reset that muhadhir's password
-- [ ] Set institution name/address and payment rules; check they appear on a receipt and KHS PDF
+- [ ] In Identitas, fill in the institution details and upload the app logo, the institution logo and the name in Arabic calligraphy; the logo shows in the sidebar, on the login page and as the tab icon; Pratinjau kop surat shows the letterhead
+- [ ] In Tanda tangan & stempel, add the Mudir and the Bendahara with their signature images and two stamps; set the transcript to the Mudir + institution stamp and the receipt to the Bendahara + finance stamp
+- [ ] As Admin, print a transcript with images, then without (blank space for a wet signature), then signed by someone else; as a mahasantri, print it and get the default
+- [ ] Set the payment rules; switch light / dark / system and check the pages you use in dark mode
 - [ ] Find a change in the Audit log (who, old → new)
 
 ## Admin

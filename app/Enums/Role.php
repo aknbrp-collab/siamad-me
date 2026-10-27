@@ -165,6 +165,7 @@ enum Role: string
                 $item(__('Academic supervisors'), 'user-group', 'admin.supervision'),
                 $item(__('Documents'), 'document-check', 'admin.documents'),
                 $item(__('Import'), 'arrow-up-tray', 'admin.imports'),
+                $item(__('Previous-year data'), 'archive-box', 'admin.history'),
             ]];
         }
 

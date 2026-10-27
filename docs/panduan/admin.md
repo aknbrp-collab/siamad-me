@@ -34,6 +34,25 @@ Menu **Data orang**:
   **Tahun akademik sebelumnya (input data)** yang kedua semesternya langsung ditutup. Semua perubahan
   tercatat di log audit.
 
+## Data tahun sebelumnya (dari arsip)
+
+Menu **Data orang → Data tahun sebelumnya**, hanya selama mode pemeliharaan aktif. Pilih semester yang
+sudah ditutup, lalu:
+1. **Penempatan kelas**: unduh templat, isi `nim` dan `class` (nama kelas persis seperti di halaman
+   Kelas), unggah, **Periksa berkas**, lalu **Impor**. Mahasantri yang sudah lulus atau keluar tetap
+   bisa ditempatkan. Kelas harus sesuai jenis kelamin; mahasantri yang sudah punya kelas di semester itu
+   dilaporkan, tidak dipindah.
+2. **Nilai akhir**: isi `nim`, `subject_code`, `score` (0–100) dan/atau `letter` (huruf dari arsip,
+   bobotnya mengikuti skala nilai), serta `teacher_nidm` bila kelas kuliah mata kuliah itu belum ada di
+   SIAKAD (cukup sekali per mata kuliah dan kelas dalam satu berkas). Nilai disimpan sebagai nilai
+   akhir sehingga KHS, transkrip, dan IPK langsung lengkap. Nilai yang sudah final tidak ditimpa.
+
+Baris yang bermasalah ditampilkan beserta alasannya dan dilewati; perbaiki lalu impor ulang berkasnya.
+
+**Koreksi satu nilai.** Selama mode pemeliharaan aktif, KHS semester yang ditutup di **Rekam akademik**
+mahasantri menampilkan tombol pensil per mata kuliah: isi nilai angka atau huruf dan **alasannya**.
+Nilai lama tetap tercatat di log audit.
+
 Di halaman setiap orang ada kartu **Akun login**: **Atur ulang kata sandi** (membuat kata sandi
 sementara baru) dan **Nonaktifkan login**. Jangan menghapus orang; nonaktifkan atau ubah statusnya
 (cuti, lulus, keluar).

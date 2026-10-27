@@ -19,10 +19,11 @@ use Illuminate\Support\Carbon;
  * @property string|null $final_letter
  * @property string|null $final_point
  * @property Carbon|null $finalized_at
+ * @property string|null $grade_note
  * @property-read CourseOffering $courseOffering
  * @property-read Student $student
  */
-#[Fillable(['course_offering_id', 'student_id', 'final_score', 'final_letter', 'final_point', 'finalized_at'])]
+#[Fillable(['course_offering_id', 'student_id', 'final_score', 'final_letter', 'final_point', 'finalized_at', 'grade_note'])]
 class CourseEnrollment extends Model
 {
     use Auditable;

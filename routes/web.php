@@ -88,6 +88,7 @@ Route::middleware('portal')->group(function () {
 
         Route::livewire('documents', 'pages::admin.documents')->name('documents');
         Route::livewire('imports', 'pages::admin.imports')->name('imports');
+        Route::livewire('history', 'pages::admin.history')->name('history');
         Route::get('imports/template/{type}', ImportTemplateController::class)
             ->whereIn('type', array_keys(Importers::TYPES))
             ->name('imports.template');

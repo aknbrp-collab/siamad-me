@@ -832,3 +832,19 @@ v3 Step 2 (2026-10-28) — maintenance mode and subject import:
   `Subject::rules()`, now shared with the subjects page. `Importer::createsAccounts()` (subjects: false)
   decides whether the import page hands back a credentials sheet; `create()` returns `?CreatedAccount`.
 
+v3 Step 3 (2026-10-28) — previous-year classes and grades:
+- Admin **Data tahun sebelumnya** (`/admin/history`): closed semesters only, maintenance mode only (403
+  otherwise). `App\Imports\History\HistoryImporter` per type; every row is checked against the
+  semester and, on import, checked again just before it is imported, so a later row sees what an
+  earlier one created. Nothing existing is overwritten.
+- `PlacementHistory` (nim, class): any student status; class gender must match; a student already placed
+  that semester is reported. No roster sync, so only imported grades become course enrolments.
+- `GradeHistory` (nim, subject_code, score, letter, teacher_nidm): the student must be placed that
+  semester; the offering subject × class is created with the subject snapshot and the muhadhir when
+  missing (later rows of the same file reuse it without a NIDM); grades are stored final, letter from the
+  archive (point from the scale) or resolved from the score; the offering is marked finalised.
+  `course_enrollments.grade_note` records "Imported from the archive of …" or a correction reason.
+- `App\Actions\Teaching\CorrectGrade`: one grade of a closed semester, maintenance mode only, reason
+  required; pencil buttons on the admin student record KHS (`x-khs-table :correctable`). A given letter
+  wins over the score, so the dialog prefills the letter only for letter-only grades.
+

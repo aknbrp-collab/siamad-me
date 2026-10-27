@@ -88,7 +88,7 @@ some pages were never checked in dark.
   the mahasantri import, with a template download and a preview before importing.
 - Past academic years and semesters can be created directly as **closed** (data mode only).
 
-### Step 3 — Previous-year academic data: classes and grades (large)
+### Step 3 — Previous-year academic data: classes and grades (large) — ✅ done 2026-10-28
 - **Import class placements** for a past semester: NIM × class. Gender and level are checked as
   today, with a warning only.
 - **Import final grades (KHS)** for a past semester: NIM × subject code × final score (or letter),

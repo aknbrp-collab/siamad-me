@@ -79,7 +79,7 @@ app/
                            AcademicRecordPdfController, ImportTemplateController, ScoreTemplateController
   Http/Middleware/         EnsureUserIsActive, EnsurePasswordIsChanged, EnsureRoleIsSelected, EnsureRole
   Imports/                 Importer interface, Importers (reader + helpers), StudentImporter, TeacherImporter,
-                           SubjectImporter
+                           SubjectImporter; History/ (PlacementHistory, GradeHistory: previous-year data)
   Listeners/               RecordSuccessfulLogin
   Livewire/                PersonForm (base for person forms), AcademicRecordPage (base for KHS pages),
                            Concerns/ManagesAccount (temp password / disable login)
@@ -100,7 +100,7 @@ lang/                      id.json (every UI string) + id/{validation,auth,passw
 resources/views/
   pages/                   Livewire pages, by area:
     admin/                 timetable, rooms, exams/{index,show}, academic-years, semesters/show, study-programs, class-groups, subjects, grade-scale,
-                           students|teachers|guardians/{index,form}, students/record, documents, imports, payments
+                           students|teachers|guardians/{index,form}, students/record, documents, imports, history, payments
     auth/                  login (ID number), change-password, select-role (+ Fortify views)
     finance/               dashboard, fees, scholarships, bills/{index,show}, handovers, transfers (payer confirmations)
     mahasantri/            classes, class, quiz-attempt, khs, transcript, bills, exams (exam card)

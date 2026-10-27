@@ -25,6 +25,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Study program, classes, subjects, grade scale, academic year
 - [ ] Import the real mahasantri list from Excel (check the error rows, then import); hand out the credentials sheet
 - [ ] Import the subject list from Excel (no credentials sheet); an existing code is refused
+- [ ] With maintenance mode on, add the previous academic year; in Data tahun sebelumnya import its class placements, then its final grades; open a mahasantri's KHS and transcript (IPK includes them); correct one grade with a reason; turn maintenance off: the pencil buttons disappear
 - [ ] Add muhadhir and wali santri; link a wali to two siblings
 - [ ] Classes per semester level, Putra and Putri; placing a mahasantri in a class of the other gender is refused
 - [ ] Place mahasantri in classes; add course offerings with muhadhir and schedules; activate the semester

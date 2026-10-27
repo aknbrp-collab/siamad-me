@@ -2,9 +2,13 @@
     'khs',
     'attendance' => null,
     'minimum' => 75,
+    'correctable' => false,
 ])
 
-{{-- KHS of one semester. $attendance (optional): enrollment id => summary from AcademicRecord::attendance(). --}}
+{{--
+    KHS of one semester. $attendance (optional): enrollment id => summary from AcademicRecord::attendance().
+    $correctable: an edit button per row calling the page's correctGrade(enrollmentId) (maintenance mode).
+--}}
 <div class="overflow-x-auto border-zinc-200 md:rounded-lg md:border dark:border-zinc-700">
     <table class="table-stack min-w-full text-sm">
         <thead class="bg-zinc-50 text-left dark:bg-zinc-800">
@@ -16,6 +20,9 @@
                 @endif
                 <th class="px-3 py-2 text-center font-medium">{{ __('Score') }}</th>
                 <th class="px-3 py-2 text-center font-medium">{{ __('Grade') }}</th>
+                @if ($correctable)
+                    <th class="px-3 py-2"></th>
+                @endif
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -39,6 +46,11 @@
                     @else
                         <td colspan="2" class="px-3 py-2 text-center text-xs text-zinc-500">{{ __('not final yet') }}</td>
                     @endif
+                    @if ($correctable)
+                        <td class="px-3 py-2 text-end">
+                            <flux:button size="xs" variant="ghost" icon="pencil-square" wire:click="correctGrade({{ $row['enrollment_id'] }})" :aria-label="__('Correct grade')" data-test="correct-{{ $row['enrollment_id'] }}" />
+                        </td>
+                    @endif
                 </tr>
             @empty
                 <tr><td colspan="5" class="px-3 py-4 text-center text-zinc-500">{{ __('No subjects this semester.') }}</td></tr>
@@ -48,7 +60,7 @@
             <tr>
                 <td class="px-3 py-2 font-medium">{{ __('IPS') }}</td>
                 <td class="px-3 py-2 text-center">{{ $khs['credits'] }}</td>
-                <td colspan="{{ $attendance !== null ? 3 : 2 }}" class="px-3 py-2 text-center text-base font-semibold tabular-nums">
+                <td colspan="{{ ($attendance !== null ? 3 : 2) + ($correctable ? 1 : 0) }}" class="px-3 py-2 text-center text-base font-semibold tabular-nums">
                     {{ $khs['ip'] !== null ? number_format($khs['ip'], 2) : '—' }}
                 </td>
             </tr>

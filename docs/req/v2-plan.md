@@ -45,7 +45,7 @@ Admin Keuangan sees and records every bill. So she needs a new, narrower role (S
 - **Jadwal** page for Admin: weekly grid (Monday–Sunday × time) filterable by class, muhadhir or room;
   printable. Muhadhir get the same grid for their own classes.
 
-### Step 3 — Exams: schedule, exam card, seat numbers (large)
+### Step 3 — Exams: schedule, exam card, seat numbers (large) — ✅ done 2026-10-27
 - **Exam periods** per semester: UTS and UAS (name, dates, published or not).
 - **Exam schedule**: per course offering in a period — date, start–end, room(s), invigilator; with the
   same clash checks as Step 2 (class, room, invigilator).

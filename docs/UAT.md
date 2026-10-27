@@ -24,6 +24,8 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Classes per semester level, Putra and Putri; placing a mahasantri in a class of the other gender is refused
 - [ ] Place mahasantri in classes; add course offerings with muhadhir and schedules; activate the semester
 - [ ] Try to book a muhadhir, a class and a room twice at the same time (refused); print the timetable of a class
+- [ ] Add putra and putri exam rooms and a UTS period; schedule the exams (a clashing room or invigilator is refused); shuffle the seats; publish
+- [ ] As a mahasantri with an unpaid bill, open Kartu ujian (not printable; the bill is named); grant a dispensation as Admin and print the card (the letter is on it)
 - [ ] Open the next semester: copying rosters moves everyone up one semester into the same-gender class
 - [ ] Verify and reject an uploaded document (the owner sees the note)
 - [ ] Verify a cash handover (reject one payment in it) and a transfer

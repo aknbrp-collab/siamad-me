@@ -124,6 +124,7 @@ enum Role: string
             $groups[0]['items'][] = $item(__('KHS'), 'document-chart-bar', 'mahasantri.khs');
             $groups[0]['items'][] = $item(__('Transcript'), 'academic-cap', 'mahasantri.transcript');
             $groups[0]['items'][] = $item(__('My bills'), 'banknotes', 'mahasantri.bills');
+            $groups[0]['items'][] = $item(__('Exam card'), 'ticket', 'mahasantri.exams');
             $groups[0]['items'][] = $item(__('Academic supervisor'), 'user', 'mahasantri.supervision');
         }
 
@@ -152,6 +153,7 @@ enum Role: string
                 $item(__('Classes'), 'user-group', 'admin.class-groups'),
                 $item(__('Subjects'), 'book-open', 'admin.subjects'),
                 $item(__('Timetable'), 'calendar', 'admin.timetable'),
+                $item(__('Exams'), 'clipboard-document-check', 'admin.exams.index', 'admin.exams.*|admin.rooms'),
                 $item(__('Grade scale'), 'scale', 'admin.grade-scale'),
                 $item(__('Academic monitor'), 'chart-bar', 'monitor.dashboard'),
                 $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities'),

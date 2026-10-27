@@ -29,6 +29,7 @@ use App\Models\ClassGroup;
 use App\Models\CourseOffering;
 use App\Models\FeeRate;
 use App\Models\FeeType;
+use App\Models\Room;
 use App\Models\Scholarship;
 use App\Models\Semester;
 use App\Models\Setting;
@@ -84,6 +85,10 @@ class DatabaseSeeder extends Seeder
         $classOnePutri = ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester I Putri', 'level' => 1, 'gender' => Gender::Female]);
         ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester II Putra', 'level' => 2, 'gender' => Gender::Male]);
         ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester II Putri', 'level' => 2, 'gender' => Gender::Female]);
+
+        // Exam rooms: putra and putri sit in separate rooms.
+        Room::create(['name' => 'R.101', 'capacity' => 30, 'gender' => Gender::Male]);
+        Room::create(['name' => 'R.201', 'capacity' => 30, 'gender' => Gender::Female]);
 
         $fiqh = Subject::create(['study_program_id' => $program->id, 'code' => 'FQH101', 'name' => 'Fiqh Ibadah', 'kitab' => 'Fathul Qarib', 'credits' => 3]);
         $nahwu = Subject::create(['study_program_id' => $program->id, 'code' => 'NHW101', 'name' => 'Nahwu', 'kitab' => 'Alfiyah Ibnu Malik', 'credits' => 2]);

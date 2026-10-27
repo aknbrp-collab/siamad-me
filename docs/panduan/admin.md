@@ -46,6 +46,28 @@ bentrok. Saat menyalin kelas kuliah dari semester lain, yang bentrok tidak disal
 Menu **Akademik → Jadwal** menampilkan jadwal mingguan per **kelas**, **muhadhir**, atau **ruang**, dan
 dapat dicetak (**Cetak**).
 
+## Ujian (UTS dan UAS)
+
+Menu **Akademik → Ujian**.
+
+1. **Ruang ujian** (tombol di kanan atas): nama, kapasitas, dan **Putra** atau **Putri**. Mahasantri
+   hanya ditempatkan di ruang sesuai jenis kelaminnya.
+2. **Tambah masa ujian**: UTS atau UAS dan rentang tanggalnya (satu UTS dan satu UAS per semester).
+3. Buka masa ujian → tab **Jadwal ujian** → **Tambah ujian**: mata kuliah (kelas kuliah), tanggal di
+   dalam masa ujian, jam mulai–selesai, pengawas (boleh kosong), dan ruang. Ujian yang **bentrok**
+   ditolak: kelas, ruang, atau pengawas yang sama pada jam yang tumpang tindih di tanggal yang sama.
+4. **Acak nomor kursi** per ujian, atau **Acak semua nomor kursi**. Nomor kursi dimulai dari 1 di tiap
+   ruang; jika ruang putra/putri yang dipilih kurang kursinya, SIAKAD menolak dan menyebut jumlahnya.
+   Mengganti ruang atau mata kuliah menghapus nomor kursi ujian itu (acak lagi).
+5. **Terbitkan**. Syaratnya semua ujian sudah punya nomor kursi. Mahasantri peserta mendapat
+   notifikasi. Setelah terbit, jadwal dan kursi terkunci; **Tarik terbitan** untuk mengubahnya lagi.
+
+Tab **Peserta & kartu** menampilkan status tiap mahasantri: pembayaran, jumlah mata kuliah yang masuk
+kartu, dan dispensasi. Syarat kartu ujian: **tagihan semester lunas**, dan hanya mata kuliah dengan
+**kehadiran minimal** (Pengaturan, bawaan 75%) yang masuk kartu. Mahasantri yang belum memenuhi syarat
+dapat diberi **Dispensasi** berdasarkan surat rektor (nomor, tanggal, catatan): dispensasi
+menggugurkan kedua syarat dan tercantum di kartu. Tombol **Kartu** mencetak kartu ujian (PDF A5).
+
 ## Pembimbing akademik
 
 Menu **Data orang → Pembimbing akademik**. Pilih muhadhir di kiri, lalu centang mahasantri (saring per

@@ -745,3 +745,26 @@ v2 Step 2 (2026-10-27) — schedule clash check and timetable:
 - Weekly timetable component (`x-timetable`, a column per day, stacked on phones, printable): Admin
   **Jadwal** (`/admin/timetable`, by class / muhadhir / room, any semester) and muhadhir **Jadwal
   mengajar** (`/muhadhir/timetable`). Print CSS hides the sidebar and header.
+
+v2 Step 3 (2026-10-27) — exams:
+- Tables: `rooms` (capacity, gender Putra/Putri: **D3** separate rooms), `exam_periods` (one UTS and
+  one UAS per semester, `published_at`), `exam_sessions` (one per course offering per period: date,
+  time, optional invigilator, rooms via `exam_session_room`, `seats_assigned_at`), `exam_seats` (unique
+  per session × enrolment and per session × room × seat number), `exam_dispensations` (one per period ×
+  mahasantri: rector's letter number, date, note, granted_by; audited).
+- `App\Actions\Exams\ManageExams`: periods, sessions (date within the period; refuses a clash on the
+  same date at overlapping times that shares the class, a room or the invigilator: the same rule as
+  `ScheduleClashes`, written separately because it compares exam sessions and room sets), seat
+  shuffling (per gender, only rooms of that gender, by room name, up to capacity, numbered from 1 per
+  room; too few seats is refused), publish (needs every session seated; notifies the enrolled
+  mahasantri) and dispensations. Schedule and seats are editable only while unpublished and the
+  semester is open; changing rooms or the subject clears that session's seats.
+- `App\Actions\Exams\ExamEligibility` (**D2**): payment ok when the semester has no non-void bill or
+  it is Paid; a subject is on the card when attendance ≥ `attendance.min_percent` or no meeting is
+  recorded yet. A dispensation lifts both. Eligible = (paid or dispensation) and at least one subject.
+- Exam card PDF (`ExamCardController`, A5, `records.exam-card`): the mahasantri's own card once the
+  period is published; Admin/Superadmin any card; always only when eligible and seated.
+- Pages: Admin **Ujian** (`/admin/exams`, `/admin/exams/{period}`: schedule tab, participants tab with
+  dispensations and card links), **Ruang ujian** (`/admin/rooms`), mahasantri **Kartu ujian**
+  (`/mahasantri/exams`).
+

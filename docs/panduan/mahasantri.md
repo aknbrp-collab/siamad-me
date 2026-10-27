@@ -48,6 +48,14 @@ presensi, dan catatan kegiatan Anda untuk membantu studi Anda.
   kuliah yang diulang hanya tampil sekali dengan **nilai terbaik**, dan hanya nilai itu yang dihitung
   dalam IPK. KHS semester lama tetap menampilkan nilai saat itu.
 
+## Kartu ujian
+
+Setelah jadwal UTS/UAS diterbitkan, menu **Kartu ujian** menampilkan jadwal tiap mata kuliah beserta
+**ruang dan nomor kursi** Anda. Kartu dapat dicetak (**Cetak kartu ujian**) bila **tagihan semester
+sudah lunas** dan terverifikasi. Mata kuliah dengan kehadiran di bawah batas minimal tidak masuk kartu.
+Jika ada syarat yang belum terpenuhi, halaman ini menyebutkannya. Bawa kartu setiap ujian dan duduk
+sesuai nomor kursi.
+
 ## Tagihan saya
 
 Tagihan per semester, pembayaran, dan sisa tagihan. Pembayaran berstatus *menunggu* sampai

@@ -2,6 +2,7 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\AcademicRecordPdfController;
+use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PrivateFileController;
@@ -50,6 +51,9 @@ Route::middleware('portal')->group(function () {
         Route::livewire('subjects', 'pages::admin.subjects')->name('subjects');
         Route::livewire('grade-scale', 'pages::admin.grade-scale')->name('grade-scale');
         Route::livewire('timetable', 'pages::admin.timetable')->name('timetable');
+        Route::livewire('rooms', 'pages::admin.rooms')->name('rooms');
+        Route::livewire('exams', 'pages::admin.exams.index')->name('exams.index');
+        Route::livewire('exams/{period}', 'pages::admin.exams.show')->name('exams.show');
 
         Route::livewire('students', 'pages::admin.students.index')->name('students.index');
         Route::livewire('students/create', 'pages::admin.students.form')->name('students.create');
@@ -141,6 +145,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('quiz-attempts/{attempt}', 'pages::mahasantri.quiz-attempt')->name('quiz-attempt');
         Route::livewire('transcript', 'pages::mahasantri.transcript')->name('transcript');
         Route::livewire('supervision', 'pages::mahasantri.supervision')->name('supervision');
+        Route::livewire('exams', 'pages::mahasantri.exams')->name('exams');
     });
 
     Route::prefix('wali')->name('wali.')->middleware('role:guardian')->group(function () {
@@ -152,6 +157,9 @@ Route::middleware('portal')->group(function () {
     // KHS and transcript PDFs: the mahasantri, their wali and academic staff.
     Route::get('records/{student}/khs/{semester}', [AcademicRecordPdfController::class, 'khs'])->name('records.khs');
     Route::get('records/{student}/transcript', [AcademicRecordPdfController::class, 'transcript'])->name('records.transcript');
+
+    // Exam card PDF: the mahasantri once the period is published, or academic staff.
+    Route::get('exams/{period}/card/{student}', ExamCardController::class)->name('exams.card');
 
     // Official receipt once verified; a provisional slip before that.
     Route::get('receipts/{payment}', ReceiptController::class)->name('receipts.show');

@@ -47,6 +47,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('settings', 'pages::superadmin.settings')->name('settings');
         Route::livewire('identity', 'pages::superadmin.identity')->name('identity');
         Route::livewire('signatures', 'pages::superadmin.signatures')->name('signatures');
+        Route::livewire('maintenance', 'pages::superadmin.maintenance')->name('maintenance');
         Route::get('identity/preview', [AcademicRecordPdfController::class, 'preview'])->name('identity.preview');
         Route::livewire('audit-logs', 'pages::superadmin.audit-logs')->name('audit-logs');
         Route::livewire('users', 'pages::superadmin.users.index')->name('users.index');

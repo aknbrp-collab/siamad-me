@@ -57,7 +57,7 @@ new #[Title('Exam period')] class extends Component {
     #[Computed]
     public function editable(): bool
     {
-        return ! $this->period->isPublished() && ! $this->period->semester->isLocked();
+        return ! $this->period->isPublished() && ! $this->period->semester->isReadOnly();
     }
 
     /**
@@ -273,7 +273,7 @@ new #[Title('Exam period')] class extends Component {
     <x-page-header :title="$period->type->label()" :subtitle="$period->semester->label().' · '.$period->starts_on->translatedFormat('j M').' – '.$period->ends_on->translatedFormat('j M Y')">
         <x-slot:actions>
             <flux:badge size="lg" :color="$period->isPublished() ? 'green' : 'zinc'">{{ $period->isPublished() ? __('Published') : __('Draft') }}</flux:badge>
-            @unless ($period->semester->isLocked())
+            @unless ($period->semester->isReadOnly())
                 <flux:button :variant="$period->isPublished() ? 'ghost' : 'primary'" :icon="$period->isPublished() ? 'arrow-uturn-left' : 'megaphone'" wire:click="togglePublish"
                     wire:confirm="{{ $period->isPublished() ? __('Unpublish? Mahasantri can no longer print their card until you publish again.') : __('Publish? The schedule and seats are fixed and mahasantri are notified.') }}"
                     data-test="toggle-publish">
@@ -385,7 +385,7 @@ new #[Title('Exam period')] class extends Component {
                             <flux:table.cell class="whitespace-normal">
                                 @if ($status['dispensation'])
                                     <span class="text-sm">{{ $status['dispensation']->letter_number }}</span>
-                                    @unless ($period->semester->isLocked())
+                                    @unless ($period->semester->isReadOnly())
                                         <flux:button size="xs" variant="ghost" icon="x-mark" wire:click="revokeDispensation({{ $student->id }})" wire:confirm="{{ __('Remove this dispensation?') }}" :aria-label="__('Remove')" />
                                     @endunless
                                 @else
@@ -395,7 +395,7 @@ new #[Title('Exam period')] class extends Component {
                             <flux:table.cell align="end">
                                 @if ($status['eligible'] && $subjects->where('ok', true)->every(fn ($subject) => $subject['seat'] !== null))
                                     <x-print-button size="sm" icon="printer" :href="route('exams.card', [$period, $student])" :document="PrintDocument::ExamCard">{{ __('Card') }}</x-print-button>
-                                @elseif (! $status['dispensation'] && ! $period->semester->isLocked())
+                                @elseif (! $status['dispensation'] && ! $period->semester->isReadOnly())
                                     <flux:button size="sm" variant="ghost" icon="document-check" wire:click="openDispensation({{ $student->id }})" data-test="dispensation-{{ $student->id }}">{{ __('Dispensation') }}</flux:button>
                                 @endif
                             </flux:table.cell>

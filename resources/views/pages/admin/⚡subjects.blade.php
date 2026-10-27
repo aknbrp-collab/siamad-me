@@ -6,7 +6,6 @@ use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -86,12 +85,14 @@ new #[Title('Subjects')] class extends Component {
 
     public function save(): void
     {
+        $rules = Subject::rules($this->editingId);
+
         $data = $this->validate([
-            'studyProgramId' => ['required', 'integer', Rule::exists('study_programs', 'id')->whereNull('deleted_at')],
-            'code' => ['required', 'string', 'max:20', 'alpha_dash', Rule::unique('subjects', 'code')->ignore($this->editingId)],
-            'name' => ['required', 'string', 'max:255'],
-            'kitab' => ['nullable', 'string', 'max:255'],
-            'credits' => ['required', 'integer', 'between:1,12'],
+            'studyProgramId' => $rules['study_program_id'],
+            'code' => $rules['code'],
+            'name' => $rules['name'],
+            'kitab' => $rules['kitab'],
+            'credits' => $rules['credits'],
             'isActive' => ['boolean'],
         ]);
 

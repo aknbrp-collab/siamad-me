@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\Rule;
 
 /**
  * @property int $id
@@ -45,6 +46,22 @@ class Subject extends Model
         return [
             'credits' => 'integer',
             'is_active' => 'boolean',
+        ];
+    }
+
+    /**
+     * Validation rules shared by the subjects page and the subject import.
+     *
+     * @return array<string, list<mixed>>
+     */
+    public static function rules(?int $ignoreId = null): array
+    {
+        return [
+            'study_program_id' => ['required', 'integer', Rule::exists('study_programs', 'id')->whereNull('deleted_at')],
+            'code' => ['required', 'string', 'max:20', 'alpha_dash', Rule::unique('subjects', 'code')->ignore($ignoreId)],
+            'name' => ['required', 'string', 'max:255'],
+            'kitab' => ['nullable', 'string', 'max:255'],
+            'credits' => ['required', 'integer', 'between:1,12'],
         ];
     }
 

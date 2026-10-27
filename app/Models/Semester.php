@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\Auditable;
 use App\Enums\SemesterStatus;
 use App\Enums\SemesterTerm;
+use App\Support\MaintenanceMode;
 use Database\Factories\SemesterFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -102,14 +103,24 @@ class Semester extends Model
     }
 
     /**
+     * Closed, and not opened up by maintenance mode for the person acting now.
+     * Staff pages use this; muhadhir and mahasantri always see a closed
+     * semester as locked.
+     */
+    public function isReadOnly(): bool
+    {
+        return $this->isLocked() && ! MaintenanceMode::allowsEditing();
+    }
+
+    /**
      * Refuse any change to the semester's records once it is closed
-     * (zero-overwriting rule).
+     * (zero-overwriting rule), except in maintenance mode.
      *
      * @throws ValidationException
      */
     public function assertOpen(): void
     {
-        if ($this->isLocked()) {
+        if ($this->isReadOnly()) {
             throw ValidationException::withMessages([
                 'semester' => __('Semester :semester is closed. Its records are read-only.', ['semester' => $this->label()]),
             ]);

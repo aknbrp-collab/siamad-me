@@ -22,6 +22,11 @@ class StudentImporter implements Importer
         return __('Mahasantri');
     }
 
+    public function createsAccounts(): bool
+    {
+        return true;
+    }
+
     public function columns(): array
     {
         return [

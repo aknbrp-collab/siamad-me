@@ -14,6 +14,7 @@ final class Importers
     public const TYPES = [
         'students' => StudentImporter::class,
         'teachers' => TeacherImporter::class,
+        'subjects' => SubjectImporter::class,
     ];
 
     public static function make(string $type): Importer

@@ -319,7 +319,7 @@ new #[Title('Scholarships')] class extends Component {
                                         {{ $award->billLine ? Money::format(-$award->billLine->amount) : __('when billed') }}
                                     </flux:table.cell>
                                     <flux:table.cell align="end">
-                                        @unless ($award->semester->isLocked())
+                                        @unless ($award->semester->isReadOnly())
                                             <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="revoke({{ $award->id }})" wire:confirm="{{ __('Withdraw this award? The discount is removed from the bill.') }}" :aria-label="__('Withdraw')" />
                                         @endunless
                                     </flux:table.cell>

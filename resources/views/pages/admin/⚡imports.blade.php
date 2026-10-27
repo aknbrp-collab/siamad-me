@@ -123,12 +123,13 @@ new #[Title('Import')] class extends Component {
     }
 
     /**
-     * Create the valid rows and hand back the credentials sheet. Rows with
-     * errors are skipped; fix them and import the file again.
+     * Create the valid rows and, for accounts, hand back the credentials
+     * sheet. Rows with errors are skipped; fix them and import the file again.
      */
     public function import(): ?BinaryFileResponse
     {
         $accounts = [];
+        $created = 0;
         $failed = [];
 
         foreach ($this->checkRows() as $row) {
@@ -137,20 +138,31 @@ new #[Title('Import')] class extends Component {
             }
 
             try {
-                $accounts[] = $this->importer->create($row['input']);
+                $account = $this->importer->create($row['input']);
+                $created++;
+
+                if ($account !== null) {
+                    $accounts[] = $account;
+                }
             } catch (ValidationException $e) {
                 // Changed since the check (e.g. created in the meantime).
                 $failed[] = ['row' => $row['row'], 'id' => $row['id'], 'messages' => array_merge(...array_values($e->errors()))];
             }
         }
 
-        $this->importedCount = count($accounts);
+        $this->importedCount = $created;
         $this->validCount = null;
         $this->rowErrors = $failed;
         $this->reset('file');
 
-        if ($accounts === []) {
+        if ($created === 0) {
             Flux::toast(variant: 'warning', text: __('Nothing was imported.'));
+
+            return null;
+        }
+
+        if (! $this->importer->createsAccounts()) {
+            Flux::toast(variant: 'success', text: trans_choice(':count row imported.|:count rows imported.', $created));
 
             return null;
         }
@@ -162,7 +174,7 @@ new #[Title('Import')] class extends Component {
 }; ?>
 
 <section class="w-full max-w-4xl">
-    <x-page-header :title="__('Import')" :subtitle="__('Create many mahasantri or ustadz accounts from an Excel or CSV file.')" />
+    <x-page-header :title="__('Import')" :subtitle="__('Create many mahasantri or ustadz accounts, or subjects, from an Excel or CSV file.')" />
 
     <div class="space-y-8">
         <div class="space-y-4">
@@ -204,7 +216,9 @@ new #[Title('Import')] class extends Component {
                         {{ trans_choice(':count row has errors and will be skipped.|:count rows have errors and will be skipped.', count($rowErrors)) }}
                     @endif
                 </flux:text>
-                <flux:callout icon="key" :text="__('Importing downloads a credentials sheet with each new login ID and temporary password. It is not stored anywhere: keep it safe and hand it out.')" />
+                @if ($this->importer->createsAccounts())
+                    <flux:callout icon="key" :text="__('Importing downloads a credentials sheet with each new login ID and temporary password. It is not stored anywhere: keep it safe and hand it out.')" />
+                @endif
                 <flux:button variant="primary" wire:click="import" :disabled="$validCount === 0" icon="arrow-up-tray" data-test="run-import">
                     {{ trans_choice('Import :count row|Import :count rows', $validCount) }}
                 </flux:button>
@@ -213,7 +227,9 @@ new #[Title('Import')] class extends Component {
 
         @if ($importedCount !== null)
             <flux:callout variant="success" icon="check-circle"
-                :text="trans_choice(':count account was created.|:count accounts were created.', $importedCount)" />
+                :text="$this->importer->createsAccounts()
+                    ? trans_choice(':count account was created.|:count accounts were created.', $importedCount)
+                    : trans_choice(':count row imported.|:count rows imported.', $importedCount)" />
         @endif
 
         @if ($rowErrors !== [])

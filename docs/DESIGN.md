@@ -815,3 +815,20 @@ v3 Step 1 (2026-10-28) — identity, signatures and stamps, green theme, dark mo
   green bar; a green line runs along the top of every page. Dark mode (Flux appearance) switch
   `<x-theme-switch>` in the sidebar, the phone header and the login page.
 
+v3 Step 2 (2026-10-28) — maintenance mode and subject import:
+- `maintenance_sessions` (started_by, reason, started_at, ended_by, ended_at): one row each time
+  Superadmin turns maintenance mode on; the open one (ended_at null) is the current session, cached
+  (`App\Support\MaintenanceMode`, cache key `maintenance.session`, cleared on turn on/off).
+  `audit_logs.maintenance_session_id` tags every audited change made while it is on.
+- `Semester::isReadOnly()` = closed and not `MaintenanceMode::allowsEditing()` (mode on and the active
+  role is Superadmin, Admin or Admin Keuangan). `assertOpen()` and the staff pages (semester, exams,
+  bills, scholarships, monitor) use it; muhadhir/mahasantri pages keep `isLocked()`, so they never edit
+  a closed semester. `isLocked()` still means "closed".
+- `SaveAcademicYear` takes `past`: both semesters created **closed**, only in maintenance mode.
+- Banner `<x-maintenance-banner>` inside `flux:main` for staff roles, deliberately in English (D6),
+  with who, when and why; Superadmin gets a link to **Mode pemeliharaan** (`/superadmin/maintenance`):
+  switch, session history with change counts, and the changes of a session.
+- Subject import: `SubjectImporter` (code, name, study_program_code, credits, kitab) with
+  `Subject::rules()`, now shared with the subjects page. `Importer::createsAccounts()` (subjects: false)
+  decides whether the import page hands back a credentials sheet; `create()` returns `?CreatedAccount`.
+

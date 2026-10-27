@@ -80,7 +80,7 @@ new #[Title('Exams')] class extends Component {
     <x-page-header :title="__('Exams')" :subtitle="__('UTS and UAS per semester: the schedule of every subject, rooms and seat numbers, and exam cards.')">
         <x-slot:actions>
             <flux:button icon="building-office" :href="route('admin.rooms')" wire:navigate>{{ __('Exam rooms') }}</flux:button>
-            @if ($this->semester && ! $this->semester->isLocked() && $this->periods->count() < count(ExamType::cases()))
+            @if ($this->semester && ! $this->semester->isReadOnly() && $this->periods->count() < count(ExamType::cases()))
                 <flux:button variant="primary" icon="plus" wire:click="create">{{ __('Add exam period') }}</flux:button>
             @endif
         </x-slot:actions>

@@ -24,10 +24,15 @@ Menu **Data orang**:
 - **Muhadhir** — **Tambah muhadhir**. NIDM menjadi ID login.
 - **Wali santri** — **Tambah wali santri**, lalu hubungkan dengan satu atau beberapa mahasantri. Kode
   login (WS-…) dibuat otomatis. Wali hanya melihat mahasantri yang terhubung.
-- **Impor** — buat banyak akun mahasantri atau muhadhir sekaligus: **Unduh templat** → isi di Excel →
-  unggah → **Periksa berkas** (baris bermasalah ditampilkan) → **Impor**. Setelah impor, lembar
-  kredensial berisi ID login dan kata sandi sementara diunduh otomatis. Lembar ini tidak disimpan di
-  mana pun: simpan dengan aman lalu bagikan.
+- **Impor** — buat banyak akun mahasantri atau muhadhir, atau **mata kuliah**, sekaligus: **Unduh
+  templat** → isi di Excel → unggah → **Periksa berkas** (baris bermasalah ditampilkan) → **Impor**.
+  Untuk akun, lembar kredensial berisi ID login dan kata sandi sementara diunduh otomatis; lembar ini
+  tidak disimpan di mana pun: simpan dengan aman lalu bagikan. Mata kuliah diimpor dengan kode, nama,
+  kode program studi, SKS, dan kitab; kode yang sudah ada ditolak, tidak ditimpa.
+- **Data tahun sebelumnya** — saat Superadmin mengaktifkan **mode pemeliharaan** (pita kuning di atas
+  halaman), semester yang ditutup dapat diubah, dan **Tambah tahun akademik** menawarkan pilihan
+  **Tahun akademik sebelumnya (input data)** yang kedua semesternya langsung ditutup. Semua perubahan
+  tercatat di log audit.
 
 Di halaman setiap orang ada kartu **Akun login**: **Atur ulang kata sandi** (membuat kata sandi
 sementara baru) dan **Nonaktifkan login**. Jangan menghapus orang; nonaktifkan atau ubah statusnya

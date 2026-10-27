@@ -265,7 +265,7 @@ new #[Title('Academic monitor')] class extends Component {
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell align="end">
-                                @if ($this->canUnlock && $offering->isFinalized() && ! $offering->semester->isLocked())
+                                @if ($this->canUnlock && $offering->isFinalized() && ! $offering->semester->isReadOnly())
                                     <flux:button size="sm" variant="ghost" icon="lock-open" wire:click="openUnlock({{ $offering->id }})">{{ __('Unlock') }}</flux:button>
                                 @endif
                             </flux:table.cell>

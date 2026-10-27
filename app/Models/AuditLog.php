@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\MaintenanceMode;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,9 +20,10 @@ use Illuminate\Support\Str;
  * @property array<string, mixed>|null $new_values
  * @property string|null $ip_address
  * @property string|null $user_agent
+ * @property int|null $maintenance_session_id
  * @property Carbon $created_at
  */
-#[Fillable(['user_id', 'auditable_type', 'auditable_id', 'event', 'old_values', 'new_values', 'ip_address', 'user_agent'])]
+#[Fillable(['user_id', 'auditable_type', 'auditable_id', 'event', 'old_values', 'new_values', 'ip_address', 'user_agent', 'maintenance_session_id'])]
 class AuditLog extends Model
 {
     public const UPDATED_AT = null;
@@ -57,6 +59,8 @@ class AuditLog extends Model
             'new_values' => $new ?: null,
             'ip_address' => $request->ip(),
             'user_agent' => Str::limit((string) $request->userAgent(), 500, ''),
+            // Made while maintenance mode was on (previous-year data entry).
+            'maintenance_session_id' => MaintenanceMode::currentId(),
         ]);
     }
 

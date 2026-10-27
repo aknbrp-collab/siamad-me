@@ -304,7 +304,7 @@ new #[Title('Bill')] class extends Component {
                     : __('All allowed instalments are used.')" />
             @endif
 
-            @if ($this->administers && $bill->status !== BillStatus::Void && ! $bill->semester->isLocked() && $bill->payments->whereIn('status', PaymentStatus::counting())->isEmpty())
+            @if ($this->administers && $bill->status !== BillStatus::Void && ! $bill->semester->isReadOnly() && $bill->payments->whereIn('status', PaymentStatus::counting())->isEmpty())
                 <flux:modal.trigger name="void-bill">
                     <flux:button variant="danger" size="sm" icon="no-symbol">{{ __('Void bill') }}</flux:button>
                 </flux:modal.trigger>

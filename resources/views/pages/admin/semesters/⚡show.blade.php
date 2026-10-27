@@ -56,7 +56,7 @@ new #[Title('Semester')] class extends Component {
     #[Computed]
     public function locked(): bool
     {
-        return $this->semester->isLocked();
+        return $this->semester->isReadOnly();
     }
 
     /**

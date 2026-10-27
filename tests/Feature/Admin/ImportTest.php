@@ -4,6 +4,7 @@ use App\Enums\Gender;
 use App\Enums\Role;
 use App\Models\Student;
 use App\Models\StudyProgram;
+use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Support\SpreadsheetDownload;
@@ -111,4 +112,35 @@ test('an empty file is refused', function () {
         ->set('file', spreadsheet([]))
         ->call('check')
         ->assertHasErrors('file');
+});
+
+test('subjects import without accounts and are validated like the subjects page', function () {
+    Subject::factory()->create(['code' => 'NHW101']);
+
+    $file = spreadsheet([
+        ['code*' => 'FQH101', 'name*' => 'Fiqh Ibadah', 'study_program_code*' => 'ma', 'credits*' => '3', 'kitab' => 'Fathul Qarib'],
+        ['code*' => 'TFS101', 'name*' => 'Tafsir Ahkam', 'study_program_code*' => 'MA', 'credits*' => '2', 'kitab' => ''],
+        ['code*' => 'NHW101', 'name*' => 'Nahwu', 'study_program_code*' => 'MA', 'credits*' => '2', 'kitab' => ''],
+        ['code*' => 'BAD 1', 'name*' => 'Bad', 'study_program_code*' => 'XX', 'credits*' => '20', 'kitab' => ''],
+    ]);
+
+    $headers = SimpleExcelReader::create($this->get(route('admin.imports.template', 'subjects'))->assertOk()->getFile()->getPathname(), 'xlsx')->getHeaders();
+    expect($headers)->toBe(['code*', 'name*', 'study_program_code*', 'credits*', 'kitab']);
+
+    $component = Livewire::test('pages::admin.imports')
+        ->set('type', 'subjects')
+        ->set('file', $file)
+        ->call('check')
+        ->assertSet('validCount', 2)
+        ->assertDontSee(__('Importing downloads a credentials sheet with each new login ID and temporary password. It is not stored anywhere: keep it safe and hand it out.'));
+
+    expect(collect($component->get('rowErrors'))->pluck('row')->all())->toBe([4, 5]);
+
+    $component->call('import')->assertNoFileDownloaded()->assertSet('importedCount', 2);
+
+    expect(Subject::query()->where('code', 'FQH101')->sole())
+        ->name->toBe('Fiqh Ibadah')
+        ->credits->toBe(3)
+        ->kitab->toBe('Fathul Qarib')
+        ->is_active->toBeTrue();
 });

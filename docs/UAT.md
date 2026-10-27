@@ -19,10 +19,12 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] As Admin, print a transcript with images, then without (blank space for a wet signature), then signed by someone else; as a mahasantri, print it and get the default
 - [ ] Set the payment rules; switch light / dark / system and check the pages you use in dark mode
 - [ ] Find a change in the Audit log (who, old → new)
+- [ ] Turn maintenance mode on with a reason: the English banner shows on staff pages (not for muhadhir/mahasantri); as Admin, add a previous academic year (both semesters closed) and place mahasantri in a class there; turn it off: the semester is read-only again; the session lists the changes
 
 ## Admin
 - [ ] Study program, classes, subjects, grade scale, academic year
 - [ ] Import the real mahasantri list from Excel (check the error rows, then import); hand out the credentials sheet
+- [ ] Import the subject list from Excel (no credentials sheet); an existing code is refused
 - [ ] Add muhadhir and wali santri; link a wali to two siblings
 - [ ] Classes per semester level, Putra and Putri; placing a mahasantri in a class of the other gender is refused
 - [ ] Place mahasantri in classes; add course offerings with muhadhir and schedules; activate the semester

@@ -196,6 +196,7 @@ enum Role: string
                 $item(__('Identity'), 'building-library', 'superadmin.identity'),
                 $item(__('Signatures & stamps'), 'pencil', 'superadmin.signatures'),
                 $item(__('Settings'), 'adjustments-horizontal', 'superadmin.settings'),
+                $item(__('Maintenance mode'), 'wrench-screwdriver', 'superadmin.maintenance'),
                 $item(__('Audit log'), 'clipboard-document-list', 'superadmin.audit-logs'),
             ]];
         }

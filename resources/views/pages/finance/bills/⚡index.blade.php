@@ -193,7 +193,7 @@ new #[Title('Bills')] class extends Component {
     <x-page-header :title="__('Bills')" :subtitle="__('One bill per mahasantri per semester. Status counts verified payments only.')">
         <x-slot:actions>
             <flux:button icon="arrow-down-tray" wire:click="export">{{ __('Export') }}</flux:button>
-            @if ($this->administers && $this->semester && ! $this->semester->isLocked())
+            @if ($this->administers && $this->semester && ! $this->semester->isReadOnly())
                 <flux:button variant="primary" icon="sparkles" wire:click="openGenerate">{{ __('Generate bills') }}</flux:button>
             @endif
         </x-slot:actions>

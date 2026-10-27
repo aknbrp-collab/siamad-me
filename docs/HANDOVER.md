@@ -78,7 +78,8 @@ app/
   Http/Controllers/        PrivateFileController (all private files + access rules), ReceiptController,
                            AcademicRecordPdfController, ImportTemplateController, ScoreTemplateController
   Http/Middleware/         EnsureUserIsActive, EnsurePasswordIsChanged, EnsureRoleIsSelected, EnsureRole
-  Imports/                 Importer interface, Importers (reader + helpers), StudentImporter, TeacherImporter
+  Imports/                 Importer interface, Importers (reader + helpers), StudentImporter, TeacherImporter,
+                           SubjectImporter
   Listeners/               RecordSuccessfulLogin
   Livewire/                PersonForm (base for person forms), AcademicRecordPage (base for KHS pages),
                            Concerns/ManagesAccount (temp password / disable login)
@@ -107,7 +108,7 @@ resources/views/
     profile/               documents (owner upload), biodata (Profil saya: own profile, per role)
     settings/              starter-kit profile/security/appearance (profile adapted)
     shared/                forum (class forum or supervision group forum; embedded in several pages)
-    superadmin/            identity, signatures (signatories, stamps, print defaults), settings, audit-logs,
+    superadmin/            identity, signatures (signatories, stamps, print defaults), settings, maintenance, audit-logs,
                            users/{index,form}
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades}
     wali/                  academic, bills

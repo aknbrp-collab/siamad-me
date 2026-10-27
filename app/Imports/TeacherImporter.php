@@ -15,6 +15,11 @@ class TeacherImporter implements Importer
         return __('Ustadz');
     }
 
+    public function createsAccounts(): bool
+    {
+        return true;
+    }
+
     public function columns(): array
     {
         return [

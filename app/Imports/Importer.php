@@ -5,12 +5,18 @@ namespace App\Imports;
 use App\Support\CreatedAccount;
 
 /**
- * One kind of bulk import (mahasantri, ustadz). Rows are validated with the
- * same rules as the manual form, then created one by one.
+ * One kind of bulk import (mahasantri, ustadz, subjects). Rows are validated
+ * with the same rules as the manual form, then created one by one.
  */
 interface Importer
 {
     public function label(): string;
+
+    /**
+     * Whether each row creates a login (and the import hands back a
+     * credentials sheet).
+     */
+    public function createsAccounts(): bool;
 
     /**
      * Template columns: header => description shown in the template.
@@ -47,6 +53,7 @@ interface Importer
 
     /**
      * @param  array<string, mixed>  $input
+     * @return CreatedAccount|null the new login, for importers that create accounts
      */
-    public function create(array $input): CreatedAccount;
+    public function create(array $input): ?CreatedAccount;
 }

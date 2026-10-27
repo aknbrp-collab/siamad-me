@@ -70,7 +70,7 @@ some pages were never checked in dark.
   - every page and the timetable print checked in dark
   - dark greens tuned for contrast
 
-### Step 2 — Data input mode and subject import (medium)
+### Step 2 — Data input mode and subject import (medium) — ✅ done 2026-10-28
 - **Data input mode (D6), for entering previous-year data:**
   - **Switch:** Superadmin turns it on (with a reason) and off again in Settings. It stays on until
     switched off.

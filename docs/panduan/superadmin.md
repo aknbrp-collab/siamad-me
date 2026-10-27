@@ -74,6 +74,21 @@ catatan kaki kuitansi, **Maksimal cicilan per tagihan** (bawaan 3), **Cicilan mi
 200.000), dan **Kehadiran minimal (%)** (bawaan 75). Perubahan berlaku untuk tagihan dan perhitungan
 berikutnya; data lama tidak berubah.
 
+## Mode pemeliharaan (input data tahun sebelumnya)
+
+Semester yang sudah ditutup hanya dapat dibaca. Untuk memasukkan data tahun akademik sebelumnya dari
+arsip (kelas, nilai, pembayaran), buka **Sistem → Mode pemeliharaan**, tulis **alasannya**, lalu
+**Aktifkan**. Selama aktif:
+- Admin, Admin Keuangan, dan Superadmin dapat mengubah semester yang ditutup dan menambah **tahun
+  akademik sebelumnya** yang kedua semesternya langsung berstatus ditutup;
+- muhadhir, pemantau, mahasantri, dan wali tetap tidak bisa mengubah semester yang ditutup;
+- setiap halaman staf menampilkan pita kuning berbahasa Inggris: *Maintenance mode: previous-year data
+  entry is open. Turned on by … on … — alasan*;
+- setiap perubahan tercatat di log audit bersama sesi pemeliharaannya.
+
+Klik **Matikan** setelah selesai; semua kembali terkunci. Halaman ini juga menampilkan riwayat sesi
+(siapa, kapan, alasan, kapan dimatikan) dan daftar perubahan pada setiap sesi.
+
 ## Wewenang khusus
 
 - **Membuka kembali semester** yang sudah ditutup (**Tahun akademik** → semester → **Buka kembali**),

@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use App\Support\ActiveRole;
+use App\Support\MaintenanceMode;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -17,6 +18,9 @@ new #[Title('Academic years')] class extends Component {
     public string $name = '';
     public ?string $startsOn = null;
     public ?string $endsOn = null;
+
+    /** A previous academic year, created with both semesters closed (maintenance mode only). */
+    public bool $past = false;
 
     public ?int $closingId = null;
     public int $closingPending = 0;
@@ -48,6 +52,7 @@ new #[Title('Academic years')] class extends Component {
         $start = $latest ? (int) explode('/', $latest)[1] : now()->year;
 
         $this->editingId = null;
+        $this->past = false;
         $this->name = $start.'/'.($start + 1);
         $this->startsOn = "{$start}-07-01";
         $this->endsOn = ($start + 1).'-06-30';
@@ -73,7 +78,7 @@ new #[Title('Academic years')] class extends Component {
 
         $saveAcademicYear->handle(
             $this->editingId ? AcademicYear::query()->findOrFail($this->editingId) : null,
-            ['name' => $this->name, 'starts_on' => $this->startsOn, 'ends_on' => $this->endsOn],
+            ['name' => $this->name, 'starts_on' => $this->startsOn, 'ends_on' => $this->endsOn, 'past' => $this->past],
         );
 
         Flux::modal('year-form')->close();
@@ -191,7 +196,11 @@ new #[Title('Academic years')] class extends Component {
                 <flux:input wire:model="endsOn" :label="__('Ends on')" type="date" required />
             </div>
             @unless ($editingId)
-                <flux:text class="text-sm">{{ __('The odd and even semesters are created as planned.') }}</flux:text>
+                @if (MaintenanceMode::allowsEditing())
+                    <flux:checkbox wire:model.live="past" :label="__('Previous academic year (data entry)')"
+                        :description="__('Both semesters are created closed, ready for the data of that year while maintenance mode is on.')" data-test="past-year" />
+                @endif
+                <flux:text class="text-sm">{{ $past ? __('The odd and even semesters are created as closed.') : __('The odd and even semesters are created as planned.') }}</flux:text>
             @endunless
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>

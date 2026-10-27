@@ -101,7 +101,7 @@ some pages were never checked in dark.
 - A report per imported semester: number of students, subjects and grades, and anything skipped,
   with the reason.
 
-### Step 4 — Exam seats: one seat per mahasantri per period (medium; reworks v2 Step 3, D7)
+### Step 4 — Exam seats: one seat per mahasantri per period (medium; reworks v2 Step 3, D7) — ✅ done 2026-10-28
 - Seating moves from each exam to the **exam period**:
   - the period chooses its rooms (putra and putri, as now)
   - **Acak nomor kursi** shuffles **all participants of the period once**, per gender into rooms of

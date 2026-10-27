@@ -5,15 +5,19 @@ namespace App\Models;
 use App\Concerns\Auditable;
 use App\Enums\ExamType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 /**
- * UTS or UAS of a semester. While unpublished the schedule and seats can
- * change; once published they are fixed and mahasantri can print their card.
+ * UTS or UAS of a semester. Its rooms and seats belong to the period: each
+ * mahasantri keeps one room and seat number for every exam (v3 D7). While
+ * unpublished the schedule and seats can change; once published they are
+ * fixed and mahasantri can print their card.
  *
  * @property int $id
  * @property int $semester_id
@@ -21,9 +25,12 @@ use Illuminate\Validation\ValidationException;
  * @property Carbon $starts_on
  * @property Carbon $ends_on
  * @property Carbon|null $published_at
+ * @property Carbon|null $seats_assigned_at
  * @property-read Semester $semester
+ * @property-read Collection<int, Room> $rooms
+ * @property-read Collection<int, ExamSeat> $seats
  */
-#[Fillable(['semester_id', 'type', 'starts_on', 'ends_on', 'published_at'])]
+#[Fillable(['semester_id', 'type', 'starts_on', 'ends_on', 'published_at', 'seats_assigned_at'])]
 class ExamPeriod extends Model
 {
     use Auditable;
@@ -40,6 +47,7 @@ class ExamPeriod extends Model
             'starts_on' => 'date',
             'ends_on' => 'date',
             'published_at' => 'datetime',
+            'seats_assigned_at' => 'datetime',
         ];
     }
 
@@ -79,6 +87,24 @@ class ExamPeriod extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(ExamSession::class);
+    }
+
+    /**
+     * Rooms the period's mahasantri are seated in.
+     *
+     * @return BelongsToMany<Room, $this>
+     */
+    public function rooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Room::class, 'exam_period_room');
+    }
+
+    /**
+     * @return HasMany<ExamSeat, $this>
+     */
+    public function seats(): HasMany
+    {
+        return $this->hasMany(ExamSeat::class);
     }
 
     /**

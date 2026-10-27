@@ -46,7 +46,7 @@ new #[Title('Exams')] class extends Component {
     public function periods(): Collection
     {
         return ExamPeriod::query()
-            ->withCount(['sessions', 'sessions as seated_count' => fn ($query) => $query->whereNotNull('seats_assigned_at')])
+            ->withCount('sessions')
             ->where('semester_id', $this->semesterId)
             ->orderBy('starts_on')
             ->get();
@@ -100,7 +100,7 @@ new #[Title('Exams')] class extends Component {
                     <div class="font-semibold">{{ $period->type->label() }}</div>
                     <flux:text class="text-sm">{{ $period->starts_on->translatedFormat('j M Y') }} – {{ $period->ends_on->translatedFormat('j M Y') }}</flux:text>
                 </div>
-                <flux:text class="text-sm">{{ __(':seated of :count exams seated', ['seated' => $period->seated_count, 'count' => $period->sessions_count]) }}</flux:text>
+                <flux:text class="text-sm">{{ trans_choice(':count exam|:count exams', $period->sessions_count) }} · {{ $period->seats_assigned_at ? __('seats shuffled') : __('seats not shuffled') }}</flux:text>
                 <flux:badge size="sm" :color="$period->isPublished() ? 'green' : 'zinc'">{{ $period->isPublished() ? __('Published') : __('Draft') }}</flux:badge>
             </a>
         @empty

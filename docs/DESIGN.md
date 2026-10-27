@@ -848,3 +848,20 @@ v3 Step 3 (2026-10-28) — previous-year classes and grades:
   required; pencil buttons on the admin student record KHS (`x-khs-table :correctable`). A given letter
   wins over the score, so the dialog prefills the letter only for letter-only grades.
 
+v3 Step 4 (2026-10-28) — one exam seat per mahasantri per period (D7, replaces the per-exam seating of
+v2 Step 3):
+- `exam_period_room` (the period's rooms) and `exam_seats` re-keyed to period × student (room, seat
+  number; unique per period × student and per period × room × seat). `exam_periods.seats_assigned_at`;
+  exam sessions no longer have rooms or seats. Migration `2026_11_10_000001`: each period keeps the union
+  of its exams' rooms, old per-exam seats are dropped, and a period that had seats goes back to draft
+  (shuffle once more).
+- `ManageExams`: `setRooms()` (clears seats when changed), `assignSeats(ExamPeriod)` shuffles every
+  participant once per gender into the period's rooms of that gender (by room name, seat numbers from 1
+  per room, capacity checked), `participants()`. Adding, deleting or changing the subject of an exam
+  clears the seats. Publishing needs `seats_assigned_at`. The clash check keeps class and invigilator;
+  rooms may be shared at the same time by design.
+- `ExamEligibility::check()` returns the period `seat` once (subjects no longer carry a seat). The card
+  prints room and seat in a box above the subject schedule; the admin participants tab shows each seat;
+  each exam's rooms are derived from where its mahasantri sit.
+- `phpunit.xml` sets `memory_limit` 512M: the whole suite in one process outgrew the 128M CLI default.
+

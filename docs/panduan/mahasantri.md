@@ -50,8 +50,8 @@ presensi, dan catatan kegiatan Anda untuk membantu studi Anda.
 
 ## Kartu ujian
 
-Setelah jadwal UTS/UAS diterbitkan, menu **Kartu ujian** menampilkan jadwal tiap mata kuliah beserta
-**ruang dan nomor kursi** Anda. Kartu dapat dicetak (**Cetak kartu ujian**) bila **tagihan semester
+Setelah jadwal UTS/UAS diterbitkan, menu **Kartu ujian** menampilkan **ruang dan nomor kursi** Anda,
+yang sama untuk semua ujian di masa itu, beserta jadwal tiap mata kuliah. Kartu dapat dicetak (**Cetak kartu ujian**) bila **tagihan semester
 sudah lunas** dan terverifikasi. Mata kuliah dengan kehadiran di bawah batas minimal tidak masuk kartu.
 Jika ada syarat yang belum terpenuhi, halaman ini menyebutkannya. Bawa kartu setiap ujian dan duduk
 sesuai nomor kursi.

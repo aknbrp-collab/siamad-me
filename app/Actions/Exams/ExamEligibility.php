@@ -27,7 +27,8 @@ class ExamEligibility
      *     payment_ok: bool,
      *     outstanding: int,
      *     dispensation: ExamDispensation|null,
-     *     subjects: list<array{session: ExamSession, attendance: int|null, ok: bool, seat: ExamSeat|null}>,
+     *     seat: ExamSeat|null,
+     *     subjects: list<array{session: ExamSession, attendance: int|null, ok: bool}>,
      *     eligible: bool
      * }
      */
@@ -57,19 +58,15 @@ class ExamEligibility
         $minimum = (int) Setting::get('attendance.min_percent', 75);
 
         $sessions = $period->sessions()
-            ->with(['courseOffering', 'rooms'])
+            ->with('courseOffering')
             ->whereIn('course_offering_id', $enrollments->keys())
             ->orderBy('held_on')->orderBy('starts_at')
             ->get();
 
-        $seats = ExamSeat::query()
-            ->with('room')
-            ->whereIn('exam_session_id', $sessions->modelKeys())
-            ->whereIn('course_enrollment_id', $enrollments->pluck('id'))
-            ->get()
-            ->keyBy('exam_session_id');
+        // One room and seat for every exam of the period.
+        $seat = ExamSeat::query()->with('room')->where('exam_period_id', $period->id)->where('student_id', $student->id)->first();
 
-        $subjects = array_values($sessions->map(function (ExamSession $session) use ($enrollments, $attendance, $minimum, $dispensation, $seats) {
+        $subjects = array_values($sessions->map(function (ExamSession $session) use ($enrollments, $attendance, $minimum, $dispensation) {
             $percent = $attendance[$enrollments[$session->course_offering_id]->id]['percent'] ?? null;
 
             return [
@@ -77,7 +74,6 @@ class ExamEligibility
                 'attendance' => $percent,
                 // No meetings recorded yet counts as meeting the minimum.
                 'ok' => $dispensation !== null || $percent === null || $percent >= $minimum,
-                'seat' => $seats->get($session->id),
             ];
         })->all());
 
@@ -85,6 +81,7 @@ class ExamEligibility
             'payment_ok' => $paymentOk,
             'outstanding' => $bill === null ? 0 : $bill->outstanding(),
             'dispensation' => $dispensation,
+            'seat' => $seat,
             'subjects' => $subjects,
             'eligible' => ($paymentOk || $dispensation !== null) && collect($subjects)->contains('ok', true),
         ];

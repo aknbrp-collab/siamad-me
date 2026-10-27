@@ -63,6 +63,14 @@ new #[Title('Exam card')] class extends Component {
                 </flux:callout>
             @endif
 
+            @if ($status['seat'])
+                <div class="flex flex-wrap items-center gap-3 rounded-lg border border-brand-tint bg-brand-soft px-4 py-3" data-test="period-seat">
+                    <flux:icon.map-pin class="size-5 text-accent-content" />
+                    <span class="text-sm">{{ __('Your seat for every exam of this period:') }}</span>
+                    <span class="font-semibold">{{ __('Room :room · seat :seat', ['room' => $status['seat']->room->name, 'seat' => $status['seat']->seat_number]) }}</span>
+                </div>
+            @endif
+
             <div class="divide-y divide-zinc-200 rounded-lg border border-zinc-200 text-sm dark:divide-zinc-700 dark:border-zinc-700">
                 @foreach ($status['subjects'] as $subject)
                     <div wire:key="subject-{{ $subject['session']->id }}" class="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
@@ -71,9 +79,7 @@ new #[Title('Exam card')] class extends Component {
                             <span class="block text-xs text-zinc-500">{{ $subject['session']->timeLabel() }}</span>
                         </span>
                         @if ($subject['ok'])
-                            <span class="text-zinc-600 dark:text-zinc-300">
-                                {{ $subject['seat'] ? __('Room :room · seat :seat', ['room' => $subject['seat']->room->name, 'seat' => $subject['seat']->seat_number]) : '—' }}
-                            </span>
+                            <flux:badge size="sm" color="green">{{ __('On the card') }}</flux:badge>
                         @else
                             <flux:badge size="sm" color="red">{{ __('Attendance :percent% (minimum :min%): not on the card', ['percent' => $subject['attendance'], 'min' => Setting::get('attendance.min_percent', 75)]) }}</flux:badge>
                         @endif

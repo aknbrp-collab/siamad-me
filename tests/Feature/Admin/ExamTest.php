@@ -62,7 +62,7 @@ function examFor(CourseOffering $offering, array $overrides = []): array
 {
     return [
         'course_offering_id' => $offering->id, 'held_on' => '2026-11-02', 'starts_at' => '08:00', 'ends_at' => '10:00',
-        'invigilator_id' => null, 'room_ids' => [], ...$overrides,
+        'invigilator_id' => null, ...$overrides,
     ];
 }
 
@@ -72,13 +72,14 @@ function examEnrollmentOf(Student $student, CourseOffering $offering): CourseEnr
 }
 
 /**
- * Fiqh (putra, R.101) and Fiqh (putri, R.201) scheduled and seated.
+ * Fiqh (putra) and Fiqh (putri) scheduled; the period seats in R.101 and R.201.
  */
 function scheduleAndSeat(object $test): array
 {
-    $putra = $test->exams->saveSession($test->uts, null, examFor($test->fiqhPutra, ['room_ids' => [$test->r101->id]]));
-    $putri = $test->exams->saveSession($test->uts, null, examFor($test->fiqhPutri, ['room_ids' => [$test->r201->id]]));
-    $test->exams->assignAllSeats($test->uts);
+    $putra = $test->exams->saveSession($test->uts, null, examFor($test->fiqhPutra));
+    $putri = $test->exams->saveSession($test->uts, null, examFor($test->fiqhPutri));
+    $test->exams->setRooms($test->uts, [$test->r101->id, $test->r201->id]);
+    $test->exams->assignSeats($test->uts);
 
     return [$putra, $putri];
 }
@@ -95,81 +96,98 @@ test('a semester has one UTS and one UAS, with the dates in order', function () 
 });
 
 test('the exam date must be within the period and each subject has one exam', function () {
-    expect(fn () => $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['held_on' => '2026-11-09', 'room_ids' => [$this->r101->id]])))
+    expect(fn () => $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['held_on' => '2026-11-09'])))
         ->toThrow(ValidationException::class, 'The exam date must be within the exam period.');
 
-    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['room_ids' => [$this->r101->id]]));
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra));
 
-    expect(fn () => $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['held_on' => '2026-11-03', 'room_ids' => [$this->r102->id]])))
+    expect(fn () => $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['held_on' => '2026-11-03'])))
         ->toThrow(ValidationException::class, 'This subject already has an exam in this period.');
-    expect(fn () => $this->exams->saveSession($this->uts, null, examFor($this->nahwuPutra, ['held_on' => '2026-11-03'])))
-        ->toThrow(ValidationException::class, 'Choose at least one room.');
 });
 
-test('two exams at once cannot share a class, a room or an invigilator', function (string $clash) {
-    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['room_ids' => [$this->r101->id], 'invigilator_id' => $this->ahmad->id]));
+test('two exams at once cannot share a class or an invigilator', function (string $clash) {
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['invigilator_id' => $this->ahmad->id]));
 
     $input = match ($clash) {
-        'class' => examFor($this->nahwuPutra, ['starts_at' => '09:00', 'ends_at' => '11:00', 'room_ids' => [$this->r102->id]]),
-        'room' => examFor($this->fiqhPutri, ['room_ids' => [$this->r101->id, $this->r201->id]]),
-        'invigilator' => examFor($this->fiqhPutri, ['room_ids' => [$this->r201->id], 'invigilator_id' => $this->ahmad->id]),
+        'class' => examFor($this->nahwuPutra, ['starts_at' => '09:00', 'ends_at' => '11:00']),
+        'invigilator' => examFor($this->fiqhPutri, ['invigilator_id' => $this->ahmad->id]),
     };
 
     expect(fn () => $this->exams->saveSession($this->uts, null, $input))
         ->toThrow(ValidationException::class, 'same '.$clash);
-})->with(['class', 'room', 'invigilator']);
+})->with(['class', 'invigilator']);
 
-test('back-to-back exams and other days are fine', function () {
-    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['room_ids' => [$this->r101->id], 'invigilator_id' => $this->ahmad->id]));
-    $this->exams->saveSession($this->uts, null, examFor($this->nahwuPutra, ['starts_at' => '10:00', 'ends_at' => '12:00', 'room_ids' => [$this->r101->id], 'invigilator_id' => $this->ahmad->id]));
-    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutri, ['held_on' => '2026-11-03', 'room_ids' => [$this->r101->id], 'invigilator_id' => $this->ahmad->id]));
+test('exams of different classes may run at once, sharing rooms; back-to-back is fine', function () {
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['invigilator_id' => $this->ahmad->id]));
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutri, ['invigilator_id' => $this->hasan->id]));
+    $this->exams->saveSession($this->uts, null, examFor($this->nahwuPutra, ['starts_at' => '10:00', 'ends_at' => '12:00', 'invigilator_id' => $this->ahmad->id]));
 
     expect(ExamSession::query()->count())->toBe(3);
 });
 
-test('seats go to rooms of the mahasantri own gender, numbered from 1 per room', function () {
+test('each mahasantri gets one seat for the whole period, in a room of their gender', function () {
     $this->r101->update(['capacity' => 1]);
-    $session = $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['room_ids' => [$this->r101->id, $this->r102->id, $this->r201->id]]));
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra));
+    $this->exams->saveSession($this->uts, null, examFor($this->nahwuPutra, ['held_on' => '2026-11-03']));
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutri));
+    $this->exams->setRooms($this->uts, [$this->r101->id, $this->r102->id, $this->r201->id]);
 
-    expect($this->exams->assignSeats($session))->toBe(2);
+    // Three mahasantri, two putra exams each: still three seats, one per person.
+    expect($this->exams->assignSeats($this->uts))->toBe(3);
 
-    $seats = ExamSeat::query()->where('exam_session_id', $session->id)->get();
-    expect($seats->pluck('room_id')->sort()->values()->all())->toBe([$this->r101->id, $this->r102->id])
-        ->and($seats->pluck('seat_number')->all())->toBe([1, 1])
-        ->and($session->fresh()->seats_assigned_at)->not->toBeNull();
+    $seats = ExamSeat::query()->get()->keyBy('student_id');
+    expect([$seats[$this->ali->id]->room_id, $seats[$this->umar->id]->room_id])->toEqualCanonicalizing([$this->r101->id, $this->r102->id])
+        ->and($seats[$this->aisyah->id]->room_id)->toBe($this->r201->id)
+        ->and($seats->pluck('seat_number')->all())->toBe([1, 1, 1])
+        ->and($this->uts->fresh()->seats_assigned_at)->not->toBeNull();
+
+    // The same seat on both of Ali's exams.
+    $status = app(ExamEligibility::class)->check($this->uts->fresh(), $this->ali);
+    expect($status['seat']->is($seats[$this->ali->id]))->toBeTrue()
+        ->and($status['subjects'])->toHaveCount(2);
 });
 
 test('seating fails when the rooms of a gender are too small', function () {
     $this->r101->update(['capacity' => 1]);
-    $session = $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['room_ids' => [$this->r101->id, $this->r201->id]]));
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra));
+    $this->exams->setRooms($this->uts, [$this->r101->id, $this->r201->id]);
 
-    expect(fn () => $this->exams->assignSeats($session))
-        ->toThrow(ValidationException::class, ': 2 Putra mahasantri, but Putra rooms seat only 1.');
+    expect(fn () => $this->exams->assignSeats($this->uts))
+        ->toThrow(ValidationException::class, '2 Putra mahasantri take exams in this period, but its Putra rooms seat only 1.');
 });
 
-test('changing the rooms clears the seats', function () {
-    [$session] = scheduleAndSeat($this);
+test('changing the rooms or the exams clears the seats', function () {
+    [$putra] = scheduleAndSeat($this);
 
-    $this->exams->saveSession($this->uts, $session, examFor($this->fiqhPutra, ['room_ids' => [$this->r102->id]]));
+    $this->exams->setRooms($this->uts, [$this->r102->id, $this->r201->id]);
+    expect($this->uts->fresh()->seats_assigned_at)->toBeNull()->and(ExamSeat::query()->count())->toBe(0);
 
-    expect($session->fresh()->seats_assigned_at)->toBeNull()
-        ->and(ExamSeat::query()->where('exam_session_id', $session->id)->count())->toBe(0);
+    $this->exams->assignSeats($this->uts);
+    $this->exams->saveSession($this->uts->fresh(), null, examFor($this->nahwuPutra, ['held_on' => '2026-11-03']));
+    expect(ExamSeat::query()->count())->toBe(0);
+
+    $this->exams->assignSeats($this->uts);
+    $this->exams->deleteSession($putra);
+    expect($this->uts->fresh()->seats_assigned_at)->toBeNull();
 });
 
-test('publishing needs every exam seated, notifies the mahasantri and locks the schedule', function () {
+test('publishing needs the seats shuffled, notifies the mahasantri and locks the schedule', function () {
     expect(fn () => $this->exams->publish($this->uts))->toThrow(ValidationException::class, 'Schedule at least one exam before publishing.');
 
-    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['room_ids' => [$this->r101->id]]));
-    expect(fn () => $this->exams->publish($this->uts))->toThrow(ValidationException::class, 'Assign seats first for: '.$this->fiqh->name);
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra));
+    $this->exams->setRooms($this->uts, [$this->r101->id]);
+    expect(fn () => $this->exams->publish($this->uts->fresh()))->toThrow(ValidationException::class, 'Shuffle the seats first.');
 
-    $this->exams->assignAllSeats($this->uts);
-    $this->exams->publish($this->uts);
+    $this->exams->assignSeats($this->uts);
+    $this->exams->publish($this->uts->fresh());
 
     expect($this->uts->fresh()->isPublished())->toBeTrue()
         ->and($this->ali->user->notifications()->sole()->data['title'])->toBe('UTS schedule and exam card')
         ->and($this->aisyah->user->notifications()->count())->toBe(0);
 
-    expect(fn () => $this->exams->saveSession($this->uts->fresh(), null, examFor($this->nahwuPutra, ['room_ids' => [$this->r102->id]])))
+    expect(fn () => $this->exams->saveSession($this->uts->fresh(), null, examFor($this->nahwuPutra)))
+        ->toThrow(ValidationException::class, 'This exam period is published');
+    expect(fn () => $this->exams->assignSeats($this->uts->fresh()))
         ->toThrow(ValidationException::class, 'This exam period is published');
 
     $this->exams->publish($this->uts->fresh(), false);
@@ -194,8 +212,8 @@ test('the exam card needs the semester bill paid in full', function () {
 });
 
 test('a subject below the attendance minimum is left off the card', function () {
-    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra, ['room_ids' => [$this->r101->id]]));
-    $this->exams->saveSession($this->uts, null, examFor($this->nahwuPutra, ['held_on' => '2026-11-03', 'room_ids' => [$this->r101->id]]));
+    $this->exams->saveSession($this->uts, null, examFor($this->fiqhPutra));
+    $this->exams->saveSession($this->uts, null, examFor($this->nahwuPutra, ['held_on' => '2026-11-03']));
 
     $meeting = ClassSession::create(['course_offering_id' => $this->fiqhPutra->id, 'meeting_no' => 1, 'held_on' => '2026-09-05']);
     Attendance::create(['class_session_id' => $meeting->id, 'course_enrollment_id' => examEnrollmentOf($this->ali, $this->fiqhPutra)->id, 'status' => AttendanceStatus::Absent]);
@@ -277,12 +295,14 @@ test('the admin pages schedule, seat and publish an exam period', function () {
         ->call('createSession')
         ->set('course_offering_id', $this->fiqhPutra->id)
         ->set('starts_at', '08:00')->set('ends_at', '10:00')
-        ->set('room_ids', [$this->r101->id])
         ->call('saveSession')
         ->assertHasNoErrors()
+        ->set('periodRoomIds', [$this->r101->id])
+        ->call('saveRooms')
         ->call('togglePublish')
         ->assertHasErrors('exam')
-        ->call('assignAllSeats')
+        ->call('assignSeats')
+        ->assertSee('R.101')
         ->call('togglePublish')
         ->assertHasNoErrors()
         ->set('tab', 'participants')
@@ -310,7 +330,8 @@ test('the mahasantri page shows the schedule, seats and what is missing', functi
     $this->get(route('mahasantri.exams'))
         ->assertOk()
         ->assertSee($this->fiqh->name)
-        ->assertSee('Room R.101')
+        ->assertSee('data-test="period-seat"', false)
+        ->assertSee('Room R.101 · seat ')
         ->assertSee('data-test="payment-missing"', false)
         ->assertDontSee('data-test="print-card"', false);
 });

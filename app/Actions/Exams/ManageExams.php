@@ -14,6 +14,7 @@ use App\Models\Semester;
 use App\Models\Student;
 use App\Models\User;
 use App\Support\Notify;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -22,8 +23,9 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Exam periods (UTS/UAS), the exam of each course offering (date, time,
- * rooms, invigilator), seat numbers and dispensations. Schedule and seats
- * change only while the period is unpublished.
+ * invigilator), the period's rooms and seat numbers, and dispensations.
+ * Every mahasantri gets one room and seat for the whole period (v3 D7).
+ * Schedule, rooms and seats change only while the period is unpublished.
  */
 class ManageExams
 {
@@ -53,7 +55,35 @@ class ManageExams
     }
 
     /**
-     * @param  array<string, mixed>  $input  course_offering_id, held_on, starts_at, ends_at, invigilator_id, room_ids
+     * The rooms the period's mahasantri sit in, putra and putri. Other rooms
+     * mean other seats: the seats are cleared.
+     *
+     * @param  list<int|string>  $roomIds
+     */
+    public function setRooms(ExamPeriod $period, array $roomIds): void
+    {
+        $period->assertEditable();
+
+        Validator::make(['room_ids' => $roomIds], [
+            'room_ids' => ['array'],
+            'room_ids.*' => ['integer', 'distinct', Rule::exists('rooms', 'id')->where('is_active', true)],
+        ])->validate();
+
+        $ids = array_map('intval', $roomIds);
+        sort($ids);
+
+        if ($period->rooms()->pluck('rooms.id')->sort()->values()->all() === $ids) {
+            return;
+        }
+
+        DB::transaction(function () use ($period, $ids) {
+            $period->rooms()->sync($ids);
+            $this->clearSeats($period);
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $input  course_offering_id, held_on, starts_at, ends_at, invigilator_id
      */
     public function saveSession(ExamPeriod $period, ?ExamSession $session, array $input): ExamSession
     {
@@ -69,19 +99,15 @@ class ManageExams
             'starts_at' => ['required', 'date_format:H:i'],
             'ends_at' => ['required', 'date_format:H:i', 'after:starts_at'],
             'invigilator_id' => ['nullable', 'integer', Rule::exists('teachers', 'id')],
-            'room_ids' => ['required', 'array', 'min:1'],
-            'room_ids.*' => ['integer', 'distinct', Rule::exists('rooms', 'id')->where('is_active', true)],
         ], [
             'course_offering_id.unique' => __('This subject already has an exam in this period.'),
             'held_on.after_or_equal' => __('The exam date must be within the exam period.'),
             'held_on.before_or_equal' => __('The exam date must be within the exam period.'),
-            'room_ids.required' => __('Choose at least one room.'),
         ])->validate();
 
-        $roomIds = array_values(array_map('intval', $data['room_ids']));
-        $this->ensureNoClash($period, $session, $data, $roomIds);
+        $this->ensureNoClash($session, $data);
 
-        return DB::transaction(function () use ($period, $session, $data, $roomIds) {
+        return DB::transaction(function () use ($period, $session, $data) {
             $attributes = [
                 'course_offering_id' => (int) $data['course_offering_id'],
                 'held_on' => $data['held_on'],
@@ -92,17 +118,15 @@ class ManageExams
 
             if ($session === null) {
                 $session = $period->sessions()->create($attributes);
+                // New subject, maybe new mahasantri: shuffle again.
+                $this->clearSeats($period);
             } else {
-                $roomsChanged = $session->rooms()->pluck('rooms.id')->sort()->values()->all() !== collect($roomIds)->sort()->values()->all();
                 $session->update($attributes);
 
-                // New rooms or another subject: the old seats no longer fit.
-                if ($roomsChanged || $session->wasChanged('course_offering_id')) {
-                    $this->clearSeats($session);
+                if ($session->wasChanged('course_offering_id')) {
+                    $this->clearSeats($period);
                 }
             }
-
-            $session->rooms()->sync($roomIds);
 
             return $session;
         });
@@ -110,36 +134,55 @@ class ManageExams
 
     public function deleteSession(ExamSession $session): void
     {
-        $session->loadMissing('period')->period->assertEditable();
-        $session->delete();
+        $period = $session->loadMissing('period')->period;
+        $period->assertEditable();
+
+        DB::transaction(function () use ($session, $period) {
+            $session->delete();
+            $this->clearSeats($period);
+        });
     }
 
     /**
-     * Shuffle the session's mahasantri into its rooms: putra only in putra
-     * rooms, putri only in putri rooms, up to each room's capacity. Seat
-     * numbers start at 1 in every room.
+     * Mahasantri taking at least one exam of the period.
+     *
+     * @return Builder<Student>
      */
-    public function assignSeats(ExamSession $session): int
+    public function participants(ExamPeriod $period): Builder
     {
-        $session->loadMissing(['period', 'rooms']);
-        $session->period->assertEditable();
+        return Student::query()->whereIn('id', CourseEnrollment::query()
+            ->whereIn('course_offering_id', $period->sessions()->select('course_offering_id'))
+            ->select('student_id'));
+    }
 
-        $enrollments = CourseEnrollment::query()
-            ->with('student.user')
-            ->where('course_offering_id', $session->course_offering_id)
-            ->get();
+    /**
+     * Shuffle every participant of the period into the period's rooms once:
+     * putra only in putra rooms, putri only in putri rooms, by room name, up
+     * to each room's capacity. Seat numbers start at 1 in every room. The
+     * same room and seat hold for every exam of the period.
+     */
+    public function assignSeats(ExamPeriod $period): int
+    {
+        $period->assertEditable();
 
+        $students = $this->participants($period)->get();
+
+        if ($students->isEmpty()) {
+            throw ValidationException::withMessages(['exam' => __('Schedule exams first: nobody takes an exam in this period yet.')]);
+        }
+
+        $rooms = $period->rooms()->get();
         $plan = [];
 
-        foreach ($enrollments->groupBy(fn (CourseEnrollment $enrollment) => $enrollment->student->gender->value) as $gender => $group) {
-            $rooms = $session->rooms->where('gender', Gender::from((string) $gender))->sortBy('name')->values();
-            $capacity = (int) $rooms->sum('capacity');
+        foreach ($students->groupBy(fn (Student $student) => $student->gender->value) as $gender => $group) {
+            $gender = Gender::from((string) $gender);
+            $genderRooms = $rooms->where('gender', $gender)->sortBy('name')->values();
+            $capacity = (int) $genderRooms->sum('capacity');
 
             if ($group->count() > $capacity) {
-                throw ValidationException::withMessages(['exam' => __(':subject: :count :gender mahasantri, but :gender rooms seat only :capacity.', [
-                    'subject' => $session->loadMissing('courseOffering')->courseOffering->subject_name,
+                throw ValidationException::withMessages(['exam' => __(':count :gender mahasantri take exams in this period, but its :gender rooms seat only :capacity.', [
                     'count' => $group->count(),
-                    'gender' => Gender::from((string) $gender)->classLabel(),
+                    'gender' => $gender->classLabel(),
                     'capacity' => $capacity,
                 ])]);
             }
@@ -147,37 +190,30 @@ class ManageExams
             $queue = $group->shuffle()->values();
             $index = 0;
 
-            foreach ($rooms as $room) {
+            /** @var Room $room */
+            foreach ($genderRooms as $room) {
                 for ($seat = 1; $seat <= $room->capacity && $index < $queue->count(); $seat++, $index++) {
-                    $plan[] = ['course_enrollment_id' => $queue[$index]->id, 'room_id' => $room->id, 'seat_number' => $seat];
+                    $plan[] = ['student_id' => $queue[$index]->id, 'room_id' => $room->id, 'seat_number' => $seat];
                 }
             }
         }
 
-        DB::transaction(function () use ($session, $plan) {
-            $session->seats()->delete();
+        DB::transaction(function () use ($period, $plan) {
+            $period->seats()->delete();
 
             foreach ($plan as $seat) {
-                $session->seats()->create($seat);
+                $period->seats()->create($seat);
             }
 
-            $session->update(['seats_assigned_at' => now()]);
+            $period->update(['seats_assigned_at' => now()]);
         });
 
         return count($plan);
     }
 
     /**
-     * Assign seats in every session of the period.
-     */
-    public function assignAllSeats(ExamPeriod $period): int
-    {
-        return (int) $period->sessions()->get()->sum(fn (ExamSession $session) => $this->assignSeats($session));
-    }
-
-    /**
      * Publishing fixes the schedule and seats and lets mahasantri print their
-     * exam card. Every session needs its seats first.
+     * exam card. The seats must be assigned after the last schedule change.
      */
     public function publish(ExamPeriod $period, bool $publish = true): void
     {
@@ -189,27 +225,19 @@ class ManageExams
             return;
         }
 
-        $sessions = $period->sessions()->with('courseOffering')->get();
+        $sessions = $period->sessions()->get();
 
         if ($sessions->isEmpty()) {
             throw ValidationException::withMessages(['exam' => __('Schedule at least one exam before publishing.')]);
         }
 
-        $unseated = $sessions->whereNull('seats_assigned_at');
-
-        if ($unseated->isNotEmpty()) {
-            throw ValidationException::withMessages(['exam' => __('Assign seats first for: :subjects.', [
-                'subjects' => $unseated->map(fn (ExamSession $session) => $session->courseOffering->subject_name)->join(', '),
-            ])]);
+        if ($period->seats_assigned_at === null) {
+            throw ValidationException::withMessages(['exam' => __('Shuffle the seats first.')]);
         }
 
         $period->update(['published_at' => now()]);
 
-        $students = CourseEnrollment::query()
-            ->with('student.user')
-            ->whereIn('course_offering_id', $sessions->pluck('course_offering_id'))
-            ->get()
-            ->map(fn (CourseEnrollment $enrollment) => $enrollment->student->user);
+        $students = $this->participants($period)->with('user')->get()->map(fn (Student $student) => $student->user);
 
         Notify::send(
             $students, 'exam',
@@ -248,36 +276,35 @@ class ManageExams
         $dispensation->delete();
     }
 
-    private function clearSeats(ExamSession $session): void
+    private function clearSeats(ExamPeriod $period): void
     {
-        $session->seats()->delete();
-        $session->update(['seats_assigned_at' => null]);
+        $period->seats()->delete();
+        $period->update(['seats_assigned_at' => null]);
     }
 
     /**
-     * No two exams at overlapping times on the same date may share a class,
-     * a room or an invigilator (same rule as the weekly schedule).
+     * No two exams at overlapping times on the same date may share a class or
+     * an invigilator. Rooms are shared on purpose: mahasantri keep their
+     * period seat, so several subjects are written in one room at once.
      *
      * @param  array<string, mixed>  $data
-     * @param  list<int>  $roomIds
      */
-    private function ensureNoClash(ExamPeriod $period, ?ExamSession $session, array $data, array $roomIds): void
+    private function ensureNoClash(?ExamSession $session, array $data): void
     {
         $classId = (int) CourseOffering::query()->whereKey($data['course_offering_id'])->value('class_group_id');
         $invigilator = isset($data['invigilator_id']) ? (int) $data['invigilator_id'] : null;
 
         /** @var Collection<int, ExamSession> $others */
         $others = ExamSession::query()
-            ->with(['courseOffering.classGroup', 'rooms'])
+            ->with(['courseOffering.classGroup'])
             ->whereDate('held_on', $data['held_on'])
             ->when($session, fn ($query) => $query->whereKeyNot($session->id))
             ->get()
             ->filter(fn (ExamSession $other) => substr($other->starts_at, 0, 5) < $data['ends_at'] && $data['starts_at'] < substr($other->ends_at, 0, 5));
 
-        $clashes = $others->map(function (ExamSession $other) use ($classId, $invigilator, $roomIds) {
+        $clashes = $others->map(function (ExamSession $other) use ($classId, $invigilator) {
             $shared = collect([
                 $other->courseOffering->class_group_id === $classId ? __('same class') : null,
-                $other->rooms->pluck('id')->intersect($roomIds)->isNotEmpty() ? __('same room') : null,
                 $invigilator !== null && $other->invigilator_id === $invigilator ? __('same invigilator') : null,
             ])->filter();
 

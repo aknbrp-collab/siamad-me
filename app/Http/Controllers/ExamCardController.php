@@ -34,7 +34,7 @@ class ExamCardController extends Controller
         abort_unless($status['eligible'], 403, __('The requirements for the exam card are not met.'));
 
         $subjects = collect($status['subjects'])->where('ok', true)->values();
-        abort_if($subjects->contains(fn (array $subject) => $subject['seat'] === null), 403, __('Seats have not been assigned yet.'));
+        abort_if($status['seat'] === null, 403, __('Seats have not been assigned yet.'));
 
         $photo = $student->photo_path && Storage::disk('local')->exists($student->photo_path)
             ? Storage::disk('local')->path($student->photo_path)
@@ -45,6 +45,7 @@ class ExamCardController extends Controller
             'student' => $student,
             'className' => $student->classEnrollments->first()?->class_name,
             'subjects' => $subjects,
+            'seat' => $status['seat'],
             'dispensation' => $status['dispensation'],
             'photo' => $photo,
             'document' => PrintDocument::ExamCard,

@@ -3,6 +3,7 @@
 use App\Enums\PrintDocument;
 use App\Actions\Exams\ExamEligibility;
 use App\Actions\Exams\ManageExams;
+use App\Enums\Gender;
 use App\Enums\TeacherStatus;
 use App\Models\CourseEnrollment;
 use App\Models\CourseOffering;
@@ -40,8 +41,12 @@ new #[Title('Exam period')] class extends Component {
     public ?string $ends_at = null;
     public ?int $invigilator_id = null;
 
-    /** @var list<int|string> */
-    public array $room_ids = [];
+    /**
+     * The period's rooms (one seat per mahasantri for the whole period).
+     *
+     * @var list<int|string>
+     */
+    public array $periodRoomIds = [];
 
     // Dispensation form.
     public ?int $dispensationStudentId = null;
@@ -51,7 +56,8 @@ new #[Title('Exam period')] class extends Component {
 
     public function mount(ExamPeriod $period): void
     {
-        $this->period = $period->load('semester.academicYear');
+        $this->period = $period->load(['semester.academicYear', 'rooms']);
+        $this->periodRoomIds = $this->period->rooms->modelKeys();
     }
 
     #[Computed]
@@ -67,10 +73,46 @@ new #[Title('Exam period')] class extends Component {
     public function sessions(): Collection
     {
         return $this->period->sessions()
-            ->with(['courseOffering.classGroup', 'invigilator.user', 'rooms'])
-            ->withCount('seats')
+            ->with(['courseOffering.classGroup', 'invigilator.user'])
             ->orderBy('held_on')->orderBy('starts_at')
             ->get();
+    }
+
+    /**
+     * Rooms of each exam, from where its mahasantri sit: session id => room names.
+     *
+     * @return array<int, list<string>>
+     */
+    #[Computed]
+    public function sessionRooms(): array
+    {
+        $roomsByStudent = $this->period->seats()->with('room')->get()->mapWithKeys(fn ($seat) => [$seat->student_id => $seat->room->name]);
+        $students = CourseEnrollment::query()
+            ->whereIn('course_offering_id', $this->sessions->pluck('course_offering_id'))
+            ->get(['course_offering_id', 'student_id'])
+            ->groupBy('course_offering_id');
+
+        return $this->sessions->mapWithKeys(fn (ExamSession $session) => [$session->id => collect($students->get($session->course_offering_id, []))
+            ->map(fn ($enrollment) => $roomsByStudent->get($enrollment->student_id))
+            ->filter()->unique()->sort()->values()->all()])->all();
+    }
+
+    /**
+     * Participants and period seats per gender, to compare with room capacity.
+     *
+     * @return list<array{gender: string, students: int, seats: int}>
+     */
+    #[Computed]
+    public function capacity(): array
+    {
+        $students = app(ManageExams::class)->participants($this->period)->get()->countBy(fn (Student $student) => $student->gender->value);
+        $rooms = $this->rooms->whereIn('id', array_map('intval', $this->periodRoomIds));
+
+        return collect(Gender::cases())->map(fn (Gender $gender) => [
+            'gender' => $gender->classLabel(),
+            'students' => (int) $students->get($gender->value, 0),
+            'seats' => (int) $rooms->where('gender', $gender)->sum('capacity'),
+        ])->all();
     }
 
     /**
@@ -165,7 +207,7 @@ new #[Title('Exam period')] class extends Component {
 
     public function createSession(): void
     {
-        $this->reset('sessionId', 'course_offering_id', 'starts_at', 'ends_at', 'invigilator_id', 'room_ids');
+        $this->reset('sessionId', 'course_offering_id', 'starts_at', 'ends_at', 'invigilator_id');
         $this->held_on = $this->period->starts_on->toDateString();
         $this->resetErrorBag();
         Flux::modal('session-form')->show();
@@ -173,7 +215,7 @@ new #[Title('Exam period')] class extends Component {
 
     public function editSession(int $id): void
     {
-        $session = $this->period->sessions()->with('rooms')->findOrFail($id);
+        $session = $this->period->sessions()->findOrFail($id);
 
         $this->sessionId = $session->id;
         $this->course_offering_id = $session->course_offering_id;
@@ -181,7 +223,6 @@ new #[Title('Exam period')] class extends Component {
         $this->starts_at = substr($session->starts_at, 0, 5);
         $this->ends_at = substr($session->ends_at, 0, 5);
         $this->invigilator_id = $session->invigilator_id;
-        $this->room_ids = $session->rooms->modelKeys();
         $this->resetErrorBag();
         Flux::modal('session-form')->show();
     }
@@ -196,11 +237,11 @@ new #[Title('Exam period')] class extends Component {
             'starts_at' => $this->starts_at,
             'ends_at' => $this->ends_at,
             'invigilator_id' => $this->invigilator_id ?: null,
-            'room_ids' => array_values(array_map('intval', $this->room_ids)),
         ]);
 
         Flux::modal('session-form')->close();
-        unset($this->sessions, $this->unscheduled);
+        $this->period->refresh();
+        unset($this->sessions, $this->unscheduled, $this->sessionRooms, $this->capacity);
         Flux::toast(variant: 'success', text: __('Exam saved.'));
     }
 
@@ -208,22 +249,25 @@ new #[Title('Exam period')] class extends Component {
     {
         $this->resetErrorBag();
         $exams->deleteSession($this->period->sessions()->findOrFail($id));
-        unset($this->sessions, $this->unscheduled);
+        $this->period->refresh();
+        unset($this->sessions, $this->unscheduled, $this->sessionRooms, $this->capacity);
     }
 
-    public function assignSeats(int $id, ManageExams $exams): void
+    public function saveRooms(ManageExams $exams): void
     {
         $this->resetErrorBag();
-        $count = $exams->assignSeats($this->period->sessions()->findOrFail($id));
-        unset($this->sessions);
-        Flux::toast(variant: 'success', text: trans_choice(':count seat assigned.|:count seats assigned.', $count));
+        $exams->setRooms($this->period, array_values(array_map('intval', $this->periodRoomIds)));
+        $this->period->refresh();
+        unset($this->sessionRooms, $this->capacity);
+        Flux::toast(variant: 'success', text: __('Rooms saved.'));
     }
 
-    public function assignAllSeats(ManageExams $exams): void
+    public function assignSeats(ManageExams $exams): void
     {
         $this->resetErrorBag();
-        $count = $exams->assignAllSeats($this->period);
-        unset($this->sessions);
+        $count = $exams->assignSeats($this->period);
+        $this->period->refresh();
+        unset($this->sessionRooms, $this->statuses);
         Flux::toast(variant: 'success', text: trans_choice(':count seat assigned.|:count seats assigned.', $count));
     }
 
@@ -294,16 +338,50 @@ new #[Title('Exam period')] class extends Component {
     </flux:radio.group>
 
     @if ($tab === 'schedule')
-        @if ($this->editable)
-            <div class="mb-4 flex flex-wrap gap-2">
-                <flux:button variant="primary" icon="plus" wire:click="createSession" :disabled="$this->unscheduled->isEmpty() || $this->rooms->isEmpty()">{{ __('Add exam') }}</flux:button>
-                <flux:button icon="arrows-right-left" wire:click="assignAllSeats" :disabled="$this->sessions->isEmpty()" data-test="assign-all-seats">{{ __('Shuffle all seats') }}</flux:button>
+        <flux:card class="mb-6 space-y-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <flux:heading>{{ __('Rooms and seats') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Each mahasantri gets one room and seat number for every exam of this period. Putra sit only in putra rooms, putri only in putri rooms.') }}</flux:text>
+                </div>
+                @if ($period->seats_assigned_at)
+                    <flux:badge color="green" icon="check">{{ __('Seats shuffled :date', ['date' => $period->seats_assigned_at->translatedFormat('j M H:i')]) }}</flux:badge>
+                @else
+                    <flux:badge color="amber">{{ __('Seats not shuffled') }}</flux:badge>
+                @endif
             </div>
+
             @if ($this->rooms->isEmpty())
-                <flux:callout icon="information-circle" class="mb-4" :text="__('Add exam rooms first.')">
+                <flux:callout icon="information-circle" :text="__('Add exam rooms first.')">
                     <x-slot name="actions"><flux:button size="sm" :href="route('admin.rooms')" wire:navigate>{{ __('Exam rooms') }}</flux:button></x-slot>
                 </flux:callout>
+            @else
+                <flux:checkbox.group wire:model="periodRoomIds" class="grid gap-2 sm:grid-cols-3" :disabled="! $this->editable">
+                    @foreach ($this->rooms as $room)
+                        <flux:checkbox :value="$room->id" :label="$room->label()" />
+                    @endforeach
+                </flux:checkbox.group>
+                <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                    @foreach ($this->capacity as $row)
+                        <span @class(['text-red-600 dark:text-red-400' => $row['students'] > $row['seats']])>
+                            {{ __(':gender: :students mahasantri, :seats seats', $row) }}
+                        </span>
+                    @endforeach
+                </div>
+                @if ($this->editable)
+                    <div class="flex flex-wrap gap-2">
+                        <flux:button size="sm" wire:click="saveRooms" icon="check" data-test="save-rooms">{{ __('Save rooms') }}</flux:button>
+                        <flux:button size="sm" variant="primary" icon="arrows-right-left" wire:click="assignSeats" :disabled="$this->sessions->isEmpty()" data-test="shuffle-seats">{{ __('Shuffle seats') }}</flux:button>
+                    </div>
+                    <flux:text class="text-xs">{{ __('Changing the rooms or the exams clears the seats; shuffle again before publishing.') }}</flux:text>
+                @endif
             @endif
+        </flux:card>
+
+        @if ($this->editable)
+            <div class="mb-4">
+                <flux:button variant="primary" icon="plus" wire:click="createSession" :disabled="$this->unscheduled->isEmpty()">{{ __('Add exam') }}</flux:button>
+            </div>
         @endif
 
         <div class="overflow-x-auto">
@@ -313,7 +391,6 @@ new #[Title('Exam period')] class extends Component {
                     <flux:table.column>{{ __('Time') }}</flux:table.column>
                     <flux:table.column>{{ __('Rooms') }}</flux:table.column>
                     <flux:table.column>{{ __('Invigilator') }}</flux:table.column>
-                    <flux:table.column>{{ __('Seats') }}</flux:table.column>
                     <flux:table.column></flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
@@ -324,18 +401,10 @@ new #[Title('Exam period')] class extends Component {
                                 <div class="text-xs text-zinc-500">{{ $session->courseOffering->classGroup->name }}</div>
                             </flux:table.cell>
                             <flux:table.cell>{{ $session->timeLabel() }}</flux:table.cell>
-                            <flux:table.cell class="whitespace-normal">{{ $session->rooms->pluck('name')->join(', ') }}</flux:table.cell>
+                            <flux:table.cell class="whitespace-normal">{{ implode(', ', $this->sessionRooms[$session->id] ?? []) ?: '—' }}</flux:table.cell>
                             <flux:table.cell>{{ $session->invigilator?->user->name ?? '—' }}</flux:table.cell>
-                            <flux:table.cell>
-                                @if ($session->seats_assigned_at)
-                                    <flux:badge size="sm" color="green">{{ trans_choice(':count seat|:count seats', $session->seats_count) }}</flux:badge>
-                                @else
-                                    <flux:badge size="sm" color="amber">{{ __('Not assigned') }}</flux:badge>
-                                @endif
-                            </flux:table.cell>
                             <flux:table.cell align="end">
                                 @if ($this->editable)
-                                    <flux:button size="sm" variant="ghost" icon="arrows-right-left" wire:click="assignSeats({{ $session->id }})" :aria-label="__('Shuffle seats')" />
                                     <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="editSession({{ $session->id }})" :aria-label="__('Edit')" />
                                     <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteSession({{ $session->id }})" wire:confirm="{{ __('Remove this exam?') }}" :aria-label="__('Remove')" />
                                 @endif
@@ -343,7 +412,7 @@ new #[Title('Exam period')] class extends Component {
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="6" class="text-center">{{ __('No exams scheduled yet.') }}</flux:table.cell>
+                            <flux:table.cell colspan="5" class="text-center">{{ __('No exams scheduled yet.') }}</flux:table.cell>
                         </flux:table.row>
                     @endforelse
                 </flux:table.rows>
@@ -360,6 +429,7 @@ new #[Title('Exam period')] class extends Component {
             <flux:table class="table-stack" :paginate="$this->participants">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Mahasantri') }}</flux:table.column>
+                    <flux:table.column>{{ __('Seat') }}</flux:table.column>
                     <flux:table.column>{{ __('Payment') }}</flux:table.column>
                     <flux:table.column>{{ __('Subjects on the card') }}</flux:table.column>
                     <flux:table.column>{{ __('Dispensation') }}</flux:table.column>
@@ -374,6 +444,7 @@ new #[Title('Exam period')] class extends Component {
                                 <span class="font-medium">{{ $student->user->name }}</span>
                                 <span class="ms-1 font-mono text-xs text-zinc-500">{{ $student->nim }}</span>
                             </flux:table.cell>
+                            <flux:table.cell class="text-sm">{{ $status['seat'] ? __('Room :room · seat :seat', ['room' => $status['seat']->room->name, 'seat' => $status['seat']->seat_number]) : '—' }}</flux:table.cell>
                             <flux:table.cell>
                                 @if ($status['payment_ok'])
                                     <flux:badge size="sm" color="green">{{ __('Paid') }}</flux:badge>
@@ -393,7 +464,7 @@ new #[Title('Exam period')] class extends Component {
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell align="end">
-                                @if ($status['eligible'] && $subjects->where('ok', true)->every(fn ($subject) => $subject['seat'] !== null))
+                                @if ($status['eligible'] && $status['seat'] !== null)
                                     <x-print-button size="sm" icon="printer" :href="route('exams.card', [$period, $student])" :document="PrintDocument::ExamCard">{{ __('Card') }}</x-print-button>
                                 @elseif (! $status['dispensation'] && ! $period->semester->isReadOnly())
                                     <flux:button size="sm" variant="ghost" icon="document-check" wire:click="openDispensation({{ $student->id }})" data-test="dispensation-{{ $student->id }}">{{ __('Dispensation') }}</flux:button>
@@ -402,7 +473,7 @@ new #[Title('Exam period')] class extends Component {
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="5" class="text-center">{{ __('Schedule exams to see the participants.') }}</flux:table.cell>
+                            <flux:table.cell colspan="6" class="text-center">{{ __('Schedule exams to see the participants.') }}</flux:table.cell>
                         </flux:table.row>
                     @endforelse
                 </flux:table.rows>
@@ -429,12 +500,6 @@ new #[Title('Exam period')] class extends Component {
                     <flux:select.option :value="$teacher->id">{{ $teacher->displayName() }}</flux:select.option>
                 @endforeach
             </flux:select>
-            <flux:checkbox.group wire:model="room_ids" :label="__('Rooms')" :description="__('Choose putra and putri rooms with enough seats for the class.')">
-                @foreach ($this->rooms as $room)
-                    <flux:checkbox :value="$room->id" :label="$room->label()" />
-                @endforeach
-            </flux:checkbox.group>
-            <flux:error name="room_ids" />
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
                 <flux:button type="submit" variant="primary" data-test="save-exam">{{ __('Save') }}</flux:button>

@@ -9,6 +9,9 @@
         .photo { float: right; width: 72px; height: 92px; border: 1px solid #a1a1aa; text-align: center; }
         .photo img { width: 72px; height: 92px; }
         .note { margin-top: 8px; padding: 5px; border: 1px dashed #71717a; }
+        .seat { margin-top: 8px; width: 100%; border-collapse: collapse; }
+        .seat td { border: 2px solid #1b5e20; text-align: center; padding: 4px; width: 50%; }
+        .seat .big { font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -29,17 +32,23 @@
         </table>
         <div style="clear: both"></div>
 
+        {{-- One room and seat for every exam of the period. --}}
+        <table class="seat">
+            <tr>
+                <td><span class="muted">Ruang</span><br><span class="big">{{ $seat->room->name }}</span></td>
+                <td><span class="muted">Nomor kursi</span><br><span class="big">{{ $seat->seat_number }}</span></td>
+            </tr>
+        </table>
+
         <table class="grades">
             <thead>
-                <tr><th>Mata kuliah</th><th>Waktu</th><th class="center">Ruang</th><th class="center">Kursi</th></tr>
+                <tr><th>Mata kuliah</th><th>Waktu</th></tr>
             </thead>
             <tbody>
                 @foreach ($subjects as $subject)
                     <tr>
                         <td>{{ $subject['session']->courseOffering->subject_name }}</td>
-                        <td>{{ $subject['session']->held_on->translatedFormat('D, j M') }} {{ substr($subject['session']->starts_at, 0, 5) }}–{{ substr($subject['session']->ends_at, 0, 5) }}</td>
-                        <td class="center">{{ $subject['seat']->room->name }}</td>
-                        <td class="center"><strong>{{ $subject['seat']->seat_number }}</strong></td>
+                        <td>{{ $subject['session']->held_on->translatedFormat('l, j M') }} {{ substr($subject['session']->starts_at, 0, 5) }}–{{ substr($subject['session']->ends_at, 0, 5) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -53,7 +62,7 @@
         @endif
     </div>
 
-    <p class="muted" style="margin-top: 8px">Bawa kartu ini setiap ujian. Duduk sesuai nomor kursi.</p>
+    <p class="muted" style="margin-top: 8px">Bawa kartu ini setiap ujian. Ruang dan nomor kursi sama untuk semua mata kuliah.</p>
 
     @include('records.signature')
 </body>

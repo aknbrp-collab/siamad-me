@@ -7,34 +7,34 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A mahasantri's room and seat number in one exam session.
+ * A mahasantri's room and seat number for every exam of one exam period.
  *
  * @property int $id
- * @property int $exam_session_id
- * @property int $course_enrollment_id
+ * @property int $exam_period_id
+ * @property int $student_id
  * @property int $room_id
  * @property int $seat_number
- * @property-read ExamSession $session
- * @property-read CourseEnrollment $courseEnrollment
+ * @property-read ExamPeriod $period
+ * @property-read Student $student
  * @property-read Room $room
  */
-#[Fillable(['exam_session_id', 'course_enrollment_id', 'room_id', 'seat_number'])]
+#[Fillable(['exam_period_id', 'student_id', 'room_id', 'seat_number'])]
 class ExamSeat extends Model
 {
     /**
-     * @return BelongsTo<ExamSession, $this>
+     * @return BelongsTo<ExamPeriod, $this>
      */
-    public function session(): BelongsTo
+    public function period(): BelongsTo
     {
-        return $this->belongsTo(ExamSession::class, 'exam_session_id');
+        return $this->belongsTo(ExamPeriod::class, 'exam_period_id');
     }
 
     /**
-     * @return BelongsTo<CourseEnrollment, $this>
+     * @return BelongsTo<Student, $this>
      */
-    public function courseEnrollment(): BelongsTo
+    public function student(): BelongsTo
     {
-        return $this->belongsTo(CourseEnrollment::class);
+        return $this->belongsTo(Student::class);
     }
 
     /**

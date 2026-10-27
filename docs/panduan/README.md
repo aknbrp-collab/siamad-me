@@ -40,6 +40,15 @@ belum dibaca: pesan forum baru, tugas dan kuis baru, tenggat tugas/kuis dalam 24
 tempo 7 hari lagi dan pada harinya, serta konfirmasi transfer. Klik notifikasi untuk langsung membuka
 halamannya; **Tandai semua dibaca** mengosongkan lonceng.
 
+**Notifikasi di perangkat ini.** Di halaman **Notifikasi**, klik **Aktifkan notifikasi di perangkat
+ini** lalu izinkan di peramban: notifikasi yang sama akan muncul di komputer atau ponsel Anda walaupun
+SIAKAD sedang ditutup (Chrome, Edge, Firefox, Android). Aktifkan di setiap perangkat yang Anda pakai;
+**Matikan** untuk berhenti. Di **iPhone/iPad** (iOS 16.4 ke atas), buka SIAKAD di Safari, pilih
+**Bagikan → Tambah ke Layar Utama**, lalu buka SIAKAD dari ikon itu dan aktifkan di sana. SIAKAD juga
+dapat dipasang sebagai aplikasi di komputer dan Android (menu peramban → *Install*/*Pasang aplikasi*).
+Saat Anda **keluar**, notifikasi di perangkat itu berhenti, sehingga komputer bersama tidak
+menampilkan pesan Anda.
+
 **Di ponsel.** Semua halaman dapat dipakai di ponsel. Menu ada di tombol ☰ kiri atas; tabel tampil
 sebagai kartu.
 

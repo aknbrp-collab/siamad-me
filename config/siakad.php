@@ -43,4 +43,23 @@ return [
         'time' => env('BACKUP_TIME', '02:00'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Web Push (notifications that pop up outside the app)
+    |--------------------------------------------------------------------------
+    |
+    | Generate the key pair once with `php artisan siakad:vapid` and keep it:
+    | a new pair silently breaks every device that already turned pop-ups on.
+    | Browsers allow push only over HTTPS (or on localhost). Without keys,
+    | notifications stay in the app only.
+    |
+    */
+
+    'push' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        // A mailto: or https: address the push services can contact about problems.
+        'subject' => env('VAPID_SUBJECT', 'mailto:admin@example.com'),
+    ],
+
 ];

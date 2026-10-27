@@ -163,3 +163,8 @@ select:focus[data-flux-control] {
         padding: 0 !important;
     }
 }
+
+/* Alpine: hide until initialised (e.g. the push switch on the Notifications page). */
+[x-cloak] {
+    display: none !important;
+}

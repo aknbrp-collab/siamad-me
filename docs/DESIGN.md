@@ -768,3 +768,23 @@ v2 Step 3 (2026-10-27) — exams:
   dispensations and card links), **Ruang ujian** (`/admin/rooms`), mahasantri **Kartu ujian**
   (`/mahasantri/exams`).
 
+v2 Step 4 (2026-10-27) — Web Push (D4):
+- Library `minishlink/web-push` (v11, PSR-18 via Guzzle). VAPID keys in `.env`
+  (`config('siakad.push.*')`, `php artisan siakad:vapid`); without keys push is off and the switch is
+  hidden.
+- `push_subscriptions`: one row per browser (unique endpoint) with its p256dh/auth keys. A browser
+  belongs to whoever turned it on last; `POST/DELETE /push-subscriptions` (JSON, CSRF header). The
+  endpoint is kept in the session and the `ForgetPushDevice` listener deletes it on **logout**, so a
+  shared computer stops showing the previous person's messages.
+- `Notify::send()` and `remindOnce()` also push every notification they store (including a grouped
+  "3 new messages" update). The pop-up links to `/notifications/{id}` (opens and marks read) and uses
+  the group key, or the notification id, as its `tag`, so one forum thread shows one pop-up.
+  `SendWebPush` is dispatched **after the response** (no queue worker) and swallows failures
+  (`report()`); the bell is the record. Devices the push service reports as gone (404/410) are
+  deleted. TTL 1 day.
+- `public/sw.js` (shows pop-ups, focuses/opens SIAKAD on click; caches nothing), `public/manifest.webmanifest`
+  + `public/icons/` (installable PWA; required for iOS push), `resources/js/push.js` (Alpine `pushDevice`
+  switch on the Notifications page: on/off, blocked, unsupported, "add to Home Screen first" on iOS).
+- Windows: PHP's OpenSSL needs `OPENSSL_CONF` to create EC keys (key generation and payload
+  encryption); the two tests that encrypt for real skip without it.
+

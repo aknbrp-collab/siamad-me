@@ -61,7 +61,7 @@ Admin Keuangan sees and records every bill. So she needs a new, narrower role (S
   mahasantri and assigns seats room by room up to capacity, **keeping putra and putri apart** (**D3**).
   Re-shuffling is allowed until the period is published; after that seats are fixed.
 
-### Step 4 — Notifications outside the app (medium)
+### Step 4 — Notifications outside the app (medium) — ✅ done 2026-10-27 (Web Push; email later)
 - **Web Push**: the same notifications as now also pop up on the desktop (Chrome, Edge, Firefox) and on
   Android phones, even when SIAKAD is not open. Each person turns it on per device ("Aktifkan
   notifikasi di perangkat ini"). SIAKAD becomes installable as an app (PWA) — required for pop-ups on

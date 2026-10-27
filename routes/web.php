@@ -6,6 +6,7 @@ use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PrivateFileController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ScoreTemplateController;
 use App\Imports\Importers;
@@ -31,6 +32,8 @@ Route::middleware('portal')->group(function () {
 
     Route::livewire('notifications', 'pages::notifications')->name('notifications');
     Route::get('notifications/{id}', NotificationController::class)->whereUuid('id')->name('notifications.open');
+    Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
     Route::prefix('superadmin')->name('superadmin.')->middleware('role:superadmin')->group(function () {
         Route::view('/', 'dashboard', ['role' => Role::Superadmin])->name('dashboard');

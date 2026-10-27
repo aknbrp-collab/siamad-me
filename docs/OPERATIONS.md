@@ -22,6 +22,20 @@ Required `.env` values in production: `APP_ENV=production`, `APP_DEBUG=false`, `
 only needed for users who reset their own password by email; everyone else gets a temporary password
 from the academic office.
 
+**Web Push (pop-up notifications on computers and phones).** Run `php artisan siakad:vapid` **once**
+and put the three printed lines (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` with a real
+`mailto:` address) in `.env`, then `php artisan config:cache`. Keep the pair (it is part of the `.env`
+backup): a new pair silently stops pop-ups on every device that turned them on, and people must turn
+them on again. Browsers allow push only over **HTTPS** (localhost is the exception), so serve SIAKAD
+with a TLS certificate (e.g. Let's Encrypt). The server must be able to reach the push services on the
+internet (Google, Mozilla, Apple, Microsoft) over HTTPS. Without keys, notifications stay in the bell.
+On iPhone/iPad, pop-ups work only after SIAKAD is added to the Home Screen (iOS 16.4+).
+
+**Windows servers / development:** PHP's OpenSSL needs a configuration file to make the keys used by
+Web Push. If `siakad:vapid` says *Unable to create the key*, set the environment variable
+`OPENSSL_CONF` to PHP's `openssl.cnf` (with Herd: `%USERPROFILE%\.config\herd\bin\php84\extras\ssl\openssl.cnf`)
+for the web server and the scheduler, and restart them. Linux servers need nothing.
+
 ## 2. Scheduler (required for backups)
 
 Laravel runs scheduled tasks from one cron entry. Add it for the web server user (`crontab -e`):
@@ -38,7 +52,8 @@ Check what is scheduled with `php artisan schedule:list`. Scheduled jobs:
 | `siakad:backup` | daily 02:00 | database + private files (section 3) |
 | `siakad:send-reminders` | hourly | in-app reminders: work due within 24 h, bills due in 7 days / today (each once per person) |
 
-Notifications themselves need no queue worker: they are written to the database while the request runs.
+Notifications themselves need no queue worker: they are written to the database while the request runs,
+and Web Push pop-ups are sent right after the response (a slow push service never delays a page).
 Set `APP_URL` to the address people open; notification links are stored as paths, so a wrong
 `APP_URL` does not break them, but password-reset emails still use it.
 

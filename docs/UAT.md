@@ -68,6 +68,9 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 ## Notifications (any role)
 - [ ] A new forum message, a new assignment and a confirmed transfer each show on the bell of the right people
 - [ ] Clicking a notification opens the right page; "Tandai semua dibaca" clears the bell
+- [ ] On the HTTPS server: turn on "Aktifkan notifikasi di perangkat ini" in Chrome and on an Android phone; a new forum message pops up with SIAKAD closed, and clicking it opens the notification
+- [ ] On an iPhone (iOS 16.4+): add SIAKAD to the Home Screen, turn pop-ups on there, receive one
+- [ ] Log out on a shared computer: the next notification for that person no longer pops up there
 - [ ] With the scheduler running, an assignment due tomorrow and a bill due in 7 days send one reminder each
 
 ## Sign-off

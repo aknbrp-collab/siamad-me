@@ -85,7 +85,7 @@ app/
   Models/                  41 Eloquent models (all audited via Auditable)
   Rules/                   UniqueUsername
   Support/                 ActiveRole, Credentials, CreatedAccount, Money (Rp + terbilang), NumberSequence,
-                           OfferingAccess, SpreadsheetDownload
+                           OfferingAccess, SpreadsheetDownload, Notify, WebPush (pop-ups via VAPID)
 bootstrap/app.php          Middleware aliases + the `portal` middleware group
 config/siakad.php          Setting defaults (institution, payment rules, attendance minimum)
 database/
@@ -140,7 +140,8 @@ tests/Feature/             Admin, Auth, Finance, Teaching, Lms, Superadmin, Sett
 - [ ] **Queued imports / bill generation** — measured: 300 mahasantri placed in 0.9 s, billed in 1.7 s
       (PostgreSQL), so they stay synchronous. Revisit above ~2,000 mahasantri.
 - [ ] **Online payment gateway** — explicitly deferred (design Q7).
-- [ ] **Notifications** (email/WhatsApp for bills, deadlines, verification) — not in scope so far.
+- [ ] **Email/WhatsApp notifications** — in-app (bell) and Web Push pop-ups are done (v2); email and
+      WhatsApp as further channels are deferred (v2 D4).
 - [ ] **UAT with real users and data** (checklist: `docs/UAT.md`) and production deployment
       (`docs/OPERATIONS.md`: env, cron for the scheduler, off-server copy of backups, mail for password reset).
 

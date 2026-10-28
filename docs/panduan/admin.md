@@ -125,6 +125,17 @@ presensi, transkrip, dan catatan kegiatan mahasantri bimbingannya, dan berdiskus
 semester itu hanya dapat dibaca. Jika masih ada nilai yang belum final, SIAKAD meminta konfirmasi. Hanya
 Superadmin yang dapat membukanya kembali.
 
+## Dokumen mengajar (RPS dan jurnal)
+
+Menu **Akademik → Dokumen mengajar**: setiap kelas kuliah (atau kelas yang digabung) per semester dengan
+status **RPS** dan **jurnal** muhadhir. Saring yang belum lengkap atau menunggu pemeriksaan.
+- **Periksa**: buka berkasnya, lalu **Terima** atau **Kembalikan** dengan catatan; muhadhir mendapat
+  notifikasi dan mengunggah versi baru.
+- **Gabung kelas**: untuk kelas dengan mata kuliah dan muhadhir yang sama yang diajar dalam satu sesi
+  (mis. putra dan putri), gabungkan agar cukup satu RPS dan satu jurnal. Selama belum ada unggahan,
+  gabungan dapat **dipisahkan** lagi.
+- Ikon printer membuka jurnal mengajar (PDF) dari pertemuan-pertemuan kelas itu.
+
 ## Persuratan
 
 **Persuratan → Surat keluar.**

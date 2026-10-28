@@ -57,6 +57,8 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Materials, an assignment with grading, a quiz with an essay question
 - [ ] Grade components, enter scores by hand and by Excel import, copy assignment/quiz scores, finalise
 - [ ] As pembimbing akademik: the supervisee list matches; open one supervisee's record; post in the group forum
+- [ ] Fill the journal fields of a few meetings, print the journal, upload the RPS and the signed journal recap (Dokumen tab); after the Admin returns the RPS with a note, upload a new version
+- [ ] As Admin: join the putra and putri classes of a subject taught together, accept one document and return another (Dokumen mengajar); the monitor sees the same list without the review buttons
 
 ## Petugas Pembayaran (a putri mahasantri)
 - [ ] Switch to the role; only putri bills are listed; a putra bill cannot be opened

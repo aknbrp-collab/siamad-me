@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $grades_finalized_at
  * @property int|null $grades_finalized_by
  * @property string|null $grades_note
+ * @property int|null $joined_to_id The lead offering when taught together with other classes (v3 Step 7)
  * @property-read Semester $semester
  * @property-read Subject $subject
  * @property-read ClassGroup $classGroup
@@ -36,7 +37,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'semester_id', 'subject_id', 'class_group_id', 'teacher_id', 'subject_code', 'subject_name', 'credits',
-    'day_of_week', 'starts_at', 'ends_at', 'room', 'grades_finalized_at', 'grades_finalized_by', 'grades_note',
+    'day_of_week', 'starts_at', 'ends_at', 'room', 'grades_finalized_at', 'grades_finalized_by', 'grades_note', 'joined_to_id',
 ])]
 class CourseOffering extends Model
 {
@@ -144,6 +145,23 @@ class CourseOffering extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(ClassSession::class)->orderBy('meeting_no');
+    }
+
+    /**
+     * The offering that holds the teaching documents: itself, or the lead of
+     * the classes it is taught together with.
+     */
+    public function teachingLeadId(): int
+    {
+        return $this->joined_to_id ?? $this->id;
+    }
+
+    /**
+     * @return HasMany<TeachingDocument, $this>
+     */
+    public function teachingDocuments(): HasMany
+    {
+        return $this->hasMany(TeachingDocument::class);
     }
 
     /**

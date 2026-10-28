@@ -12,6 +12,7 @@ use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ScoreTemplateController;
+use App\Http\Controllers\TeachingJournalController;
 use App\Imports\Importers;
 use App\Support\ActiveRole;
 use Illuminate\Support\Facades\Route;
@@ -154,6 +155,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('offerings/{offering}/quizzes', 'pages::ustadz.offerings.quizzes')->name('offerings.quizzes');
         Route::livewire('offerings/{offering}/quizzes/{quiz}', 'pages::ustadz.offerings.quiz')->name('offerings.quiz');
         Route::livewire('offerings/{offering}/forum', 'pages::ustadz.offerings.forum')->name('offerings.forum');
+        Route::livewire('offerings/{offering}/documents', 'pages::ustadz.offerings.documents')->name('offerings.documents');
 
         // Pembimbing akademik: the muhadhir's supervisees and their group forum.
         Route::livewire('supervision', 'pages::ustadz.supervision.index')->name('supervision');
@@ -186,6 +188,14 @@ Route::middleware('portal')->group(function () {
 
     // Exam card PDF: the mahasantri once the period is published, or academic staff.
     Route::get('exams/{period}/card/{student}', ExamCardController::class)->name('exams.card');
+
+    // Teaching documents (RPS, journal): overview for Admin (review) and the academic monitor (read only).
+    Route::livewire('teaching-documents', 'pages::teaching-documents')
+        ->middleware('role:admin,superadmin,academic_monitor')
+        ->name('teaching-documents');
+
+    // Jurnal mengajar PDF: the muhadhir of the class, Admin, Superadmin, academic monitor.
+    Route::get('teaching/{offering}/journal', TeachingJournalController::class)->name('teaching.journal');
 
     // Outgoing letter PDF: Admin and Superadmin, or the mahasantri it is about.
     Route::get('letters/{letter}/pdf', LetterPdfController::class)->name('letters.pdf');

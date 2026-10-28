@@ -13,6 +13,7 @@ use App\Models\StudentDocument;
 use App\Models\Submission;
 use App\Models\Teacher;
 use App\Models\TeacherDocument;
+use App\Models\TeachingDocument;
 use App\Support\ActiveRole;
 use App\Support\OfferingAccess;
 use Illuminate\Http\Request;
@@ -26,12 +27,16 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class PrivateFileController extends Controller
 {
-    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'incoming-letter', 'material', 'submission'];
+    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'incoming-letter', 'teaching-document', 'material', 'submission'];
 
     public function __invoke(Request $request, string $kind, int $id): StreamedResponse
     {
         if (in_array($kind, ['material', 'submission'], true)) {
             return $this->classroomFile($request, $kind, $id);
+        }
+
+        if ($kind === 'teaching-document') {
+            return $this->teachingDocument($request, $id);
         }
 
         [$path, $ownerUserId, $downloadName] = match ($kind) {
@@ -80,6 +85,20 @@ class PrivateFileController extends Controller
         abort_unless($allowed, 403);
 
         return $this->serve($submission->file_path, $submission->original_name);
+    }
+
+    /**
+     * RPS and journal recaps: the muhadhir of the class, Admin, Superadmin and
+     * the academic monitor.
+     */
+    private function teachingDocument(Request $request, int $id): StreamedResponse
+    {
+        $document = TeachingDocument::query()->with('courseOffering.teacher')->findOrFail($id);
+        $allowed = in_array(ActiveRole::get(), [Role::Admin, Role::Superadmin, Role::AcademicMonitor], true)
+            || $document->courseOffering->teacher->user_id === $request->user()?->id;
+        abort_unless($allowed, 403);
+
+        return $this->serve($document->file_path, $document->original_name);
     }
 
     private function serve(?string $path, ?string $downloadName): StreamedResponse

@@ -31,6 +31,10 @@ class ManageMeetings
             'mode' => ['required', Rule::enum(MeetingMode::class)],
             'meeting_provider' => [Rule::requiredIf($online), 'nullable', Rule::enum(MeetingProvider::class)],
             'meeting_url' => [Rule::requiredIf($online), 'nullable', 'url:https', 'max:255'],
+            // Jurnal mengajar (v3 Step 7).
+            'material' => ['nullable', 'string', 'max:2000'],
+            'method' => ['nullable', 'string', 'max:255'],
+            'journal_note' => ['nullable', 'string', 'max:2000'],
         ], [
             'meeting_url.url' => __('Paste the full https:// link of the meeting.'),
         ])->validate();

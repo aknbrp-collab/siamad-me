@@ -32,6 +32,19 @@ dan menghapus topik/pesan. Penetapan pembimbing dilakukan Admin.
 
 Pertemuan yang sudah diisi presensinya dapat diubah tetapi tidak dapat dihapus.
 
+## Dokumen mengajar (RPS dan jurnal)
+
+Setiap kelas kuliah punya tab **Dokumen**:
+- **RPS**: unggah RPS mata kuliah untuk semester ini (PDF atau Word, maks. 10 MB).
+- **Jurnal mengajar**: isi kolom **Materi yang disampaikan**, **Metode**, dan **Catatan** pada setiap
+  pertemuan (tab Pertemuan → ubah pertemuan). Di tab Dokumen, **Cetak jurnal** membuat jurnal dari
+  pertemuan-pertemuan itu; tanda tangani, lalu unggah rekapnya di akhir semester.
+
+Bagian akademik memeriksa setiap unggahan: **Diterima**, atau **Dikembalikan** dengan catatan. Anda
+mendapat notifikasi; bila dikembalikan, perbaiki lalu **Unggah versi baru** (versi lama tetap tersimpan).
+Bila kelas Anda **diajar bersama** (mis. putra dan putri dalam satu sesi) dan sudah digabung bagian
+akademik, cukup satu RPS dan satu jurnal untuk semuanya; jurnal cukup diisi pada salah satu kelas.
+
 ## Materi
 
 **Tambah materi**: judul, teks, tautan, dan/atau berkas (PDF, Word, PowerPoint, Excel, gambar, zip,

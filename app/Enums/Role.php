@@ -117,6 +117,7 @@ enum Role: string
 
         if ($this === self::AcademicMonitor) {
             $groups[0]['items'][] = $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities');
+            $groups[0]['items'][] = $item(__('Teaching documents'), 'document-check', 'teaching-documents');
         }
 
         if ($this === self::Student) {
@@ -156,6 +157,7 @@ enum Role: string
                 $item(__('Timetable'), 'calendar', 'admin.timetable'),
                 $item(__('Exams'), 'clipboard-document-check', 'admin.exams.index', 'admin.exams.*|admin.rooms'),
                 $item(__('Grade scale'), 'scale', 'admin.grade-scale'),
+                $item(__('Teaching documents'), 'document-check', 'teaching-documents'),
                 $item(__('Academic monitor'), 'chart-bar', 'monitor.dashboard'),
                 $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities'),
             ]];

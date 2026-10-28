@@ -916,3 +916,21 @@ v3 Step 6 (2026-10-28) — letters (D10, D12):
   Admin **Surat keluar** (register, compose dialog, requests) and **Surat masuk**; mahasantri **Surat
   saya**. Admin only (no Petugas Surat role: the plan default).
 
+v3 Step 7 (2026-10-28) — muhadhir teaching documents (D13–D16):
+- `course_offerings.joined_to_id`: offerings taught together point to a lead (the lowest id); a class or
+  joint group is the lead plus its members (`CourseOffering::teachingLeadId()`). Joining requires the same
+  semester, subject and muhadhir and no uploads yet; merging groups is allowed; splitting only before
+  any upload. Done by Admin on **Dokumen mengajar** (not on the semester page, to keep all of it in one
+  place).
+- `teaching_documents` (lead offering, kind rps|journal, version, file, status waiting|accepted|returned,
+  reviewer, note): every upload is a new version; only the latest waiting version can be reviewed;
+  returning needs a note. Uploads by the offering's muhadhir only; the version is taken after locking the
+  lead offering row (PostgreSQL refuses `FOR UPDATE` with `MAX()`). Notifications: upload → Admins;
+  review → the muhadhir. Files: private kind `teaching-document` (muhadhir, Admin, Superadmin, monitor).
+- Journal fields on meetings (`class_sessions.material|method|journal_note`). `App\Support\TeachingJournal::rows()`
+  merges the group's meetings by date, taking each journal field from whichever class has it, so the
+  muhadhir fills it once. PDF `teaching/{offering}/journal` (landscape, letterhead, hand-signed block).
+- Pages: muhadhir **Dokumen** tab (`ustadz.offerings.documents`), overview **Dokumen mengajar**
+  (`/teaching-documents`, Admin/Superadmin review and join, academic monitor read-only), Excel export.
+  No deadlines or reminders (D16).
+

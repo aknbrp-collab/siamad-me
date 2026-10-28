@@ -112,7 +112,8 @@ resources/views/
     shared/                forum (class forum or supervision group forum; embedded in several pages)
     superadmin/            identity, signatures (signatories, stamps, print defaults), letter-types, settings, maintenance, audit-logs,
                            users/{index,form}
-    ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades}
+    ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades,documents}
+    teaching-documents     RPS / journal overview (Admin reviews, monitor reads)
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
                            print-button + print-options (staff print dialog), theme-switch, app-logo-mark,

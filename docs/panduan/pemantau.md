@@ -14,6 +14,12 @@ pesantren. Pemantau tidak mengubah nilai atau presensi.
 
 Gunakan daftar ini untuk menindaklanjuti mahasantri bersama muhadhir dan wali.
 
+## Dokumen mengajar
+
+Menu **Dokumen mengajar** menampilkan status RPS dan jurnal mengajar setiap kelas per semester (belum
+diunggah, menunggu pemeriksaan, diterima, dikembalikan), dengan saringan dan unduhan Excel. Pemantau
+hanya melihat; pemeriksaan dilakukan Admin.
+
 ## Catatan kegiatan
 
 Menu **Catatan kegiatan** untuk kegiatan pesantren: halaqah, tahfidz (setoran hafalan), kajian, ibadah,

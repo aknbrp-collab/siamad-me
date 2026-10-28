@@ -24,10 +24,13 @@ use Illuminate\Support\Carbon;
  * @property MeetingProvider|null $meeting_provider
  * @property string|null $meeting_url
  * @property Carbon|null $attendance_taken_at
+ * @property string|null $material Jurnal mengajar: material covered
+ * @property string|null $method Jurnal mengajar: teaching method
+ * @property string|null $journal_note Jurnal mengajar: notes
  * @property-read CourseOffering $courseOffering
  * @property-read Collection<int, Attendance> $attendances
  */
-#[Fillable(['course_offering_id', 'meeting_no', 'held_on', 'topic', 'mode', 'meeting_provider', 'meeting_url', 'attendance_taken_at'])]
+#[Fillable(['course_offering_id', 'meeting_no', 'held_on', 'topic', 'mode', 'meeting_provider', 'meeting_url', 'attendance_taken_at', 'material', 'method', 'journal_note'])]
 class ClassSession extends Model
 {
     use Auditable;

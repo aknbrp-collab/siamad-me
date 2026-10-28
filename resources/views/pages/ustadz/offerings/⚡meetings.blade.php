@@ -11,6 +11,7 @@ use App\Models\CourseOffering;
 use App\Models\Setting;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -25,6 +26,11 @@ new #[Title('Meetings & attendance')] class extends Component {
     public string $mode = 'offline';
     public ?string $provider = null;
     public ?string $url = null;
+
+    // Jurnal mengajar
+    public ?string $material = null;
+    public ?string $method = null;
+    public ?string $journalNote = null;
 
     // Attendance sheet
     public ?int $takingId = null;
@@ -91,7 +97,7 @@ new #[Title('Meetings & attendance')] class extends Component {
 
     public function createMeeting(): void
     {
-        $this->reset('sessionId', 'topic', 'provider', 'url');
+        $this->reset('sessionId', 'topic', 'provider', 'url', 'material', 'method', 'journalNote');
         $this->heldOn = now()->format('Y-m-d');
         $this->mode = MeetingMode::Offline->value;
         $this->resetErrorBag();
@@ -108,6 +114,9 @@ new #[Title('Meetings & attendance')] class extends Component {
         $this->mode = $session->mode->value;
         $this->provider = $session->meeting_provider?->value;
         $this->url = $session->meeting_url;
+        $this->material = $session->material;
+        $this->method = $session->method;
+        $this->journalNote = $session->journal_note;
         $this->resetErrorBag();
         Flux::modal('meeting-form')->show();
     }
@@ -122,6 +131,9 @@ new #[Title('Meetings & attendance')] class extends Component {
             'mode' => $this->mode,
             'meeting_provider' => $this->provider ?: null,
             'meeting_url' => $this->url ?: null,
+            'material' => $this->material ?: null,
+            'method' => $this->method ?: null,
+            'journal_note' => $this->journalNote ?: null,
         ]);
 
         Flux::modal('meeting-form')->close();
@@ -200,6 +212,9 @@ new #[Title('Meetings & attendance')] class extends Component {
                                 @endif
                             </div>
                             <flux:text class="text-sm">{{ $session->held_on->translatedFormat('l, j M Y') }}@if ($session->topic) · {{ $session->topic }}@endif</flux:text>
+                            @if ($session->material)
+                                <flux:text class="text-xs">{{ __('Journal: :material', ['material' => Str::limit($session->material, 120)]) }}</flux:text>
+                            @endif
                             @if ($session->meeting_url)
                                 <flux:link :href="$session->meeting_url" target="_blank" class="text-sm">{{ __('Join on :provider', ['provider' => $session->meeting_provider?->label() ?? __('link')]) }}</flux:link>
                             @endif
@@ -263,6 +278,16 @@ new #[Title('Meetings & attendance')] class extends Component {
                 <flux:error name="meeting_provider" />
             @endif
             <flux:error name="held_on" />
+            <flux:separator />
+            <div class="space-y-4">
+                <div>
+                    <flux:heading>{{ __('Teaching journal') }}</flux:heading>
+                    <flux:text class="text-xs">{{ __('Printed in the jurnal mengajar. For classes taught together, fill it in for one of them.') }}</flux:text>
+                </div>
+                <flux:textarea wire:model="material" :label="__('Material covered')" rows="2" />
+                <flux:input wire:model="method" :label="__('Method')" :placeholder="__('e.g. bandongan, sorogan, discussion')" />
+                <flux:textarea wire:model="journalNote" :label="__('Notes')" rows="2" />
+            </div>
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
                 <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>

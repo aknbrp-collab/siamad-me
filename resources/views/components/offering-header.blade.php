@@ -23,6 +23,7 @@
         'quizzes' => ['question-mark-circle', __('Quizzes')],
         'forum' => ['chat-bubble-left-right', __('Forum')],
         'grades' => ['calculator', __('Grades')],
+        'documents' => ['document-check', __('Documents')],
     ])
 
     {{-- Phones: every section visible as a grid instead of a tab bar that scrolls out of sight. --}}

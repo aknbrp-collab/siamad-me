@@ -98,10 +98,11 @@ bills" action (D23).
 - Grade components: the name field gets most of the row and the weight field gets a narrow fixed width.
   The score table keeps the full component name in the header, wrapping when long.
 
-### Step 3 — Ijazah details (medium)
+### Step 3 — Ijazah details (medium) — ✅ done 2026-10-28
 
-- A new `education_records` table (owner, level, institution, graduation year, gelar, file, review
-  status). It replaces the single ijazah document. Existing ijazah uploads are migrated into it.
+- As built: the existing document records gained the ijazah fields (level, institution, graduation year,
+  gelar) instead of a new table, so review, file access and reminders stay as they were. Existing
+  ijazah uploads keep their files; their details are filled in on the next upload.
 - **Dokumen saya**: mahasantri fill in one ijazah; muhadhir can add an entry per level, each with its
   gelar. Admin's document review and the "incomplete documents" counts include it.
 

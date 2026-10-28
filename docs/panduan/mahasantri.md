@@ -16,7 +16,8 @@ diubah oleh bagian akademik karena tercantum di dokumen resmi; hubungi mereka ji
 
 ## Dokumen saya
 
-Unggah **KTP**, **KK**, dan **Ijazah** (PDF, JPG, atau PNG, maks. 2 MB). Bagian akademik memverifikasi
+Unggah **KTP**, **KK**, dan **Ijazah** (PDF, JPG, atau PNG, maks. 10 MB). Untuk ijazah, isi juga
+**jenjang** (MA/SMA atau pesantren), **lembaga** (nama sekolah/pondok), dan **tahun lulus**. Bagian akademik memverifikasi
 setiap dokumen. Jika ditolak, baca catatannya lalu unggah ulang. Pengingat di dasbor hilang setelah
 semua dokumen terverifikasi.
 

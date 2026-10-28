@@ -81,15 +81,17 @@ test('mahasantri upload documents and admin verifies or rejects them', function 
     $this->get(route('mahasantri.dashboard'))->assertSee(__('Please upload your documents'));
     $this->get(route('documents.mine'))->assertOk()->assertSee(__('KTP (identity card)'));
 
+    $ktp = StudentDocument::query()->where('type', 'ktp')->sole();
+
     Livewire::test('pages::profile.documents')
-        ->set('uploads.ktp', UploadedFile::fake()->create('ktp.exe', 10))
-        ->call('upload', 'ktp')
-        ->assertHasErrors('uploads.ktp')
-        ->set('uploads.ktp', UploadedFile::fake()->create('ktp.pdf', 300, 'application/pdf'))
-        ->call('upload', 'ktp')
+        ->set("uploads.{$ktp->id}", UploadedFile::fake()->create('ktp.exe', 10))
+        ->call('upload', $ktp->id)
+        ->assertHasErrors("uploads.{$ktp->id}")
+        ->set("uploads.{$ktp->id}", UploadedFile::fake()->create('ktp.pdf', 300, 'application/pdf'))
+        ->call('upload', $ktp->id)
         ->assertHasNoErrors();
 
-    $ktp = StudentDocument::query()->where('type', 'ktp')->sole();
+    $ktp->refresh();
     expect($ktp->status)->toBe(DocumentStatus::Uploaded);
     Storage::disk('local')->assertExists($ktp->file_path);
 
@@ -111,8 +113,8 @@ test('mahasantri upload documents and admin verifies or rejects them', function 
     $this->actingAs($student->user);
     $this->get(route('documents.mine'))->assertSee('Foto buram');
     Livewire::test('pages::profile.documents')
-        ->set('uploads.ktp', UploadedFile::fake()->image('ktp.jpg'))
-        ->call('upload', 'ktp');
+        ->set("uploads.{$ktp->id}", UploadedFile::fake()->image('ktp.jpg'))
+        ->call('upload', $ktp->id);
 
     $this->actingAs($admin);
     Livewire::test('pages::admin.documents')->call('verify', $ktp->id)->assertHasNoErrors();

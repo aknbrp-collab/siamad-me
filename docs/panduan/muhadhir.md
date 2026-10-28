@@ -7,7 +7,11 @@ melihat arsip. Klik kelas untuk membuka ruang kelasnya: **Pertemuan**, **Materi*
 Lengkapi data Anda di **Profil saya**: nama, gelar, NIK, email, data pribadi, foto, keahlian, Scopus,
 dan Google Scholar. NIDM (ID login Anda) dan status kepegawaian dikelola bagian akademik.
 
-Anda juga diminta mengunggah KTP, KK, dan ijazah di **Dokumen saya**.
+Anda juga diminta mengunggah KTP, KK, dan ijazah di **Dokumen saya**. Untuk setiap ijazah isi
+**jenjang** (MA/SMA, pesantren, S1, S2, S3, atau lainnya), **lembaga**, **tahun lulus**, dan **gelar**
+dari ijazah itu (opsional). Punya lebih dari satu ijazah? Klik **Tambah ijazah lain**: satu untuk setiap
+jenjang. Ijazah tambahan yang belum diunggah dapat dihapus. Gelar yang tercetak di jadwal dan dokumen
+tetap diatur di **Profil saya**.
 
 ## Jadwal mengajar
 

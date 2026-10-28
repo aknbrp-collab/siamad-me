@@ -59,6 +59,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Materials, an assignment with grading, a quiz with an essay question
 - [ ] Grade components, enter scores by hand and by Excel import, copy assignment/quiz scores, finalise
 - [ ] As pembimbing akademik: the supervisee list matches; open one supervisee's record; post in the group forum
+- [ ] My documents: upload the S1 ijazah with its gelar, add another ijazah for S2; the same level twice is refused; the Admin sees "Ijazah S2 · institution · year · gelar"
 - [ ] Fill the journal fields of a few meetings, print the journal, upload the RPS and the signed journal recap (Dokumen tab); after the Admin returns the RPS with a note, upload a new version
 - [ ] As Admin: join the putra and putri classes of a subject taught together, accept one document and return another (Dokumen mengajar); the monitor sees the same list without the review buttons
 
@@ -71,7 +72,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Record pesantren activities; the wali sees them, the KHS does not
 
 ## Mahasantri (on a phone)
-- [ ] First login, password change, document upload (also a 3–9 MB scan; a file over 10 MB is refused with a clear message)
+- [ ] First login, password change, document upload (also a 3–9 MB scan; a file over 10 MB is refused with a clear message); the ijazah asks for level, school and graduation year
 - [ ] Join an online meeting, submit an assignment, take the quiz until the time runs out
 - [ ] KHS and transcript (and PDFs) after grades are final; bills with pending and verified payments
 - [ ] Pay a bill by transfer and send the confirmation with a photo of the receipt

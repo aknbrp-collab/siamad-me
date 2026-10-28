@@ -179,7 +179,12 @@ new #[Title('Documents')] class extends Component {
                             <span class="font-mono text-zinc-500">{{ $owner === 'teachers' ? $person->nidm : $person->nim }}</span>
                             <span class="ms-1 font-medium">{{ $person->user->name }}</span>
                         </flux:table.cell>
-                        <flux:table.cell>{{ $document->type->label() }}</flux:table.cell>
+                        <flux:table.cell class="whitespace-normal">
+                            {{ $document->title() }}
+                            @if ($document->details() !== '')
+                                <div class="text-xs text-zinc-500">{{ $document->details() }}</div>
+                            @endif
+                        </flux:table.cell>
                         <flux:table.cell class="hidden md:table-cell">{{ $document->uploaded_at?->diffForHumans() ?? '—' }}</flux:table.cell>
                         <flux:table.cell class="whitespace-normal">
                             <flux:badge size="sm" :color="$document->status->color()">{{ $document->status->label() }}</flux:badge>

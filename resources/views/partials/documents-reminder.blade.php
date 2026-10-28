@@ -19,7 +19,7 @@
         data-test="documents-reminder"
     >
         <flux:callout.text>
-            {{ $pendingDocuments->map(fn ($document) => $document->type->label().' ('.$document->status->label().')')->join(', ') }}
+            {{ $pendingDocuments->map(fn ($document) => $document->title().' ('.$document->status->label().')')->join(', ') }}
         </flux:callout.text>
         <x-slot name="actions">
             <flux:button size="sm" :href="route('documents.mine')" wire:navigate>{{ __('Upload now') }}</flux:button>

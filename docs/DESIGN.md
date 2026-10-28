@@ -965,3 +965,14 @@ v4 Step 6 (2026-10-28) — adding a fee to existing bills (D23):
   `Bill::recalculate()` sets the status, so a paid bill becomes partly paid. Mahasantri and wali are
   notified; the change is audited through the bill lines.
 
+v4 Step 3 (2026-10-28) — ijazah details (D22):
+- Instead of a separate education table (as first planned), `student_documents` / `teacher_documents`
+  gained `education_level` (`EducationLevel`), `institution`, `graduation_year` and `degree_title`
+  (gelar, muhadhir only). Review, file access, reminders and counts stay as they were.
+- "One document per type" is now a partial unique index for KTP/KK; ijazah are unique per owner and
+  level. A muhadhir adds an empty ijazah row ("Tambah ijazah lain") and may remove one that has no file;
+  a mahasantri has exactly one (levels MA/SMA, pesantren, other).
+- `UploadDocument::handle()` requires the details for an ijazah and saves them with the file, so changed
+  details are verified again with the re-upload. The gelar stays separate from the printed title.
+- My documents keys uploads by document id (several ijazah).
+

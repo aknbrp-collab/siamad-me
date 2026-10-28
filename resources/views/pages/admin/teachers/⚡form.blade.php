@@ -175,7 +175,7 @@ new #[Title('Ustadz')] class extends PersonForm {
                     </div>
                     @foreach ($teacher->documents as $document)
                         <div class="flex items-center justify-between text-sm">
-                            <span>{{ $document->type->label() }}</span>
+                            <span>{{ $document->title() }}@if ($document->details() !== '') <span class="text-xs text-zinc-500">· {{ $document->details() }}</span>@endif</span>
                             <flux:badge size="sm" :color="$document->status->color()">{{ $document->status->label() }}</flux:badge>
                         </div>
                     @endforeach

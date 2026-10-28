@@ -93,7 +93,7 @@ bills" action (D23).
   tests at the limit. Browser check of letter request, Dokumen saya and assignment upload with a 3 MB
   file.
 
-### Step 2 — Grades form layout (small)
+### Step 2 — Grades form layout (small) — ✅ done 2026-10-28
 
 - Grade components: the name field gets most of the row and the weight field gets a narrow fixed width.
   The score table keeps the full component name in the header, wrapping when long.

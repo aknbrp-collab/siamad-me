@@ -235,14 +235,21 @@ new #[Title('Grades')] class extends Component {
                     <flux:heading>{{ __('Grade components') }}</flux:heading>
                     <flux:badge :color="$this->weightTotal === 100 ? 'green' : 'red'">{{ __('Total :total%', ['total' => $this->weightTotal]) }}</flux:badge>
                 </div>
-                <div class="space-y-2">
+                {{-- A fixed grid: the name takes the room, the weight stays narrow. --}}
+                <div class="grid grid-cols-[minmax(0,1fr)_4.5rem_auto_auto] items-center gap-x-2 gap-y-2">
+                    @if ($components !== [])
+                        <span class="text-xs font-medium text-zinc-500">{{ __('Name') }}</span>
+                        <span class="col-span-3 text-xs font-medium text-zinc-500">{{ __('Weight') }}</span>
+                    @endif
                     @foreach ($components as $index => $component)
-                        <div wire:key="component-{{ $index }}" class="flex items-start gap-2">
-                            <flux:input wire:model.live.debounce.300ms="components.{{ $index }}.name" size="sm" :placeholder="__('Name')" class="flex-1" />
-                            <flux:input wire:model.live.debounce.300ms="components.{{ $index }}.weight" size="sm" type="number" min="1" max="100" class="w-24" />
-                            <span class="pt-1.5 text-sm text-zinc-500">%</span>
-                            <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeComponent({{ $index }})" :aria-label="__('Remove')" />
+                        <div wire:key="component-name-{{ $index }}" class="min-w-0">
+                            <flux:input wire:model.live.debounce.300ms="components.{{ $index }}.name" size="sm" :placeholder="__('e.g. UTS, UAS, Tugas, Hafalan')" :aria-label="__('Name')" />
                         </div>
+                        <div wire:key="component-weight-{{ $index }}">
+                            <flux:input wire:model.live.debounce.300ms="components.{{ $index }}.weight" size="sm" type="number" min="1" max="100" class="text-end" :aria-label="__('Weight')" />
+                        </div>
+                        <span wire:key="component-unit-{{ $index }}" class="text-sm text-zinc-500">%</span>
+                        <flux:button wire:key="component-remove-{{ $index }}" size="sm" variant="ghost" icon="x-mark" wire:click="removeComponent({{ $index }})" :aria-label="__('Remove')" />
                     @endforeach
                 </div>
                 @if ($errors->has('components.*'))
@@ -251,7 +258,7 @@ new #[Title('Grades')] class extends Component {
                 @error('components')
                     <flux:text class="text-sm text-red-600">{{ $message }}</flux:text>
                 @enderror
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <flux:button size="sm" icon="plus" wire:click="addComponent">{{ __('Add component') }}</flux:button>
                     <flux:button size="sm" variant="primary" wire:click="saveComponents" data-test="save-components">{{ __('Save components') }}</flux:button>
                 </div>
@@ -278,7 +285,7 @@ new #[Title('Grades')] class extends Component {
                             <tr>
                                 <th class="px-3 py-2 font-medium">{{ __('Mahasantri') }}</th>
                                 @foreach ($this->savedComponents as $component)
-                                    <th class="px-2 py-2 text-center font-medium">{{ $component->name }} <span class="font-normal text-zinc-500">{{ $component->weight }}%</span></th>
+                                    <th class="min-w-24 max-w-40 px-2 py-2 text-center align-bottom font-medium">{{ $component->name }} <span class="block font-normal text-zinc-500">{{ $component->weight }}%</span></th>
                                 @endforeach
                                 <th class="px-3 py-2 text-end font-medium">{{ __('Final') }}</th>
                             </tr>

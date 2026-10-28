@@ -140,7 +140,7 @@ some pages were never checked in dark.
   - import past **expenses and other income** (date, category, amount, account, description)
   - set each account's **opening balance** at the start of the first year in the books
 
-### Step 6 — Letters / persuratan (large, D10)
+### Step 6 — Letters / persuratan (large, D10) — ✅ done 2026-10-28 (Admin only; no Petugas Surat role)
 - **Outgoing letters (surat keluar):**
   - **Types:** each letter type (e.g. Surat Keterangan Aktif Kuliah, Surat Tugas, Surat Undangan,
     Surat Rekomendasi, Surat Keterangan Lulus) has a **code** and a **numbering format**.

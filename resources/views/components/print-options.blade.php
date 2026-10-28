@@ -22,7 +22,12 @@
         stamp: '',
         defaults: @js($defaults),
         open(detail) {
-            const preset = this.defaults[detail.document] ?? { signatory: '', stamp: '', marks: 'with', label: '' };
+            const preset = { ...(this.defaults[detail.document] ?? { signatory: '', stamp: '', marks: 'with', label: '' }) };
+            if (detail.preset) {
+                preset.signatory = String(detail.preset.signatory ?? '');
+                preset.stamp = String(detail.preset.stamp ?? '');
+                preset.marks = detail.preset.marks ? 'with' : 'without';
+            }
             this.url = detail.url;
             this.label = preset.label;
             this.marks = preset.marks;

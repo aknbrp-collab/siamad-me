@@ -39,8 +39,14 @@ final class PrintMarks
      */
     public static function for(PrintDocument $document, Request $request): self
     {
-        $marks = self::defaults($document);
+        return self::chosen(self::defaults($document), $request);
+    }
 
+    /**
+     * $marks, unless staff chose otherwise in the print dialog.
+     */
+    public static function chosen(self $marks, Request $request): self
+    {
         if (! (ActiveRole::get()?->isStaff() ?? false) || ! $request->hasAny(['marks', 'signatory', 'stamp'])) {
             return $marks;
         }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\PaymentSource;
 use App\Enums\Role;
 use App\Models\CashEntry;
+use App\Models\IncomingLetter;
 use App\Models\Material;
 use App\Models\Payment;
 use App\Models\Student;
@@ -25,7 +26,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class PrivateFileController extends Controller
 {
-    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'material', 'submission'];
+    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'incoming-letter', 'material', 'submission'];
 
     public function __invoke(Request $request, string $kind, int $id): StreamedResponse
     {
@@ -42,6 +43,8 @@ class PrivateFileController extends Controller
             'payment-proof' => $this->paymentProof(Payment::query()->findOrFail($id)),
             // Receipts of cash book entries (expenses): finance staff only.
             'cash-proof' => [CashEntry::query()->findOrFail($id)->proof_path, null, null],
+            // Scans of incoming letters: Admin and Superadmin.
+            'incoming-letter' => [IncomingLetter::query()->findOrFail($id)->scan_path, null, null],
             default => abort(404),
         };
 

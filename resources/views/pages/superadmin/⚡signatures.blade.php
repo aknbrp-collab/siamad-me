@@ -39,7 +39,7 @@ new #[Title('Signatures & stamps')] class extends Component {
 
     public function mount(): void
     {
-        foreach (PrintDocument::cases() as $document) {
+        foreach (PrintDocument::withDefaults() as $document) {
             $key = 'print.'.$document->value;
             $this->defaults[$document->value] = [
                 'signatory' => Setting::get($key.'.signatory'),
@@ -154,7 +154,7 @@ new #[Title('Signatures & stamps')] class extends Component {
         $signatories = Signatory::query()->pluck('id')->all();
         $stamps = Stamp::query()->pluck('id')->all();
 
-        foreach (PrintDocument::cases() as $document) {
+        foreach (PrintDocument::withDefaults() as $document) {
             $choice = $this->defaults[$document->value] ?? [];
             $key = 'print.'.$document->value;
             $signatory = in_array((int) ($choice['signatory'] ?? 0), $signatories, true) ? (int) $choice['signatory'] : null;
@@ -239,7 +239,7 @@ new #[Title('Signatures & stamps')] class extends Component {
                     <flux:table.column></flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
-                    @foreach (PrintDocument::cases() as $document)
+                    @foreach (PrintDocument::withDefaults() as $document)
                         <flux:table.row :key="$document->value">
                             <flux:table.cell class="font-medium">{{ $document->label() }}</flux:table.cell>
                             <flux:table.cell>

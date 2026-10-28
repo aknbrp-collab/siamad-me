@@ -891,3 +891,28 @@ v3 Step 5 (2026-10-28) — cash book (D8, D9):
   mahasantri: bill with one line + one verified payment, `PaymentSource::Import`) and `CashHistory`
   (income/expense rows via `ManageCashBook::record`).
 
+v3 Step 6 (2026-10-28) — letters (D10, D12):
+- `letter_types` (code, subject none|student|teacher, requestable, template, default signatory/stamp,
+  print_marks; five seeded), `letters` (number, year + sequence unique, type, student/teacher, request,
+  recipient, subject line, final body, issued_on/by, signatory/stamp, cancelled_* — never edited or
+  deleted), `letter_requests` (pending|approved|rejected), `incoming_letters` (agenda number AGD/year/…,
+  scan, disposition, done).
+- `App\Support\LetterNumbering`: format in settings `letters.number_format` (default
+  `{nomor}/MA/{kode}/{bulan-romawi}/{tahun}`, only those tokens, `{nomor}` required), `letters.padding`,
+  `letters.start.{year}`; one counter per Gregorian year for all types in `number_sequences`
+  (`SURAT/{year}`), taken under `lockForUpdate` inside the issue transaction:
+  `max(last + 1, start)`. A start at or below a used number is refused.
+- `App\Support\LetterTemplate::fill()`: placeholders from SIAKAD (mahasantri, muhadhir, active semester,
+  date, purpose, institution, Mudir); unknown placeholders stay visible.
+- `App\Actions\Letters\ManageLetters`: types, numbering, `issue()` (optionally from a request: approves it and
+  notifies the mahasantri), `cancel()`, `request()` (notifies Admins, grouped), `reject()`,
+  `recordIncoming()`, `updateIncoming()`.
+- PDF `letters/{letter}/pdf` (`records.letter`: letterhead, Nomor/Lampiran/Perihal, Kepada, body
+  paragraphs, signature dated `issued_on`; cancelled → "DIBATALKAN" watermark, staff only). The letter's
+  own signatory/stamp are the default; `PrintMarks::chosen()` applies the staff print dialog, preset by
+  `<x-print-button :preset>`. `PrintDocument::Letter` is left out of the per-document defaults
+  (`withDefaults()`). Incoming scans: private file kind `incoming-letter` (Admin, Superadmin).
+- Pages: Superadmin **Jenis surat** (numbering form with token buttons and live example, types);
+  Admin **Surat keluar** (register, compose dialog, requests) and **Surat masuk**; mahasantri **Surat
+  saya**. Admin only (no Petugas Surat role: the plan default).
+

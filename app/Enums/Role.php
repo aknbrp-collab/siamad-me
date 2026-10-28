@@ -125,6 +125,7 @@ enum Role: string
             $groups[0]['items'][] = $item(__('Transcript'), 'academic-cap', 'mahasantri.transcript');
             $groups[0]['items'][] = $item(__('My bills'), 'banknotes', 'mahasantri.bills');
             $groups[0]['items'][] = $item(__('Exam card'), 'ticket', 'mahasantri.exams');
+            $groups[0]['items'][] = $item(__('My letters'), 'document-text', 'mahasantri.letters');
             $groups[0]['items'][] = $item(__('Academic supervisor'), 'user', 'mahasantri.supervision');
         }
 
@@ -167,6 +168,10 @@ enum Role: string
                 $item(__('Import'), 'arrow-up-tray', 'admin.imports'),
                 $item(__('Previous-year data'), 'archive-box', 'admin.history'),
             ]];
+            $groups[] = ['heading' => __('Letters'), 'items' => [
+                $item(__('Outgoing letters'), 'paper-airplane', 'admin.letters'),
+                $item(__('Incoming letters'), 'inbox-arrow-down', 'admin.incoming-letters'),
+            ]];
         }
 
         if (in_array($this, [self::AdminPayment, self::Superadmin], true)) {
@@ -202,6 +207,7 @@ enum Role: string
                 $item(__('Users & roles'), 'user-plus', 'superadmin.users.index', 'superadmin.users.*'),
                 $item(__('Identity'), 'building-library', 'superadmin.identity'),
                 $item(__('Signatures & stamps'), 'pencil', 'superadmin.signatures'),
+                $item(__('Letter types'), 'document-duplicate', 'superadmin.letter-types'),
                 $item(__('Settings'), 'adjustments-horizontal', 'superadmin.settings'),
                 $item(__('Maintenance mode'), 'wrench-screwdriver', 'superadmin.maintenance'),
                 $item(__('Audit log'), 'clipboard-document-list', 'superadmin.audit-logs'),

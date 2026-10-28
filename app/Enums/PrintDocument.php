@@ -13,6 +13,7 @@ enum PrintDocument: string
     case ExamCard = 'exam_card';
     case Receipt = 'receipt';
     case CashReport = 'cash_report';
+    case Letter = 'letter';
 
     public function label(): string
     {
@@ -22,7 +23,19 @@ enum PrintDocument: string
             self::ExamCard => __('Exam card'),
             self::Receipt => __('Payment receipt'),
             self::CashReport => __('Cash report'),
+            self::Letter => __('Letter'),
         };
+    }
+
+    /**
+     * Documents with a default signatory and stamp in Settings. A letter takes
+     * them from its letter type instead.
+     *
+     * @return list<self>
+     */
+    public static function withDefaults(): array
+    {
+        return [self::Khs, self::Transcript, self::ExamCard, self::Receipt, self::CashReport];
     }
 
     /**
@@ -32,6 +45,7 @@ enum PrintDocument: string
     {
         return match ($this) {
             self::Receipt, self::CashReport => 'Bagian Keuangan',
+            self::Letter => 'Mudir',
             default => 'Bagian Akademik',
         };
     }

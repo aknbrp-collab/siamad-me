@@ -25,6 +25,8 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Study program, classes, subjects, grade scale, academic year
 - [ ] Import the real mahasantri list from Excel (check the error rows, then import); hand out the credentials sheet
 - [ ] Import the subject list from Excel (no credentials sheet); an existing code is refused
+- [ ] Letters: enter the institution's numbering format and the starting number of this year (Jenis surat), check the example; adjust the templates; write a Surat Tugas and an undangan, print one with and one without signature images; cancel one with a reason (the next letter does not reuse its number)
+- [ ] Record an incoming letter with a scan and a disposition; mark it done; export the agenda to Excel
 - [ ] With maintenance mode on, add the previous academic year; in Data tahun sebelumnya import its class placements, then its final grades; open a mahasantri's KHS and transcript (IPK includes them); correct one grade with a reason; turn maintenance off: the pencil buttons disappear
 - [ ] Add muhadhir and wali santri; link a wali to two siblings
 - [ ] Classes per semester level, Putra and Putri; placing a mahasantri in a class of the other gender is refused
@@ -69,6 +71,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Join an online meeting, submit an assignment, take the quiz until the time runs out
 - [ ] KHS and transcript (and PDFs) after grades are final; bills with pending and verified payments
 - [ ] Pay a bill by transfer and send the confirmation with a photo of the receipt
+- [ ] Request a Surat Keterangan Aktif Kuliah; after the Admin issues it, download it from Surat saya
 
 ## Wali santri (on a phone)
 - [ ] Sees only their own children; switches child and semester

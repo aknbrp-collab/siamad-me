@@ -56,6 +56,12 @@ sudah lunas** dan terverifikasi. Mata kuliah dengan kehadiran di bawah batas min
 Jika ada syarat yang belum terpenuhi, halaman ini menyebutkannya. Bawa kartu setiap ujian dan duduk
 sesuai nomor kursi.
 
+## Surat saya
+
+Menu **Surat saya**: mohon surat dari bagian akademik (mis. surat keterangan aktif kuliah) dengan
+menuliskan keperluannya. Anda mendapat notifikasi saat surat terbit atau bila permohonan ditolak
+(beserta alasannya). Surat yang sudah terbit dapat diunduh sebagai PDF di halaman ini.
+
 ## Tagihan saya
 
 Tagihan per semester, pembayaran, dan sisa tagihan. Pembayaran berstatus *menunggu* sampai

@@ -67,6 +67,20 @@ mencetak akan ditanya: **dengan** gambar tanda tangan dan stempel atau **tanpa**
 stempel basah), dan penanda tangan serta stempel mana; bawaan sudah terpilih. Kwitansi yang belum
 diverifikasi tidak pernah memuat gambar tanda tangan dan stempel.
 
+## Jenis surat dan penomoran
+
+**Sistem → Jenis surat.**
+- **Penomoran surat**: ketik format nomor dan sisipkan bagiannya dengan tombol: `{nomor}` (nomor urut),
+  `{kode}` (kode jenis surat), `{bulan-romawi}`, dan `{tahun}` (Masehi); pemisah dan teks tetap (mis.
+  `/MA/`) diketik sendiri. Atur jumlah digit nomor urut dan **mulai tahun ini dari nomor** untuk
+  melanjutkan register kertas. **Nomor berikutnya** menampilkan contohnya, mis. `001/MA/SKA/X/2026`.
+  Satu nomor urut dipakai bersama semua jenis surat dan kembali ke 1 setiap Januari.
+- **Jenis surat**: nama, kode, tentang siapa (tidak tertentu / mahasantri / muhadhir), dapat dimohon
+  mahasantri atau tidak, **templat** dengan kode isian (daftar lengkap di **Kode isian**, mis.
+  `{mahasantri.nama}`, `{mahasantri.nim}`, `{tahun_akademik}`, `{keperluan}`), serta penanda tangan dan
+  stempel bawaan. Lima jenis sudah tersedia: Surat Keterangan Aktif Kuliah, Surat Tugas, Surat Undangan,
+  Surat Rekomendasi, dan Surat Keterangan Lulus; sesuaikan templatnya.
+
 ## Pengaturan sistem
 
 **Sistem → Pengaturan**: **rekening untuk transfer** (ditampilkan kepada mahasantri dan wali saat konfirmasi transfer),

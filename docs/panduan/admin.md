@@ -125,6 +125,27 @@ presensi, transkrip, dan catatan kegiatan mahasantri bimbingannya, dan berdiskus
 semester itu hanya dapat dibaca. Jika masih ada nilai yang belum final, SIAKAD meminta konfirmasi. Hanya
 Superadmin yang dapat membukanya kembali.
 
+## Persuratan
+
+**Persuratan → Surat keluar.**
+- **Buat surat**: pilih jenis surat, tanggal, dan (bila jenisnya tentang seseorang) cari lalu pilih
+  mahasantri atau muhadhir. Teks terisi otomatis dari templat dengan data SIAKAD; periksa dan ubah bila
+  perlu (**Isi ulang dari templat** mengembalikannya). Isi perihal dan, bila perlu, **Kepada**. Penanda
+  tangan dan stempel mengikuti jenis surat dan dapat diganti. **Terbitkan surat** memberi nomor urut
+  berikutnya (satu nomor urut untuk semua jenis, mulai dari 1 setiap Januari).
+- **Register**: semua surat per tahun, dapat dicari dan disaring per jenis, diunduh ke Excel; tombol
+  **PDF** mencetak surat (dengan atau tanpa gambar tanda tangan dan stempel).
+- Surat yang sudah terbit **tidak dapat diubah**. Bila salah, **batalkan** dengan alasan (nomornya tetap
+  tercatat sebagai dibatalkan dan tidak dipakai lagi), lalu buat surat baru.
+- **Permohonan**: permohonan surat dari mahasantri (mis. surat keterangan aktif kuliah) beserta
+  keperluannya. **Buat suratnya** membuka formulir yang sudah terisi; setelah terbit mahasantri mendapat
+  notifikasi dan dapat mengunduhnya. **Tolak** dengan alasan yang dilihat mahasantri.
+
+**Persuratan → Surat masuk.** **Catat surat**: tanggal diterima, pengirim, nomor dan tanggal surat
+pengirim, perihal, dan pindaian (PDF/foto). Nomor agenda dibuat otomatis per tahun (AGD/2026/…). Isi
+**disposisi** (kepada siapa dan instruksinya) dan centang **Selesai** setelah ditindaklanjuti. Register
+dapat dicari, disaring yang belum selesai, dan diunduh ke Excel.
+
 ## Verifikasi pembayaran
 
 Menu **Verifikasi → Verifikasi pembayaran**. Anda tidak dapat memverifikasi pembayaran yang Anda catat

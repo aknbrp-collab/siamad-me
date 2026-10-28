@@ -6,6 +6,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CashReportController;
 use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\ImportTemplateController;
+use App\Http\Controllers\LetterPdfController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\PushSubscriptionController;
@@ -49,6 +50,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('identity', 'pages::superadmin.identity')->name('identity');
         Route::livewire('signatures', 'pages::superadmin.signatures')->name('signatures');
         Route::livewire('maintenance', 'pages::superadmin.maintenance')->name('maintenance');
+        Route::livewire('letter-types', 'pages::superadmin.letter-types')->name('letter-types');
         Route::get('identity/preview', [AcademicRecordPdfController::class, 'preview'])->name('identity.preview');
         Route::livewire('audit-logs', 'pages::superadmin.audit-logs')->name('audit-logs');
         Route::livewire('users', 'pages::superadmin.users.index')->name('users.index');
@@ -90,6 +92,8 @@ Route::middleware('portal')->group(function () {
         Route::livewire('documents', 'pages::admin.documents')->name('documents');
         Route::livewire('imports', 'pages::admin.imports')->name('imports');
         Route::livewire('history', 'pages::admin.history')->name('history');
+        Route::livewire('letters', 'pages::admin.letters')->name('letters');
+        Route::livewire('incoming-letters', 'pages::admin.incoming-letters')->name('incoming-letters');
         Route::get('imports/template/{type}', ImportTemplateController::class)
             ->whereIn('type', array_keys(Importers::TYPES))
             ->name('imports.template');
@@ -167,6 +171,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('transcript', 'pages::mahasantri.transcript')->name('transcript');
         Route::livewire('supervision', 'pages::mahasantri.supervision')->name('supervision');
         Route::livewire('exams', 'pages::mahasantri.exams')->name('exams');
+        Route::livewire('letters', 'pages::mahasantri.letters')->name('letters');
     });
 
     Route::prefix('wali')->name('wali.')->middleware('role:guardian')->group(function () {
@@ -181,6 +186,9 @@ Route::middleware('portal')->group(function () {
 
     // Exam card PDF: the mahasantri once the period is published, or academic staff.
     Route::get('exams/{period}/card/{student}', ExamCardController::class)->name('exams.card');
+
+    // Outgoing letter PDF: Admin and Superadmin, or the mahasantri it is about.
+    Route::get('letters/{letter}/pdf', LetterPdfController::class)->name('letters.pdf');
 
     // Official receipt once verified; a provisional slip before that.
     Route::get('receipts/{payment}', ReceiptController::class)->name('receipts.show');

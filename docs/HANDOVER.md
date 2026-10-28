@@ -100,16 +100,17 @@ lang/                      id.json (every UI string) + id/{validation,auth,passw
 resources/views/
   pages/                   Livewire pages, by area:
     admin/                 timetable, rooms, exams/{index,show}, academic-years, semesters/show, study-programs, class-groups, subjects, grade-scale,
-                           students|teachers|guardians/{index,form}, students/record, documents, imports, history, payments
+                           students|teachers|guardians/{index,form}, students/record, documents, imports, history, payments,
+                           letters (outgoing + requests), incoming-letters
     auth/                  login (ID number), change-password, select-role (+ Fortify views)
     finance/               dashboard, fees, scholarships, bills/{index,show}, handovers, transfers (payer confirmations),
                            cashbook (ledger, report), cash-accounts (accounts, categories, defaults)
-    mahasantri/            classes, class, quiz-attempt, khs, transcript, bills, exams (exam card)
+    mahasantri/            classes, class, quiz-attempt, khs, transcript, bills, exams (exam card), letters
     monitor/               dashboard, activities
     profile/               documents (owner upload), biodata (Profil saya: own profile, per role)
     settings/              starter-kit profile/security/appearance (profile adapted)
     shared/                forum (class forum or supervision group forum; embedded in several pages)
-    superadmin/            identity, signatures (signatories, stamps, print defaults), settings, maintenance, audit-logs,
+    superadmin/            identity, signatures (signatories, stamps, print defaults), letter-types, settings, maintenance, audit-logs,
                            users/{index,form}
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades}
     wali/                  academic, bills

@@ -65,6 +65,14 @@ test('admin joins classes of the same subject and muhadhir; they share one set o
     expect(fn () => $this->docs->split($this->fiqhPutra))->toThrow(ValidationException::class, 'stay joined');
 });
 
+test('a class without documents can join one whose lead already has them', function () {
+    $document = $this->docs->upload($this->fiqhPutra, TeachingDocumentKind::Rps, rpsFile(), $this->teacher->user);
+
+    $this->docs->join([$this->fiqhPutra->id, $this->fiqhPutri->id]);
+
+    expect($this->docs->latest($this->fiqhPutri->fresh(), TeachingDocumentKind::Rps)?->is($document))->toBeTrue();
+});
+
 test('joined classes can be separated while nothing is uploaded', function () {
     $this->docs->join([$this->fiqhPutra->id, $this->fiqhPutri->id]);
     $this->docs->split($this->fiqhPutri->fresh());
@@ -151,7 +159,8 @@ test('admin reviews and joins on the overview; the monitor only looks', function
         ->call('export')->assertFileDownloaded();
     expect($document->fresh()->status)->toBe(TeachingDocumentStatus::Accepted);
 
-    // Fiqh putra has a document: its putri class cannot join it any more.
+    // Fiqh putri has its own document and is not the lowest offering: it cannot join putra.
+    $this->docs->upload($this->fiqhPutri, TeachingDocumentKind::Rps, rpsFile(), $this->teacher->user);
     Livewire::test('pages::teaching-documents')
         ->call('startJoin', $this->fiqhPutri->id)
         ->set('joinIds', [$this->fiqhPutra->id])

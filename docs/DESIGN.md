@@ -976,3 +976,14 @@ v4 Step 3 (2026-10-28) — ijazah details (D22):
   details are verified again with the re-upload. The gelar stays separate from the printed title.
 - My documents keys uploads by document id (several ijazah).
 
+v4 Step 4 (2026-10-28) — schedule clashes as a question (D21):
+- `ScheduleClashes::joinable()`: a clash with an offering of the same subject and muhadhir in another
+  class may be a joint class. `ManageCourseOfferings::save(..., bool $joint)` still refuses other clashes
+  (key `starts_at`); for joinable ones it throws key `joint_class` until the caller confirms, then saves
+  and calls `ManageTeachingDocuments::join()`. Members of the same group never clash with each other.
+- `join()` now also accepts a class without documents into a group whose lead already has them (a putri
+  class added after the putra RPS); it still refuses when documents would end up off the lead.
+- The semester page asks "Kelas gabungan atau salah input?" in the offering form and marks joint classes
+  ("Gabungan dengan …"); the timetable draws a joint group in one slot as one block ("Putra + Putri").
+  Copying offerings re-joins classes that were joint in the source semester.
+

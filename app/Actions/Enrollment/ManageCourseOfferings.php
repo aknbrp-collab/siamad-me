@@ -2,6 +2,7 @@
 
 namespace App\Actions\Enrollment;
 
+use App\Actions\Teaching\ManageTeachingDocuments;
 use App\Enums\TeacherStatus;
 use App\Models\CourseOffering;
 use App\Models\Semester;
@@ -14,15 +15,23 @@ use Illuminate\Validation\ValidationException;
 
 class ManageCourseOfferings
 {
-    public function __construct(private readonly SyncOfferingEnrollments $sync) {}
+    public function __construct(
+        private readonly SyncOfferingEnrollments $sync,
+        private readonly ManageTeachingDocuments $documents,
+    ) {}
 
     /**
      * Create or update an offering. Subject code, name and credits are
      * snapshotted whenever the subject is (re)chosen.
      *
+     * A time clash is refused, except with an offering of the same subject and
+     * muhadhir in another class (v4 D21): that may be a joint class. Then the
+     * caller is asked (error key "joint_class") and, when it confirms with
+     * $joint, the offerings are saved and joined for RPS and journal.
+     *
      * @param  array<string, mixed>  $input
      */
-    public function save(Semester $semester, ?CourseOffering $offering, array $input): CourseOffering
+    public function save(Semester $semester, ?CourseOffering $offering, array $input, bool $joint = false): CourseOffering
     {
         $semester->assertOpen();
 
@@ -45,17 +54,27 @@ class ManageCourseOfferings
             'subject_id.unique' => __('This class already has this subject in the semester.'),
         ])->validate();
 
-        // The same muhadhir, class or room cannot be in two places at once.
+        // The same muhadhir, class or room cannot be in two places at once,
+        // unless it is one lesson taught to several classes together.
         $slot = $this->slot($data);
-        $clashes = ScheduleClashes::for($semester->id, $slot, $offering?->id);
+        $leadId = $offering?->teachingLeadId();
+        [$joinable, $hard] = ScheduleClashes::for($semester->id, $slot, $offering?->id)
+            ->partition(fn (CourseOffering $other) => ScheduleClashes::joinable($slot, $other));
+        $joinable = $joinable->reject(fn (CourseOffering $other) => $other->teachingLeadId() === $leadId)->values();
 
-        if ($clashes->isNotEmpty()) {
+        if ($hard->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'starts_at' => __('This time clashes with :clashes.', ['clashes' => ScheduleClashes::describe($slot, $clashes)]),
+                'starts_at' => __('This time clashes with :clashes.', ['clashes' => ScheduleClashes::describe($slot, $hard)]),
             ]);
         }
 
-        return DB::transaction(function () use ($semester, $offering, $data) {
+        if ($joinable->isNotEmpty() && ! $joint) {
+            throw ValidationException::withMessages([
+                'joint_class' => __('This time clashes with :clashes.', ['clashes' => ScheduleClashes::describe($slot, $joinable)]),
+            ]);
+        }
+
+        return DB::transaction(function () use ($semester, $offering, $data, $joinable) {
             $offering ??= new CourseOffering(['semester_id' => $semester->id]);
 
             if (! $offering->exists || $offering->subject_id !== (int) $data['subject_id']) {
@@ -77,7 +96,11 @@ class ManageCourseOfferings
 
             $this->sync->handle($offering);
 
-            return $offering;
+            if ($joinable->isNotEmpty()) {
+                $this->documents->join([$offering->id, ...$joinable->modelKeys()]);
+            }
+
+            return $offering->refresh();
         });
     }
 
@@ -138,7 +161,14 @@ class ManageCourseOfferings
                     continue;
                 }
 
-                if (ScheduleClashes::for($to->id, $this->slot($source->only(['day_of_week', 'starts_at', 'ends_at', 'teacher_id', 'class_group_id', 'room'])))->isNotEmpty()) {
+                $slot = $this->slot($source->only(['subject_id', 'day_of_week', 'starts_at', 'ends_at', 'teacher_id', 'class_group_id', 'room']));
+                $clashing = ScheduleClashes::for($to->id, $slot);
+
+                // A class taught together last semester stays joined with its copied partners.
+                $wasJoint = $source->joined_to_id !== null || CourseOffering::query()->where('joined_to_id', $source->id)->exists();
+                $rejoin = $wasJoint && $clashing->isNotEmpty() && $clashing->every(fn (CourseOffering $other) => ScheduleClashes::joinable($slot, $other));
+
+                if ($clashing->isNotEmpty() && ! $rejoin) {
                     $clashes++;
 
                     continue;
@@ -153,6 +183,11 @@ class ManageCourseOfferings
                 ]);
 
                 $this->sync->handle($offering);
+
+                if ($rejoin) {
+                    $this->documents->join([$offering->id, ...$clashing->modelKeys()]);
+                }
+
                 $copied++;
             }
 
@@ -162,11 +197,12 @@ class ManageCourseOfferings
 
     /**
      * @param  array<string, mixed>  $data
-     * @return array{day_of_week: int|null, starts_at: string|null, ends_at: string|null, teacher_id: int, class_group_id: int, room: string|null}
+     * @return array{day_of_week: int|null, starts_at: string|null, ends_at: string|null, teacher_id: int, class_group_id: int, room: string|null, subject_id: int|null}
      */
     private function slot(array $data): array
     {
         return [
+            'subject_id' => isset($data['subject_id']) ? (int) $data['subject_id'] : null,
             'day_of_week' => isset($data['day_of_week']) ? (int) $data['day_of_week'] : null,
             'starts_at' => isset($data['starts_at']) ? (string) $data['starts_at'] : null,
             'ends_at' => isset($data['ends_at']) ? (string) $data['ends_at'] : null,

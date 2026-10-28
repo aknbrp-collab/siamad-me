@@ -15,6 +15,7 @@ use App\Models\Teacher;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -47,6 +48,9 @@ new #[Title('Semester')] class extends Component {
     public ?string $starts_at = null;
     public ?string $ends_at = null;
     public ?string $room = null;
+
+    /** The clash to ask about: a joint class (kelas gabungan) or a mistake (v4 D21). */
+    public ?string $jointQuestion = null;
 
     public function mount(Semester $semester): void
     {
@@ -292,7 +296,7 @@ new #[Title('Semester')] class extends Component {
 
     public function createOffering(): void
     {
-        $this->reset('offeringId', 'subject_id', 'teacher_id', 'day_of_week', 'starts_at', 'ends_at', 'room');
+        $this->reset('offeringId', 'subject_id', 'teacher_id', 'day_of_week', 'starts_at', 'ends_at', 'room', 'jointQuestion');
         $this->class_group_id = $this->selectedClassId;
         $this->resetValidation();
         Flux::modal('offering-form')->show();
@@ -310,31 +314,56 @@ new #[Title('Semester')] class extends Component {
         $this->starts_at = $offering->starts_at ? substr($offering->starts_at, 0, 5) : null;
         $this->ends_at = $offering->ends_at ? substr($offering->ends_at, 0, 5) : null;
         $this->room = $offering->room;
+        $this->jointQuestion = null;
         $this->resetValidation();
         Flux::modal('offering-form')->show();
     }
 
-    public function saveOffering(ManageCourseOfferings $manage): void
+    public function saveOffering(ManageCourseOfferings $manage, bool $joint = false): void
     {
         $this->resetErrorBag();
+        $this->jointQuestion = null;
 
         $offering = $this->offeringId
             ? CourseOffering::query()->where('semester_id', $this->semester->id)->findOrFail($this->offeringId)
             : null;
 
-        $manage->save($this->semester, $offering, [
-            'subject_id' => $this->subject_id,
-            'class_group_id' => $this->class_group_id,
-            'teacher_id' => $this->teacher_id,
-            'day_of_week' => $this->day_of_week,
-            'starts_at' => $this->starts_at ?: null,
-            'ends_at' => $this->ends_at ?: null,
-            'room' => $this->room ?: null,
-        ]);
+        try {
+            $saved = $manage->save($this->semester, $offering, [
+                'subject_id' => $this->subject_id,
+                'class_group_id' => $this->class_group_id,
+                'teacher_id' => $this->teacher_id,
+                'day_of_week' => $this->day_of_week,
+                'starts_at' => $this->starts_at ?: null,
+                'ends_at' => $this->ends_at ?: null,
+                'room' => $this->room ?: null,
+            ], $joint);
+        } catch (ValidationException $exception) {
+            // Same subject and muhadhir in another class at the same time: ask, do not refuse.
+            if (array_keys($exception->errors()) === ['joint_class']) {
+                $this->jointQuestion = $exception->errors()['joint_class'][0];
+
+                return;
+            }
+
+            throw $exception;
+        }
 
         Flux::modal('offering-form')->close();
         unset($this->offerings);
-        Flux::toast(variant: 'success', text: __('Course offering saved.'));
+        Flux::toast(variant: 'success', text: $saved->joined_to_id !== null || $joint
+            ? __('Course offering saved as a joint class: one RPS and one journal for all its classes.')
+            : __('Course offering saved.'));
+    }
+
+    public function saveJointClass(ManageCourseOfferings $manage): void
+    {
+        $this->saveOffering($manage, joint: true);
+    }
+
+    public function dismissJointQuestion(): void
+    {
+        $this->jointQuestion = null;
     }
 
     public function deleteOffering(int $id, ManageCourseOfferings $manage): void
@@ -549,7 +578,13 @@ new #[Title('Semester')] class extends Component {
                                 <span class="ms-1 font-medium">{{ $offering->subject_name }}</span>
                                 <span class="text-zinc-500">· {{ $offering->credits }} {{ __('SKS') }}</span>
                             </flux:table.cell>
-                            <flux:table.cell>{{ $offering->classGroup->name }}</flux:table.cell>
+                            <flux:table.cell>
+                                {{ $offering->classGroup->name }}
+                                @php($partners = $this->offerings->filter(fn ($other) => $other->isNot($offering) && $other->teachingLeadId() === $offering->teachingLeadId()))
+                                @if ($partners->isNotEmpty())
+                                    <flux:badge size="sm" color="sky" class="ms-1">{{ __('Joint with :classes', ['classes' => $partners->map(fn ($other) => $other->classGroup->name)->join(', ')]) }}</flux:badge>
+                                @endif
+                            </flux:table.cell>
                             <flux:table.cell class="hidden md:table-cell">{{ $offering->teacher->displayName() }}</flux:table.cell>
                             <flux:table.cell class="hidden lg:table-cell">{{ $offering->scheduleLabel() }}</flux:table.cell>
                             <flux:table.cell class="hidden sm:table-cell">{{ $offering->enrollments_count }}</flux:table.cell>
@@ -672,9 +707,23 @@ new #[Title('Semester')] class extends Component {
 
             <flux:input wire:model="room" :label="__('Room')" />
 
+            @if ($jointQuestion)
+                <flux:callout icon="question-mark-circle" color="amber" data-test="joint-question">
+                    <flux:callout.heading>{{ __('Joint class or a mistake?') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ $jointQuestion }}
+                        {{ __('If both classes are taught together in one session (e.g. putra and putri), save it as a joint class: the muhadhir then submits one RPS and one journal for both.') }}
+                    </flux:callout.text>
+                    <x-slot name="actions">
+                        <flux:button size="sm" variant="primary" wire:click="saveJointClass" data-test="save-joint">{{ __('Joint class') }}</flux:button>
+                        <flux:button size="sm" wire:click="dismissJointQuestion">{{ __('A mistake, let me fix it') }}</flux:button>
+                    </x-slot>
+                </flux:callout>
+            @endif
+
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
-                <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
+                <flux:button type="submit" variant="primary" :disabled="(bool) $jointQuestion">{{ __('Save') }}</flux:button>
             </div>
         </form>
     </flux:modal>

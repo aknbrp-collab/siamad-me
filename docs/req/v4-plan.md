@@ -106,7 +106,7 @@ bills" action (D23).
 - **Dokumen saya**: mahasantri fill in one ijazah; muhadhir can add an entry per level, each with its
   gelar. Admin's document review and the "incomplete documents" counts include it.
 
-### Step 4 — Schedule clashes: joint class or mistake (medium)
+### Step 4 — Schedule clashes: joint class or mistake (medium) — ✅ done 2026-10-28
 
 - `ManageCourseOfferings::save()` returns the clashes instead of throwing when they could be a joint
   class. The page asks the question (D21), and **Kelas gabungan** saves the offering and calls

@@ -61,6 +61,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] As pembimbing akademik: the supervisee list matches; open one supervisee's record; post in the group forum
 - [ ] My documents: upload the S1 ijazah with its gelar, add another ijazah for S2; the same level twice is refused; the Admin sees "Ijazah S2 · institution · year · gelar"
 - [ ] Fill the journal fields of a few meetings, print the journal, upload the RPS and the signed journal recap (Dokumen tab); after the Admin returns the RPS with a note, upload a new version
+- [ ] Add the putri class of a subject at the same time, muhadhir and room as the putra class: SIAKAD asks "joint class or mistake"; choose joint class and see the badge, one timetable block, and one RPS for both. Another subject at that time is still refused
 - [ ] As Admin: join the putra and putri classes of a subject taught together, accept one document and return another (Dokumen mengajar); the monitor sees the same list without the review buttons
 
 ## Petugas Pembayaran (a putri mahasantri)

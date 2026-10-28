@@ -67,6 +67,15 @@ Jadwal dibuat dari **kelas kuliah**: mata kuliah × kelas × muhadhir × **hari,
 ruang yang sama pada jam yang tumpang tindih di hari yang sama; pesannya menyebut kelas kuliah yang
 bentrok. Saat menyalin kelas kuliah dari semester lain, yang bentrok tidak disalin dan dilaporkan.
 
+**Kelas gabungan.** Bila bentroknya dengan kelas kuliah **mata kuliah dan muhadhir yang sama** di kelas lain
+(mis. Fiqh putra dan putri diajar bersama), SIAKAD tidak langsung menolak, tetapi bertanya:
+- **Kelas gabungan**: disimpan, dan kedua kelas digabung untuk dokumen mengajar (satu RPS dan satu jurnal).
+  Di daftar kelas kuliah muncul tanda **Gabungan dengan …**, dan di jadwal keduanya tampil sebagai satu blok.
+- **Salah input, saya perbaiki**: kembali ke formulir untuk membetulkan jam, kelas, atau muhadhir.
+
+Bentrok dengan mata kuliah lain atau muhadhir lain tetap ditolak. Kelas gabungan yang disalin ke semester
+berikutnya tetap tergabung.
+
 Menu **Akademik → Jadwal** menampilkan jadwal mingguan per **kelas**, **muhadhir**, atau **ruang**, dan
 dapat dicetak (**Cetak**).
 

@@ -43,7 +43,9 @@ class ManageTeachingDocuments
     /**
      * Join offerings of the same semester, subject and muhadhir that are taught
      * together. Groups they already belong to are merged; the lowest offering
-     * becomes the lead.
+     * becomes the lead. Documents already uploaded may stay only when they
+     * belong to that lead (e.g. a putri class added later to a putra class
+     * whose RPS is in, v4 D21).
      *
      * @param  list<int>  $offeringIds
      */
@@ -65,11 +67,12 @@ class ManageTeachingDocuments
         $leads = $picked->map(fn (CourseOffering $offering) => $offering->teachingLeadId())->unique()->values();
         $all = CourseOffering::query()->whereIn('id', $leads)->orWhereIn('joined_to_id', $leads)->get();
 
-        if (TeachingDocument::query()->whereIn('course_offering_id', $leads)->exists()) {
+        $lead = $all->sortBy('id')->first();
+        $documented = TeachingDocument::query()->whereIn('course_offering_id', $leads)->distinct()->pluck('course_offering_id');
+
+        if ($documented->count() > 1 || ($documented->isNotEmpty() && (int) $documented->first() !== $lead->id)) {
             $this->fail('join', __('Documents were already uploaded for one of these classes; they can no longer be joined.'));
         }
-
-        $lead = $all->sortBy('id')->first();
 
         DB::transaction(function () use ($all, $lead) {
             foreach ($all as $offering) {

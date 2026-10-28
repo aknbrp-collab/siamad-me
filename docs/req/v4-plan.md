@@ -125,7 +125,7 @@ bills" action (D23).
 - This is the riskiest step. Its tests cover KHS, transcripts and bills of earlier semesters staying
   unchanged.
 
-### Step 6 — Add a fee to existing bills (medium)
+### Step 6 — Add a fee to existing bills (medium) — ✅ done 2026-10-28
 
 - `AdjustBill::addFee(FeeType, Semester)`: preview, then add. Lines use the same rate matching and
   scholarship rules as `GenerateBills`. Bill status is recalculated, and the change is audited and

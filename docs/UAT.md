@@ -44,6 +44,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 ## Admin Keuangan
 - [ ] Fee types and rates (one class-specific); copy rates to next year
 - [ ] Award a scholarship; generate bills; check amounts against the manual calculation
+- [ ] After billing, add a new fee with a class-specific rate and use "Add to existing bills": amounts follow the class rate, the 50% scholarship grows, a paid bill becomes partly paid, and running it again adds nothing
 - [ ] Record cash and transfer payments; try breaking the rules (4th instalment, below Rp 200.000, overpaying)
 - [ ] Hand over cash; print the provisional slip and, after verification, the official receipt
 - [ ] Verify one transfer confirmation from a mahasantri and reject another with a reason

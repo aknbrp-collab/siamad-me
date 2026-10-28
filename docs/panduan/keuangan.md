@@ -15,6 +15,18 @@ Menu **Keuangan → Biaya**:
 
 Mengubah tarif tidak mengubah tagihan yang sudah dibuat.
 
+### Biaya baru setelah tagihan dibuat
+
+Tagihan adalah "potret" saat dibuat: biaya atau tarif yang ditambahkan sesudahnya **tidak** masuk ke
+tagihan yang sudah ada, dan **Buat tagihan** melewati mahasantri yang sudah punya tagihan. Untuk
+memasukkannya, di **Biaya** klik **Tambahkan ke tagihan yang ada**, pilih biaya dan semester:
+- Pratinjau menampilkan setiap tagihan yang akan mendapat biaya itu, dengan tarif yang sesuai (kelas,
+  angkatan) dan tambahan potongan beasiswa persentase.
+- Yang dilewati: tagihan batal, tagihan yang sudah memiliki biaya itu, mahasantri tanpa tarif yang
+  sesuai, dan biaya sekali bayar yang sudah pernah ditagih.
+- Tagihan yang sudah lunas menjadi **Dibayar sebagian**. Mahasantri dan walinya mendapat notifikasi.
+- Aman dijalankan ulang: tagihan yang sudah mendapat biaya itu tidak ditambah lagi.
+
 ## 2. Beasiswa
 
 Menu **Beasiswa**: **Tambah beasiswa** (sumber dana, jenis: persentase, nominal tetap, atau bebas biaya

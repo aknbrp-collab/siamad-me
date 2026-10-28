@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $scholarship_award_id
  * @property string $description
  * @property int $amount
+ * @property-read Bill $bill
+ * @property-read ScholarshipAward|null $scholarshipAward
  */
 #[Fillable(['bill_id', 'fee_type_id', 'scholarship_award_id', 'description', 'amount'])]
 class BillLine extends Model
@@ -41,5 +43,13 @@ class BillLine extends Model
     public function bill(): BelongsTo
     {
         return $this->belongsTo(Bill::class);
+    }
+
+    /**
+     * @return BelongsTo<ScholarshipAward, $this>
+     */
+    public function scholarshipAward(): BelongsTo
+    {
+        return $this->belongsTo(ScholarshipAward::class);
     }
 }

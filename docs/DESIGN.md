@@ -955,3 +955,13 @@ v4 Step 9 (2026-10-28) — where unverified payments are stuck:
   holder (or everyone with a receiving role) through `Notify::remindOnce`, keyed per holder and day.
   The finance overview links to it from "Menunggu verifikasi".
 
+v4 Step 6 (2026-10-28) — adding a fee to existing bills (D23):
+- `App\Actions\Finance\AddFeeToBills` (preview, handle) on the Fees page ("Tambahkan ke tagihan yang ada").
+  It uses `GenerateBills::bestRate()` and `describe()`, so the line matches what generation would have
+  billed. Each scholarship on the bill is recomputed on the larger gross; only the increase is added as
+  an extra negative line ("Beasiswa: X (fee)"), capped at what is left of the bill.
+- Skipped: void bills, bills that already have the fee (checked again under a row lock, so repeating
+  is safe), one-time fees already billed in any semester, and students without a matching rate.
+  `Bill::recalculate()` sets the status, so a paid bill becomes partly paid. Mahasantri and wali are
+  notified; the change is audited through the bill lines.
+

@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Finance\AddFeeToBills;
 use App\Enums\FeeFrequency;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
@@ -33,6 +34,10 @@ new #[Title('Fees')] class extends Component {
     public ?int $rateAmount = null;
 
     public ?int $copyFromYearId = null;
+
+    // Add a fee to bills that already exist (v4 D23)
+    public ?int $addFeeTypeId = null;
+    public ?int $addSemesterId = null;
 
     public function mount(): void
     {
@@ -79,6 +84,61 @@ new #[Title('Fees')] class extends Component {
     public function classGroups(): Collection
     {
         return ClassGroup::query()->orderBy('level')->orderBy('name')->get();
+    }
+
+    /**
+     * Semesters of the selected year whose records can still change.
+     *
+     * @return Collection<int, Semester>
+     */
+    #[Computed]
+    public function openSemesters(): Collection
+    {
+        return Semester::query()->with('academicYear')
+            ->where('academic_year_id', $this->academicYearId)
+            ->orderBy('term')
+            ->get()
+            ->reject(fn (Semester $semester) => $semester->isReadOnly())
+            ->values();
+    }
+
+    /**
+     * @return array{entries: \Illuminate\Support\Collection<int, array<string, mixed>>, skipped: array{has_fee: int, no_rate: int, once: int}}|null
+     */
+    #[Computed]
+    public function addPreview(): ?array
+    {
+        $feeType = $this->feeTypes->firstWhere('id', $this->addFeeTypeId);
+        $semester = $this->openSemesters->firstWhere('id', $this->addSemesterId);
+
+        return $feeType && $semester ? app(AddFeeToBills::class)->preview($feeType, $semester) : null;
+    }
+
+    public function openAddFee(): void
+    {
+        $this->addFeeTypeId = $this->rates->first(fn (FeeRate $rate) => $rate->feeType->is_active)?->fee_type_id;
+        $this->addSemesterId = $this->openSemesters->firstWhere('status.value', 'active')?->id ?? $this->openSemesters->first()?->id;
+        $this->resetErrorBag();
+        unset($this->addPreview);
+        Flux::modal('add-fee')->show();
+    }
+
+    public function addFee(AddFeeToBills $add): void
+    {
+        $this->resetErrorBag();
+        $feeType = $this->feeTypes->firstWhere('id', $this->addFeeTypeId);
+        $semester = $this->openSemesters->firstWhere('id', $this->addSemesterId);
+
+        if ($feeType === null || $semester === null) {
+            $this->addError('addFee', __('Choose a fee and a semester.'));
+
+            return;
+        }
+
+        $changed = $add->handle($feeType, $semester, auth()->user());
+
+        Flux::modal('add-fee')->close();
+        Flux::toast(variant: 'success', text: trans_choice(':fee added to :count bill.|:fee added to :count bills.', $changed, ['fee' => $feeType->name]));
     }
 
     public function createFeeType(): void
@@ -251,6 +311,7 @@ new #[Title('Fees')] class extends Component {
                 <flux:modal.trigger name="copy-rates">
                     <flux:button size="sm" icon="document-duplicate" :disabled="$this->years->count() < 2">{{ __('Copy from year') }}</flux:button>
                 </flux:modal.trigger>
+                <flux:button size="sm" icon="document-plus" wire:click="openAddFee" :disabled="$this->rates->isEmpty() || $this->openSemesters->isEmpty()" data-test="open-add-fee">{{ __('Add to existing bills') }}</flux:button>
                 <flux:button size="sm" variant="primary" icon="plus" wire:click="createRate" :disabled="! $academicYearId || $this->feeTypes->isEmpty()">{{ __('Add rate') }}</flux:button>
             </div>
 
@@ -331,6 +392,78 @@ new #[Title('Fees')] class extends Component {
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
                 <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal name="add-fee" class="w-full max-w-2xl">
+        <form wire:submit="addFee" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Add a fee to existing bills') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Bills keep the fees they were generated with. Use this when a fee or rate was added after the bills were made: the fee is added as a new line at the matching rate, and percentage scholarships grow with it. Paid bills become partly paid again.') }}</flux:text>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <flux:select wire:model.live="addFeeTypeId" :label="__('Fee')" :placeholder="__('Choose…')" required>
+                    @foreach ($this->rates->pluck('feeType')->unique('id')->where('is_active', true) as $feeType)
+                        <flux:select.option :value="$feeType->id">{{ $feeType->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:select wire:model.live="addSemesterId" :label="__('Semester')" :placeholder="__('Choose…')" required>
+                    @foreach ($this->openSemesters as $semester)
+                        <flux:select.option :value="$semester->id">{{ $semester->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+
+            @if ($preview = $this->addPreview)
+                @if ($preview['entries']->isEmpty())
+                    <flux:callout icon="information-circle" :text="__('No bill gets this fee.')" />
+                @else
+                    <div class="max-h-72 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
+                        <table class="min-w-full text-sm">
+                            <thead class="sticky top-0 bg-zinc-50 text-left dark:bg-zinc-800">
+                                <tr>
+                                    <th class="px-3 py-2 font-medium">{{ __('Mahasantri') }}</th>
+                                    <th class="px-3 py-2 text-end font-medium">{{ __('Added') }}</th>
+                                    <th class="px-3 py-2 text-end font-medium">{{ __('Scholarship') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                                @foreach ($preview['entries'] as $entry)
+                                    <tr wire:key="add-{{ $entry['bill']->id }}">
+                                        <td class="px-3 py-1.5">
+                                            <div class="font-medium">{{ $entry['bill']->student->user->name }}</div>
+                                            <div class="text-xs text-zinc-500">{{ $entry['bill']->number }} · {{ $entry['class'] }} · {{ $entry['bill']->status->label() }}</div>
+                                        </td>
+                                        <td class="px-3 py-1.5 text-end tabular-nums">{{ Money::format($entry['amount']) }}</td>
+                                        <td class="px-3 py-1.5 text-end tabular-nums">{{ $entry['discount'] > 0 ? '−'.Money::format($entry['discount']) : '—' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <flux:text class="text-sm">
+                        {{ trans_choice(':count bill gets :amount in total.|:count bills get :amount in total.', $preview['entries']->count(), ['amount' => Money::format((int) $preview['entries']->sum(fn ($entry) => $entry['amount'] - $entry['discount']))]) }}
+                    </flux:text>
+                @endif
+                @if (array_sum($preview['skipped']) > 0)
+                    <flux:text class="text-xs">
+                        {{ __('Skipped: :has already have it · :none have no matching rate · :once were billed this one-time fee before.', ['has' => $preview['skipped']['has_fee'], 'none' => $preview['skipped']['no_rate'], 'once' => $preview['skipped']['once']]) }}
+                    </flux:text>
+                @endif
+            @endif
+
+            @error('addFee')
+                <flux:callout variant="danger" icon="exclamation-triangle" :text="$message" />
+            @enderror
+            @error('semester')
+                <flux:callout variant="danger" icon="exclamation-triangle" :text="$message" />
+            @enderror
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary" :disabled="! $this->addPreview || $this->addPreview['entries']->isEmpty()" data-test="add-fee">{{ __('Add to bills') }}</flux:button>
             </div>
         </form>
     </flux:modal>

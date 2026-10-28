@@ -153,7 +153,7 @@ class GenerateBills
     /**
      * @param  Collection<int, FeeRate>  $rates  Rates of one fee type.
      */
-    private function bestRate(Collection $rates, ClassEnrollment $enrollment): ?FeeRate
+    public function bestRate(Collection $rates, ClassEnrollment $enrollment): ?FeeRate
     {
         return $rates
             ->filter(fn (FeeRate $rate) => ($rate->class_group_id === null || $rate->class_group_id === $enrollment->class_group_id)
@@ -162,7 +162,7 @@ class GenerateBills
             ->first();
     }
 
-    private function describe(FeeType $feeType): string
+    public function describe(FeeType $feeType): string
     {
         return $feeType->frequency === FeeFrequency::Monthly
             ? $this->text(':fee (:months months)', ['fee' => $feeType->name, 'months' => FeeFrequency::MONTHS_PER_SEMESTER])

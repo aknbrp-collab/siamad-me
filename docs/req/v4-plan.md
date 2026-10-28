@@ -152,7 +152,7 @@ bills" action (D23).
   conversion runs in a queued job with a timeout.
 - Tests: fill and placeholder checks with PhpWord. The PDF conversion is tested behind a fake converter.
 
-### Step 9 — Where unverified payments are stuck (medium)
+### Step 9 — Where unverified payments are stuck (medium) — ✅ done 2026-10-28
 
 - On the finance dashboard, the "Menunggu verifikasi" figure opens a tracking list. Each unverified
   payment shows its stage and the person holding it:

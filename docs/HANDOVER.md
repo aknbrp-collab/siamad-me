@@ -114,6 +114,7 @@ resources/views/
                            users/{index,form}
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades,documents}
     teaching-documents     RPS / journal overview (Admin reviews, monitor reads)
+    finance/pending        where unverified payments wait (Keuangan, Admin, Superadmin)
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
                            print-button + print-options (staff print dialog), theme-switch, app-logo-mark,

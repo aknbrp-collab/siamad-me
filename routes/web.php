@@ -133,6 +133,11 @@ Route::middleware('portal')->group(function () {
         Route::livewire('handovers', 'pages::finance.handovers')->name('handovers');
     });
 
+    // Where unverified payments are waiting (v4 Step 9): finance and the Admins who verify.
+    Route::prefix('finance')->name('finance.')->middleware('role:admin_payment,admin,superadmin')->group(function () {
+        Route::livewire('pending', 'pages::finance.pending')->name('pending');
+    });
+
     Route::prefix('petugas')->name('petugas.')->middleware('role:payment_collector')->group(function () {
         Route::view('/', 'dashboard', ['role' => Role::PaymentCollector])->name('dashboard');
     });

@@ -149,13 +149,16 @@ new #[Title('Finance')] class extends Component {
         @foreach ([
             ['label' => __('Billed'), 'value' => $this->totals['billed'], 'hint' => trans_choice(':count bill|:count bills', $this->bills->count())],
             ['label' => __('Collected (verified)'), 'value' => $this->totals['collected'], 'hint' => $this->totals['billed'] > 0 ? round($this->totals['collected'] / $this->totals['billed'] * 100).'%' : '—'],
-            ['label' => __('Awaiting verification'), 'value' => $this->totals['pending'], 'hint' => __('not counted yet')],
+            ['label' => __('Awaiting verification'), 'value' => $this->totals['pending'], 'hint' => __('not counted yet'), 'track' => true],
             ['label' => __('Outstanding'), 'value' => $this->totals['outstanding'], 'hint' => trans_choice(':count bill unpaid or partly paid|:count bills unpaid or partly paid', ($this->totals['counts']['unpaid'] ?? 0) + ($this->totals['counts']['partial'] ?? 0))],
         ] as $stat)
             <flux:card class="space-y-1">
                 <flux:text class="text-sm">{{ $stat['label'] }}</flux:text>
                 <div class="text-2xl font-semibold tabular-nums">{{ Money::format($stat['value']) }}</div>
                 <flux:text class="text-xs">{{ $stat['hint'] }}</flux:text>
+                @if (($stat['track'] ?? false) && $stat['value'] > 0)
+                    <flux:link :href="route('finance.pending')" wire:navigate class="text-xs">{{ __('See where they are waiting') }}</flux:link>
+                @endif
             </flux:card>
         @endforeach
     </div>
@@ -166,7 +169,7 @@ new #[Title('Finance')] class extends Component {
                 {{ __(':cash cash payments not handed over · :handovers handovers and :transfers transfers awaiting the Admin.', $this->waiting) }}
             </flux:callout.text>
             <x-slot name="actions">
-                <flux:button size="sm" :href="route('finance.handovers')" wire:navigate>{{ __('Cash handovers') }}</flux:button>
+                <flux:button size="sm" :href="route('finance.pending')" wire:navigate>{{ __('Where are they?') }}</flux:button>
             </x-slot>
         </flux:callout>
     @endif

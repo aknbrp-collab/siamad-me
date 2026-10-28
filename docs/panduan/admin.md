@@ -168,6 +168,16 @@ sendiri.
 - Pilih rekening tujuan (**Transfer yang diverifikasi masuk ke**, **Uang tunai masuk ke**) agar
   pembayaran masuk ke buku kas rekening yang benar; rekening bawaan sudah terpilih.
 
+Menu **Pembayaran belum diverifikasi** menunjukkan setiap pembayaran yang belum diverifikasi dan di mana
+tertahan:
+- **Tunai belum disetor**: uang masih dipegang orang yang mencatatnya (Admin Keuangan atau petugas).
+- **Setoran belum diverifikasi**: sudah disetor, menunggu dihitung Admin (atau Admin Keuangan untuk
+  setoran petugas).
+- **Transfer belum diperiksa**: menunggu dicocokkan dengan rekening koran.
+
+Bagian **Siapa yang memegang** merangkum per orang atau kelompok: jumlah, total, dan berapa hari yang
+terlama sudah menunggu. **Ingatkan** mengirim notifikasi kepada mereka (paling banyak sekali sehari).
+
 ## Nilai dan pemantauan
 
 **Pemantauan akademik** menampilkan presensi dan status nilai setiap kelas kuliah. Jika muhadhir perlu

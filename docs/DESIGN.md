@@ -945,3 +945,13 @@ v4 Step 1 (2026-10-28) — dropdown and upload fixes (D17, D18):
 - "Letter" (grade letter, "Huruf") is no longer used for correspondence: the request form says
   "Letter type" and the print preset "Official letter".
 
+v4 Step 9 (2026-10-28) — where unverified payments are stuck:
+- `App\Support\PendingPayments` derives a stage for every unverified payment (nothing is stored):
+  cash not handed over (held by its recorder), handover not verified (waiting with the receivers), or
+  transfer not checked (waiting with the reviewers). Receivers and reviewers follow `ReviewPayments`:
+  finance-office payments need an Admin; payer and collector payments also Admin Keuangan.
+- Page **Pembayaran belum diverifikasi** (`/finance/pending`, Admin Keuangan, Admin, Superadmin): totals
+  per stage, a summary per holder with the oldest wait, filters, and **Ingatkan**, which notifies the
+  holder (or everyone with a receiving role) through `Notify::remindOnce`, keyed per holder and day.
+  The finance overview links to it from "Menunggu verifikasi".
+

@@ -181,6 +181,7 @@ enum Role: string
                 $item(__('Bills'), 'document-currency-dollar', 'finance.bills.index', 'finance.bills.*'),
                 $item(__('Cash handovers'), 'inbox-arrow-down', 'finance.handovers'),
                 $item(__('Transfer confirmations'), 'building-library', 'finance.transfers'),
+                $item(__('Unverified payments'), 'clock', 'finance.pending'),
                 $item(__('Fees'), 'tag', 'finance.fees'),
                 $item(__('Scholarships'), 'gift', 'finance.scholarships'),
                 $item(__('Cash book'), 'book-open', 'finance.cashbook', 'finance.cashbook|finance.cash-accounts'),
@@ -201,6 +202,7 @@ enum Role: string
         if (in_array($this, [self::Admin, self::Superadmin], true)) {
             $groups[] = ['heading' => __('Verification'), 'items' => [
                 $item(__('Payment verification'), 'check-badge', 'admin.payments'),
+                $item(__('Unverified payments'), 'clock', 'finance.pending'),
             ]];
         }
 

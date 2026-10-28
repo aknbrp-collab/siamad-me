@@ -75,6 +75,18 @@ pembayaran tunggakannya tetap dapat dicatat.
 Menu **Ringkasan** (Superadmin) dan halaman tagihan menampilkan yang ditagihkan, terkumpul
 (terverifikasi), menunggu verifikasi, dan tunggakan terbesar.
 
+### Pembayaran yang belum diverifikasi
+
+Menu **Pembayaran belum diverifikasi** menunjukkan setiap pembayaran yang belum diverifikasi dan di mana
+tertahan:
+- **Tunai belum disetor**: uang masih dipegang orang yang mencatatnya (Admin Keuangan atau petugas).
+- **Setoran belum diverifikasi**: sudah disetor, menunggu dihitung Admin (atau Admin Keuangan untuk
+  setoran petugas).
+- **Transfer belum diperiksa**: menunggu dicocokkan dengan rekening koran.
+
+Bagian **Siapa yang memegang** merangkum per orang atau kelompok: jumlah, total, dan berapa hari yang
+terlama sudah menunggu. **Ingatkan** mengirim notifikasi kepada mereka (paling banyak sekali sehari).
+
 ## 8. Buku kas
 
 Menu **Keuangan → Buku kas**.

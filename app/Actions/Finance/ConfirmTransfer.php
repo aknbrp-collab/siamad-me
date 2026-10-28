@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Support\Money;
 use App\Support\Notify;
+use App\Support\Upload;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -44,7 +45,7 @@ class ConfirmTransfer
         // The receipt is what the finance office checks against the bank statement.
         Validator::make($input, [
             'reference' => ['required', 'string', 'max:255'],
-            'proof' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+            'proof' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', Upload::max()],
         ], [
             'reference.required' => __('Enter the sender name or bank reference of the transfer.'),
             'proof.required' => __('Attach the bank receipt (photo or PDF).'),

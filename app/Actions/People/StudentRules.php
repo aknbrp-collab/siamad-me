@@ -6,6 +6,7 @@ use App\Enums\Gender;
 use App\Enums\StudentStatus;
 use App\Models\Student;
 use App\Rules\UniqueUsername;
+use App\Support\Upload;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -41,7 +42,7 @@ trait StudentRules
             'guardian_name' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', Rule::enum(StudentStatus::class)],
             'graduated_at' => ['nullable', 'date', 'required_if:status,'.StudentStatus::Graduated->value],
-            'photo' => ['nullable', 'image', 'max:1024'],
+            'photo' => ['nullable', 'image', Upload::max()],
         ];
     }
 }

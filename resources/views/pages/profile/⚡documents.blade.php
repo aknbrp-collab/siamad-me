@@ -95,7 +95,7 @@ new #[Title('My documents')] class extends Component {
                             {{ $document->file_path ? __('Replace') : __('Upload') }}
                         </flux:button>
                     </div>
-                    <flux:text class="text-xs">{{ __('PDF, JPG or PNG, up to 2 MB.') }}</flux:text>
+                    <flux:text class="text-xs">{{ __('PDF, JPG or PNG, up to :size MB.', ['size' => \App\Support\Upload::maxMb()]) }}</flux:text>
                     <flux:error :name="'uploads.'.$document->type->value" />
                 @endunless
             </flux:card>

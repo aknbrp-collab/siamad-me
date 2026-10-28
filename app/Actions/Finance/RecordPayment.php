@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Money;
+use App\Support\Upload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -40,7 +41,7 @@ class RecordPayment
             'method' => ['required', Rule::enum(PaymentMethod::class)],
             'paid_on' => ['required', 'date', 'before_or_equal:today'],
             'reference' => ['nullable', 'string', 'max:255', 'required_if:method,'.PaymentMethod::Transfer->value],
-            'proof' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+            'proof' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', Upload::max()],
             // The account the money goes into (cash book); left empty, it is set when verified.
             'cash_account_id' => ['nullable', 'integer', Rule::exists('cash_accounts', 'id')->where('is_active', true)],
         ], [

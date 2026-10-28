@@ -111,7 +111,7 @@ new #[Title('Exams')] class extends Component {
     <flux:modal name="period-form" class="w-full max-w-md">
         <form wire:submit="save" class="space-y-6">
             <flux:heading size="lg">{{ __('Add exam period') }}</flux:heading>
-            <flux:select wire:model="type" :label="__('Exam')" required>
+            <flux:select wire:model="type" :label="__('Exam')" :placeholder="__('Choose…')" required>
                 @foreach (ExamType::cases() as $case)
                     <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
                 @endforeach

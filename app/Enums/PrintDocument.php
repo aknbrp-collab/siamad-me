@@ -23,7 +23,7 @@ enum PrintDocument: string
             self::ExamCard => __('Exam card'),
             self::Receipt => __('Payment receipt'),
             self::CashReport => __('Cash report'),
-            self::Letter => __('Letter'),
+            self::Letter => __('Official letter'),
         };
     }
 

@@ -5,6 +5,7 @@ use App\Models\Setting;
 use App\Models\Signatory;
 use App\Models\Stamp;
 use App\Support\Branding;
+use App\Support\Upload;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -94,7 +95,7 @@ new #[Title('Signatures & stamps')] class extends Component {
             'name' => ['required', 'string', 'max:150'],
             'position' => ['required', 'string', 'max:150'],
             'office' => ['nullable', 'string', 'max:150'],
-            'signature' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'signature' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', Upload::max()],
         ]);
 
         $attributes = ['name' => trim($this->name), 'position' => trim($this->position), 'office' => trim((string) $this->office) ?: null, 'is_active' => $this->signatoryActive];
@@ -133,7 +134,7 @@ new #[Title('Signatures & stamps')] class extends Component {
     {
         $this->validate([
             'stampName' => ['required', 'string', 'max:150'],
-            'stampImage' => [$this->stampId ? 'nullable' : 'required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'stampImage' => [$this->stampId ? 'nullable' : 'required', 'image', 'mimes:png,jpg,jpeg,webp', Upload::max()],
         ]);
 
         $attributes = ['name' => trim($this->stampName), 'is_active' => $this->stampActive];

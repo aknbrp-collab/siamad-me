@@ -162,7 +162,7 @@ return [
     'string' => 'Kolom :attribute harus berupa teks.',
     'timezone' => 'Kolom :attribute harus berupa zona waktu yang valid.',
     'unique' => ':attribute sudah dipakai.',
-    'uploaded' => ':attribute gagal diunggah.',
+    'uploaded' => 'File gagal diunggah. Periksa ukuran dan jenis filenya, lalu coba lagi.',
     'uppercase' => 'Kolom :attribute harus berupa huruf besar.',
     'url' => 'Kolom :attribute harus berupa URL yang valid.',
     'ulid' => 'Kolom :attribute harus berupa ULID yang valid.',

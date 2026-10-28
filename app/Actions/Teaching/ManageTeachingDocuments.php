@@ -9,6 +9,7 @@ use App\Models\CourseOffering;
 use App\Models\TeachingDocument;
 use App\Models\User;
 use App\Support\Notify;
+use App\Support\Upload;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -112,7 +113,7 @@ class ManageTeachingDocuments
         }
 
         Validator::make(['file' => $file], [
-            'file' => ['required', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240'],
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', Upload::max()],
         ])->validate();
 
         /** @var UploadedFile $file */

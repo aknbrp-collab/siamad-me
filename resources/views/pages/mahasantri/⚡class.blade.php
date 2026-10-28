@@ -281,7 +281,7 @@ new #[Title('Class')] class extends Component {
                 <flux:label>{{ __('File (optional)') }}</flux:label>
                 <input type="file" wire:model="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"
                     class="mt-2 block text-sm file:me-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 dark:file:bg-zinc-700">
-                <flux:text class="mt-1 text-xs">{{ __('PDF, Word, image or zip, up to 10 MB.') }}</flux:text>
+                <flux:text class="mt-1 text-xs">{{ __('PDF, Word, image or zip, up to :size MB.', ['size' => \App\Support\Upload::maxMb()]) }}</flux:text>
                 <flux:error name="file" />
             </div>
             <flux:error name="submission" />

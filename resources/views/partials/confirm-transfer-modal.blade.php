@@ -37,7 +37,7 @@
             <div>
                 <flux:label>{{ __('Bank receipt') }}</flux:label>
                 <input type="file" wire:model="transferProof" accept="image/*,application/pdf" class="mt-2 block text-sm file:me-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 dark:file:bg-zinc-700">
-                <flux:text class="mt-1 text-xs">{{ __('PDF, JPG or PNG, up to 2 MB.') }}</flux:text>
+                <flux:text class="mt-1 text-xs">{{ __('PDF, JPG or PNG, up to :size MB.', ['size' => \App\Support\Upload::maxMb()]) }}</flux:text>
                 <flux:error name="proof" />
             </div>
 

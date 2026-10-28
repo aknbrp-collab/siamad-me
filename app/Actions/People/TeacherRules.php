@@ -6,6 +6,7 @@ use App\Enums\Gender;
 use App\Enums\TeacherStatus;
 use App\Models\Teacher;
 use App\Rules\UniqueUsername;
+use App\Support\Upload;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -37,7 +38,7 @@ trait TeacherRules
             'scopus_id' => ['nullable', 'string', 'max:50'],
             'google_scholar_url' => ['nullable', 'url', 'max:255'],
             'status' => ['sometimes', Rule::enum(TeacherStatus::class)],
-            'photo' => ['nullable', 'image', 'max:1024'],
+            'photo' => ['nullable', 'image', Upload::max()],
         ];
     }
 }

@@ -27,6 +27,15 @@ abstract class AcademicRecordPage extends Component
     abstract protected function student(): ?Student;
 
     /**
+     * Bind the semester shown, so the dropdown never shows a choice that is
+     * not the one on the page.
+     */
+    public function rendering(): void
+    {
+        $this->semesterId ??= $this->semester?->id;
+    }
+
+    /**
      * Semesters in which the mahasantri was enrolled in a class, newest first
      * (history stays reachable).
      *

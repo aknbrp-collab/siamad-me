@@ -35,6 +35,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Uploads
+    |--------------------------------------------------------------------------
+    |
+    | One size limit (in kilobytes) for every uploaded file. PHP must allow
+    | it: upload_max_filesize and post_max_size in php.ini need to be larger,
+    | or the file is refused before SIAKAD sees it.
+    |
+    */
+
+    'uploads' => [
+        'max_kb' => (int) env('SIAKAD_UPLOAD_MAX_KB', 10240),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Backups (php artisan siakad:backup, scheduled daily)
     |--------------------------------------------------------------------------
     |

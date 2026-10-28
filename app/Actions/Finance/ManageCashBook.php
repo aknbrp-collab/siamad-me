@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Support\CashBook;
 use App\Support\MaintenanceMode;
 use App\Support\NumberSequence;
+use App\Support\Upload;
 use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -96,7 +97,7 @@ class ManageCashBook
             'cash_category_id' => ['required', 'integer', Rule::exists('cash_categories', 'id')->where('kind', $kind)->where('is_active', true)],
             'party' => ['nullable', 'string', 'max:150'],
             'description' => ['required', 'string', 'max:500'],
-            'proof' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+            'proof' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', Upload::max()],
         ])->validate();
 
         $type = CashEntryType::from($data['type']);

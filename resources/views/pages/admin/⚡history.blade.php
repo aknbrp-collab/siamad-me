@@ -1,17 +1,18 @@
 <?php
 
-use App\Enums\SemesterStatus;
 use App\Enums\Role;
+use App\Enums\SemesterStatus;
 use App\Imports\History\BillHistory;
 use App\Imports\History\CashHistory;
 use App\Imports\History\GradeHistory;
 use App\Imports\History\HistoryImporter;
 use App\Imports\History\PlacementHistory;
-use App\Support\ActiveRole;
 use App\Imports\Importers;
 use App\Models\Semester;
+use App\Support\ActiveRole;
 use App\Support\MaintenanceMode;
 use App\Support\SpreadsheetDownload;
+use App\Support\Upload;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
@@ -160,7 +161,7 @@ new #[Title('Previous-year data')] class extends Component {
         $semester = $importer->needsSemester() ? $this->semester : null;
         abort_if($importer->needsSemester() && $semester === null, 404);
 
-        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,csv,txt', 'max:5120']]);
+        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,csv,txt', Upload::max()]]);
 
         $extension = strtolower($this->file->getClientOriginalExtension()) === 'csv' ? 'csv' : 'xlsx';
         $rows = Importers::read($this->file->getRealPath(), $extension);

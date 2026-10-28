@@ -213,6 +213,17 @@ edition) · Tailwind 4 · Alpine (via Livewire) · Fortify (auth, 2FA, passkeys)
   (`app/Livewire/*`, Actions) — that's why `PersonForm` and `AcademicRecordPage` exist.
 - PostgreSQL partial unique indexes enforce invariants in the DB too: one active semester, one live bill
   per student per semester.
+- **Upload size:** one limit for every upload, `config('siakad.uploads.max_kb')` (env
+  `SIAKAD_UPLOAD_MAX_KB`, default 10240 = 10 MB), used through `App\Support\Upload::max()` and by
+  Livewire's temporary upload. PHP must allow more than that, or files fail before SIAKAD sees them:
+  `upload_max_filesize = 12M` and `post_max_size = 16M` in php.ini (Herd: `~/.config/herd/bin/php84/php.ini`,
+  then restart Herd; on the server likewise, plus nginx `client_max_body_size`). The browser also stops
+  larger files before uploading (`resources/js/upload-limit.js`).
+- **Selects:** `resources/views/flux/select/{index,variants/default}.blade.php` override Flux. When a
+  `wire:model` value is empty, Livewire unselects every option and the browser then shows the first
+  enabled one, which looked chosen but was not. So the placeholder is not disabled, and a select without
+  a placeholder gets a hidden empty option (unless it has its own `value=""` choice). Give form selects
+  that can start empty a `placeholder`.
 
 ---
 

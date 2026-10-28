@@ -3,6 +3,7 @@
 use App\Enums\PrintDocument;
 use App\Models\Setting;
 use App\Support\Branding;
+use App\Support\Upload;
 use Flux\Flux;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Title;
@@ -94,7 +95,7 @@ new #[Title('Identity')] class extends Component {
     {
         abort_unless(array_key_exists($image, Branding::IMAGES), 404);
 
-        $this->validate(["uploads.{$image}" => ['image', 'mimes:png,jpg,jpeg,webp', 'max:2048']]);
+        $this->validate(["uploads.{$image}" => ['image', 'mimes:png,jpg,jpeg,webp', Upload::max()]]);
 
         try {
             $path = Branding::storeImage($this->uploads[$image], 'branding');

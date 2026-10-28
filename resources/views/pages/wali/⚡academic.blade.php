@@ -22,6 +22,11 @@ new #[Title('Academic progress')] class extends AcademicRecordPage {
         return auth()->user()->guardian?->students()->with('user')->orderBy('nim')->get() ?? new Collection;
     }
 
+    public function mount(): void
+    {
+        $this->childId ??= $this->children->first()?->id;
+    }
+
     protected function student(): ?Student
     {
         return $this->children->firstWhere('id', $this->childId) ?? $this->children->first();

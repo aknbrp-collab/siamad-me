@@ -934,3 +934,14 @@ v3 Step 7 (2026-10-28) — muhadhir teaching documents (D13–D16):
   (`/teaching-documents`, Admin/Superadmin review and join, academic monitor read-only), Excel export.
   No deadlines or reminders (D16).
 
+v4 Step 1 (2026-10-28) — dropdown and upload fixes (D17, D18):
+- Flux select override (`resources/views/flux/select/`): placeholder not disabled; a hidden empty option
+  for selects without one, so an empty value never shows a real option as chosen. The select index is
+  not Blaze-folded, because folding renders the variant with a placeholder slot. Pages whose filter
+  falls back to a default now bind that default (`AcademicRecordPage::rendering()`, wali child).
+- One upload limit (`siakad.uploads.max_kb`, 10 MB) for every file rule and the Livewire temporary
+  upload; the limit is in a `<meta name="upload-max-kb">` and `upload-limit.js` stops larger files in
+  the browser with a toast. The PHP "failed to upload" message no longer shows the raw field key.
+- "Letter" (grade letter, "Huruf") is no longer used for correspondence: the request form says
+  "Letter type" and the print preset "Official letter".
+

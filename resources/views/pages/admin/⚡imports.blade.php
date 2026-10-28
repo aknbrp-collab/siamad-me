@@ -4,6 +4,7 @@ use App\Imports\Importer;
 use App\Imports\Importers;
 use App\Support\CreatedAccount;
 use App\Support\SpreadsheetDownload;
+use App\Support\Upload;
 use Flux\Flux;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -68,7 +69,7 @@ new #[Title('Import')] class extends Component {
      */
     private function checkRows(): array
     {
-        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,csv,txt', 'max:5120']]);
+        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,csv,txt', Upload::max()]]);
 
         $extension = strtolower($this->file->getClientOriginalExtension()) === 'csv' ? 'csv' : 'xlsx';
         $rows = Importers::read($this->file->getRealPath(), $extension);

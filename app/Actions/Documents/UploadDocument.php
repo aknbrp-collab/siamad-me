@@ -5,6 +5,7 @@ namespace App\Actions\Documents;
 use App\Enums\DocumentStatus;
 use App\Models\StudentDocument;
 use App\Models\TeacherDocument;
+use App\Support\Upload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,7 +18,7 @@ class UploadDocument
      */
     public static function rules(): array
     {
-        return ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'];
+        return ['required', 'file', 'mimes:pdf,jpg,jpeg,png', Upload::max()];
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Models\CourseOffering;
 use App\Models\Submission;
 use App\Models\User;
 use App\Support\Notify;
+use App\Support\Upload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -86,7 +87,7 @@ class ManageAssignments
 
         $data = Validator::make($input, [
             'text' => ['nullable', 'string', 'max:20000'],
-            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:10240'],
+            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', Upload::max()],
         ])->validate();
 
         $file = $data['file'] ?? null;

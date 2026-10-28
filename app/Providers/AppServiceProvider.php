@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Support\Upload;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
@@ -37,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
             EnsurePasswordIsChanged::class,
             EnsureRole::class,
         ]);
+
+        // Livewire's temporary upload uses the same size limit as our own rules.
+        config(['livewire.temporary_file_upload.rules' => ['required', 'file', Upload::max()]]);
     }
 
     /**

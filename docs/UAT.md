@@ -69,11 +69,12 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Record pesantren activities; the wali sees them, the KHS does not
 
 ## Mahasantri (on a phone)
-- [ ] First login, password change, document upload
+- [ ] First login, password change, document upload (also a 3–9 MB scan; a file over 10 MB is refused with a clear message)
 - [ ] Join an online meeting, submit an assignment, take the quiz until the time runs out
 - [ ] KHS and transcript (and PDFs) after grades are final; bills with pending and verified payments
 - [ ] Pay a bill by transfer and send the confirmation with a photo of the receipt
 - [ ] Request a Surat Keterangan Aktif Kuliah; after the Admin issues it, download it from Surat saya
+- [ ] Request a letter choosing the first letter type in the list (it must not say no letter was chosen)
 
 ## Wali santri (on a phone)
 - [ ] Sees only their own children; switches child and semester

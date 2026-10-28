@@ -70,7 +70,7 @@ new #[Title('My letters')] class extends Component {
         <flux:card class="mb-8">
             <form wire:submit="submit" class="space-y-4">
                 <flux:heading>{{ __('Request a letter') }}</flux:heading>
-                <flux:select wire:model="requestTypeId" :label="__('Letter')" :placeholder="__('Choose…')" required>
+                <flux:select wire:model="requestTypeId" :label="__('Letter type')" :placeholder="__('Choose…')" required>
                     @foreach ($this->requestable as $type)
                         <flux:select.option :value="$type->id">{{ $type->name }}</flux:select.option>
                     @endforeach

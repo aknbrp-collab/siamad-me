@@ -4,6 +4,7 @@ namespace App\Actions\Lms;
 
 use App\Models\CourseOffering;
 use App\Models\Material;
+use App\Support\Upload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +17,7 @@ class ManageMaterials
      */
     public static function fileRules(): array
     {
-        return ['nullable', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,zip', 'max:10240'];
+        return ['nullable', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,zip', Upload::max()];
     }
 
     /**

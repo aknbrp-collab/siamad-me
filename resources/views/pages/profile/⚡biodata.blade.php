@@ -184,7 +184,7 @@ new #[Title('My profile')] class extends Component {
                     @if ($kind === 'teacher')
                         <flux:input wire:model="title" :label="__('Title (gelar)')" placeholder="Lc., M.A." />
                         <flux:input wire:model="nik" :label="__('NIK')" :description:trailing="__('Optional, 16 digits.')" />
-                        <flux:select wire:model="gender" :label="__('Gender')" required>
+                        <flux:select wire:model="gender" :label="__('Gender')" :placeholder="__('Choose…')" required>
                             @foreach (Gender::cases() as $case)
                                 <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
                             @endforeach

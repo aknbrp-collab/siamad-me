@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Support\LetterNumbering;
 use App\Support\Notify;
 use App\Support\NumberSequence;
+use App\Support\Upload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -275,7 +276,7 @@ class ManageLetters
             'sender_number' => ['nullable', 'string', 'max:100'],
             'sender_date' => ['nullable', 'date'],
             'subject' => ['required', 'string', 'max:500'],
-            'scan' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
+            'scan' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', Upload::max()],
             'disposition_to' => ['nullable', 'string', 'max:255'],
             'disposition_note' => ['nullable', 'string', 'max:2000'],
         ])->validate();

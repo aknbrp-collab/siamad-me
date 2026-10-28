@@ -74,7 +74,7 @@ new #[Title('Dashboard')] class extends Component {
                 <flux:card wire:key="offering-{{ $offering->id }}" class="flex flex-col gap-3">
                     <div>
                         <flux:heading>{{ $offering->subject_name }}</flux:heading>
-                        <flux:text class="text-sm">{{ $offering->subject_code }} · {{ $offering->credits }} {{ __('SKS') }} · {{ $offering->classGroup->name }}</flux:text>
+                        <flux:text class="text-sm">{{ $offering->subject_code }} · {{ $offering->credits }} {{ __('SKS') }} · {{ $offering->class_name }}</flux:text>
                         <flux:text class="text-sm">{{ $offering->scheduleLabel() }}</flux:text>
                     </div>
                     <div class="flex flex-wrap gap-2 text-xs">

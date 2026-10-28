@@ -4,6 +4,7 @@ namespace App\Actions\Enrollment;
 
 use App\Actions\Teaching\ManageTeachingDocuments;
 use App\Enums\TeacherStatus;
+use App\Models\ClassGroup;
 use App\Models\CourseOffering;
 use App\Models\Semester;
 use App\Models\Subject;
@@ -54,6 +55,12 @@ class ManageCourseOfferings
             'subject_id.unique' => __('This class already has this subject in the semester.'),
         ])->validate();
 
+        $classGroup = ClassGroup::query()->whereKey($data['class_group_id'])->firstOrFail();
+
+        if (! $classGroup->usableIn($semester) && ($offering === null || $offering->class_group_id !== $classGroup->id)) {
+            throw ValidationException::withMessages(['class_group_id' => __(':class is not in use in :semester.', ['class' => $classGroup->name, 'semester' => $semester->label()])]);
+        }
+
         // The same muhadhir, class or room cannot be in two places at once,
         // unless it is one lesson taught to several classes together.
         $slot = $this->slot($data);
@@ -74,7 +81,7 @@ class ManageCourseOfferings
             ]);
         }
 
-        return DB::transaction(function () use ($semester, $offering, $data, $joinable) {
+        return DB::transaction(function () use ($semester, $offering, $data, $joinable, $classGroup) {
             $offering ??= new CourseOffering(['semester_id' => $semester->id]);
 
             if (! $offering->exists || $offering->subject_id !== (int) $data['subject_id']) {
@@ -92,7 +99,7 @@ class ManageCourseOfferings
                 throw ValidationException::withMessages(['class_group_id' => __('Scores or attendance exist for this offering; its class can no longer change.')]);
             }
 
-            $offering->fill($data)->save();
+            $offering->fill([...$data, 'class_name' => $classGroup->nameIn($semester)])->save();
 
             $this->sync->handle($offering);
 
@@ -145,8 +152,10 @@ class ManageCourseOfferings
                 ->get();
 
             foreach ($sources as $source) {
+                // Classes move up (v4 D20): a class at another level now is assigned its subjects by hand.
                 $usable = $source->subject->is_active && ! $source->subject->trashed()
-                    && ! $source->classGroup->trashed()
+                    && $source->classGroup->usableIn($to)
+                    && $source->classGroup->levelIn($to) === $source->classGroup->levelIn($from)
                     && $source->teacher->status === TeacherStatus::Active;
 
                 $exists = CourseOffering::query()
@@ -177,6 +186,7 @@ class ManageCourseOfferings
                 $offering = CourseOffering::create([
                     ...$source->only(['subject_id', 'class_group_id', 'teacher_id', 'day_of_week', 'starts_at', 'ends_at', 'room']),
                     'semester_id' => $to->id,
+                    'class_name' => $source->classGroup->nameIn($to),
                     'subject_code' => $source->subject->code,
                     'subject_name' => $source->subject->name,
                     'credits' => $source->subject->credits,

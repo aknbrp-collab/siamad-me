@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int $semester_id
  * @property int $subject_id
  * @property int $class_group_id
+ * @property string $class_name The class name in this offering's semester (snapshot)
  * @property int $teacher_id
  * @property string $subject_code
  * @property string $subject_name
@@ -36,12 +37,23 @@ use Illuminate\Support\Carbon;
  * @property-read Teacher $teacher
  */
 #[Fillable([
-    'semester_id', 'subject_id', 'class_group_id', 'teacher_id', 'subject_code', 'subject_name', 'credits',
+    'semester_id', 'subject_id', 'class_group_id', 'class_name', 'teacher_id', 'subject_code', 'subject_name', 'credits',
     'day_of_week', 'starts_at', 'ends_at', 'room', 'grades_finalized_at', 'grades_finalized_by', 'grades_note', 'joined_to_id',
 ])]
 class CourseOffering extends Model
 {
     use Auditable;
+
+    protected static function booted(): void
+    {
+        // The class as it is named in this semester (classes move up, v4 D20).
+        static::saving(function (CourseOffering $offering) {
+            if ($offering->isDirty('class_group_id') || blank($offering->class_name)) {
+                $class = ClassGroup::withTrashed()->with('entrySemester.academicYear')->findOrFail($offering->class_group_id);
+                $offering->class_name = $class->nameIn(Semester::query()->with('academicYear')->findOrFail($offering->semester_id));
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.

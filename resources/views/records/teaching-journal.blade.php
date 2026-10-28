@@ -16,7 +16,7 @@
 
     <table class="identity">
         <tr><td>Mata kuliah</td><td>: {{ $offering->subject_code }} · {{ $offering->subject_name }} ({{ $offering->credits }} SKS)</td></tr>
-        <tr><td>Kelas</td><td>: {{ $members->map(fn ($member) => $member->classGroup->name)->join(', ') }}</td></tr>
+        <tr><td>Kelas</td><td>: {{ $members->map(fn ($member) => $member->class_name)->join(', ') }}</td></tr>
         <tr><td>Muhadhir</td><td>: {{ $teacherName }}</td></tr>
         <tr><td>Semester</td><td>: {{ $offering->semester->label() }}</td></tr>
     </table>

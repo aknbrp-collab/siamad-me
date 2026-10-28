@@ -12,6 +12,8 @@ use Illuminate\Validation\ValidationException;
  */
 class SemesterLifecycle
 {
+    public function __construct(private readonly ManageClassGroups $classes) {}
+
     public function activate(Semester $semester): void
     {
         if ($semester->status !== SemesterStatus::Planned) {
@@ -21,6 +23,9 @@ class SemesterLifecycle
         $this->ensureNoOtherActive($semester);
 
         $semester->update(['status' => SemesterStatus::Active]);
+
+        // Classes move up: their names and levels are now those of this semester (v4 D20).
+        $this->classes->moveUp($semester);
     }
 
     /**

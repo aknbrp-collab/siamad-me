@@ -64,7 +64,9 @@ new #[Title('Semester')] class extends Component {
     }
 
     /**
-     * Classes that exist now, plus removed ones still holding this semester's students.
+     * Classes that can be used this semester, plus classes still holding this
+     * semester's students (removed or ended), with the name and level they
+     * have in this semester (classes move up, v4 D20).
      *
      * @return Collection<int, ClassGroup>
      */
@@ -72,13 +74,13 @@ new #[Title('Semester')] class extends Component {
     public function classGroups(): Collection
     {
         return ClassGroup::withTrashed()
-            ->with('studyProgram')
+            ->with(['studyProgram', 'entrySemester.academicYear', 'lastSemester.academicYear'])
             ->withCount(['classEnrollments as students_count' => fn ($query) => $query->where('semester_id', $this->semester->id)])
-            ->where(fn (Builder $query) => $query
-                ->whereNull('deleted_at')
-                ->orWhereHas('classEnrollments', fn ($query) => $query->where('semester_id', $this->semester->id)))
-            ->orderBy('level')->orderBy('name')
-            ->get();
+            ->get()
+            ->filter(fn (ClassGroup $classGroup) => $classGroup->students_count > 0 || $classGroup->usableIn($this->semester))
+            ->map(fn (ClassGroup $classGroup) => $classGroup->presentIn($this->semester))
+            ->sortBy(fn (ClassGroup $classGroup) => sprintf('%02d %s', $classGroup->level, $classGroup->name))
+            ->values();
     }
 
     #[Computed]
@@ -169,11 +171,16 @@ new #[Title('Semester')] class extends Component {
             return new Collection;
         }
 
+        $from = Semester::query()->with('academicYear')->findOrFail($this->copyFromId);
+
         return ClassGroup::withTrashed()
+            ->with(['entrySemester.academicYear', 'lastSemester.academicYear'])
             ->withCount(['classEnrollments as students_count' => fn ($query) => $query->where('semester_id', $this->copyFromId)])
             ->whereHas('classEnrollments', fn ($query) => $query->where('semester_id', $this->copyFromId))
-            ->orderBy('level')->orderBy('name')
-            ->get();
+            ->get()
+            ->map(fn (ClassGroup $classGroup) => $classGroup->presentIn($from))
+            ->sortBy(fn (ClassGroup $classGroup) => sprintf('%02d %s', $classGroup->level, $classGroup->name))
+            ->values();
     }
 
     /**
@@ -223,7 +230,7 @@ new #[Title('Semester')] class extends Component {
         $manage->enroll($this->semester, $classGroup, [$studentId]);
 
         unset($this->candidates, $this->roster, $this->classGroups);
-        Flux::toast(variant: 'success', text: __('Placed in :class.', ['class' => $classGroup->name]));
+        Flux::toast(variant: 'success', text: __('Placed in :class.', ['class' => $classGroup->nameIn($this->semester)]));
     }
 
     public function removeEnrollment(int $enrollmentId, ManageClassEnrollments $manage): void
@@ -252,23 +259,25 @@ new #[Title('Semester')] class extends Component {
     }
 
     /**
-     * Default mapping: mahasantri move up one semester of study every
-     * semester, into the class one level up in the same study program with
-     * the same gender (Semester II Putra -> Semester III Putra). Copying from
-     * a later semester keeps the same level. Every pair can be changed.
+     * Default mapping: a class carries on into this semester with its
+     * mahasantri, one level up (classes move up, v4 D20). A class that cannot
+     * be used here (an older class, or one past the last level) maps to the
+     * class one level up in the same study program with the same gender.
+     * Copying from a later semester keeps the same level. Every pair can be
+     * changed.
      */
     private function buildClassMap(): void
     {
         unset($this->sourceClasses);
 
-        $current = ClassGroup::query()->orderBy('name')->get();
+        $current = $this->classGroups->whereNull('deleted_at')->filter(fn (ClassGroup $class) => $class->usableIn($this->semester));
         $from = $this->otherSemesters->firstWhere('id', $this->copyFromId);
         $step = $from && $from->chronology() < $this->semester->chronology() ? 1 : 0;
 
         $this->classMap = [];
 
         foreach ($this->sourceClasses as $source) {
-            $target = $current->first(fn (ClassGroup $class) => $class->study_program_id === $source->study_program_id
+            $target = ($source->isCohort() ? $current->firstWhere('id', $source->id) : null) ?? $current->first(fn (ClassGroup $class) => $class->study_program_id === $source->study_program_id
                 && $class->level === $source->level + $step
                 && $source->gender !== null
                 && $class->gender === $source->gender);
@@ -579,10 +588,10 @@ new #[Title('Semester')] class extends Component {
                                 <span class="text-zinc-500">· {{ $offering->credits }} {{ __('SKS') }}</span>
                             </flux:table.cell>
                             <flux:table.cell>
-                                {{ $offering->classGroup->name }}
+                                {{ $offering->class_name }}
                                 @php($partners = $this->offerings->filter(fn ($other) => $other->isNot($offering) && $other->teachingLeadId() === $offering->teachingLeadId()))
                                 @if ($partners->isNotEmpty())
-                                    <flux:badge size="sm" color="sky" class="ms-1">{{ __('Joint with :classes', ['classes' => $partners->map(fn ($other) => $other->classGroup->name)->join(', ')]) }}</flux:badge>
+                                    <flux:badge size="sm" color="sky" class="ms-1">{{ __('Joint with :classes', ['classes' => $partners->map(fn ($other) => $other->class_name)->join(', ')]) }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell class="hidden md:table-cell">{{ $offering->teacher->displayName() }}</flux:table.cell>

@@ -29,7 +29,7 @@
                         <div class="font-semibold text-zinc-900 dark:text-white">{{ $offering->subject_name }}</div>
                         <div class="text-zinc-600 dark:text-zinc-400">
                             {{ collect([
-                                in_array('class', $show, true) || $together->count() > 1 ? $together->map(fn ($member) => $member->classGroup->name)->join(' + ') : null,
+                                in_array('class', $show, true) || $together->count() > 1 ? $together->map(fn ($member) => $member->class_name)->join(' + ') : null,
                                 in_array('teacher', $show, true) ? $offering->teacher->user->name : null,
                                 in_array('room', $show, true) ? $offering->room : null,
                             ])->filter()->join(' · ') }}
@@ -45,6 +45,6 @@
 
 @if ($unscheduled->isNotEmpty())
     <flux:text class="mt-4 text-sm">
-        {{ __('No day or time yet: :subjects', ['subjects' => $unscheduled->map(fn ($offering) => $offering->subject_name.' ('.$offering->classGroup->name.')')->join(', ')]) }}
+        {{ __('No day or time yet: :subjects', ['subjects' => $unscheduled->map(fn ($offering) => $offering->subject_name.' ('.$offering->class_name.')')->join(', ')]) }}
     </flux:text>
 @endif

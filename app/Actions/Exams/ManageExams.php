@@ -308,7 +308,7 @@ class ManageExams
                 $invigilator !== null && $other->invigilator_id === $invigilator ? __('same invigilator') : null,
             ])->filter();
 
-            return $shared->isEmpty() ? null : $other->courseOffering->subject_name.' ('.$other->courseOffering->classGroup->name.'), '
+            return $shared->isEmpty() ? null : $other->courseOffering->subject_name.' ('.$other->courseOffering->class_name.'), '
                 .substr($other->starts_at, 0, 5).'–'.substr($other->ends_at, 0, 5).': '.$shared->implode(', ');
         })->filter();
 

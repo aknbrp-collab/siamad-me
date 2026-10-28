@@ -36,7 +36,7 @@ class ImportScores
             return $row;
         });
 
-        $name = Str::slug($offering->subject_code.' '.$offering->loadMissing('classGroup')->classGroup->name);
+        $name = Str::slug($offering->subject_code.' '.$offering->class_name);
 
         return SpreadsheetDownload::make("scores-{$name}.xlsx", $rows);
     }

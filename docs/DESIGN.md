@@ -987,3 +987,20 @@ v4 Step 4 (2026-10-28) — schedule clashes as a question (D21):
   ("Gabungan dengan …"); the timetable draws a joint group in one slot as one block ("Putra + Putri").
   Copying offerings re-joins classes that were joint in the source semester.
 
+v4 Step 5 (2026-10-28) — classes move up (D20), with the answers of 2026-10-28:
+- **Start fresh:** classes that existed got `last_semester_id` = the semester active at migration; they
+  keep their fixed name and level and can be used up to that semester. New classes are cohorts:
+  `label` ("Putra A"), `entry_semester_id`, `start_level`. `ClassGroup::levelIn()` adds the number of
+  semesters since entry (`Semester::ordinal()`: two per academic year, from `starts_on`); `nameIn()` is
+  "Semester {roman} {label}"; `usableIn()` from entry until past `MAX_LEVEL`.
+- `class_groups.name/level` hold the values of the current semester; `ManageClassGroups::moveUp()` refreshes
+  them when a semester is activated (`SemesterLifecycle::activate`). Pages about another semester use
+  `presentIn($semester)` (a display copy, never saved).
+- Snapshots: `class_enrollments.level` (with `class_name`) and `course_offerings.class_name`, filled by
+  model `saving` hooks whenever the class is set, so history never changes; offering displays use
+  `class_name`. Editing a class refreshes the snapshots of open semesters only.
+- Placements and offerings require a class in use that semester. "Carry forward" maps a cohort to itself;
+  older classes to the class one level up. Copying offerings skips classes whose level differs (subjects
+  are assigned by hand, per the client). Fee rates copy by level (`CopyFeeRates`), skipping classes with
+  no counterpart. The placement history import matches class names as they were in that semester.
+

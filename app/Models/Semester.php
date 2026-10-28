@@ -61,6 +61,15 @@ class Semester extends Model
     }
 
     /**
+     * The semester as a running number (two per academic year), so the number
+     * of semesters between two is a subtraction. Used for class levels.
+     */
+    public function ordinal(): int
+    {
+        return $this->loadMissing('academicYear')->academicYear->starts_on->year * 2 + ($this->term === SemesterTerm::Odd ? 0 : 1);
+    }
+
+    /**
      * Sort key putting semesters in order: academic year, then odd before even.
      */
     public function chronology(): string

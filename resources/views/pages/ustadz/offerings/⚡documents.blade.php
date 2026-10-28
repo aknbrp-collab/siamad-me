@@ -80,7 +80,7 @@ new #[Title('Teaching documents')] class extends Component {
 
     @if ($this->members->count() > 1)
         <flux:callout icon="link" class="mb-6"
-            :text="__('Taught together with :classes: one RPS and one journal for all of them.', ['classes' => $this->members->reject(fn ($member) => $member->is($offering))->map(fn ($member) => $member->classGroup->name)->join(', ')])" />
+            :text="__('Taught together with :classes: one RPS and one journal for all of them.', ['classes' => $this->members->reject(fn ($member) => $member->is($offering))->map(fn ($member) => $member->class_name)->join(', ')])" />
     @endif
 
     <div class="grid gap-6 lg:grid-cols-2">

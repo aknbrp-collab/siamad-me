@@ -134,7 +134,7 @@ new #[Title('Academic monitor')] class extends Component {
             ->flatMap(fn (CourseOffering $offering) => $offering->enrollments->map(fn (CourseEnrollment $enrollment) => [
                 'name' => $enrollment->student->user->name,
                 'nim' => $enrollment->student->nim,
-                'class' => $offering->classGroup->name,
+                'class' => $offering->class_name,
                 'subject' => $offering->subject_name,
                 'percent' => $this->attendance[$enrollment->id]['percent'] ?? null,
             ]))
@@ -233,7 +233,7 @@ new #[Title('Academic monitor')] class extends Component {
                         <flux:table.row :key="$offering->id">
                             <flux:table.cell class="whitespace-normal">
                                 <span class="font-medium">{{ $offering->subject_name }}</span>
-                                <div class="text-xs text-zinc-500">{{ $offering->subject_code }} · {{ $offering->classGroup->name }}</div>
+                                <div class="text-xs text-zinc-500">{{ $offering->subject_code }} · {{ $offering->class_name }}</div>
                             </flux:table.cell>
                             <flux:table.cell class="hidden md:table-cell">{{ $offering->teacher->displayName() }}</flux:table.cell>
                             <flux:table.cell align="center">{{ $offering->meetings_count }}</flux:table.cell>

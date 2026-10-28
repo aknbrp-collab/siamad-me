@@ -35,6 +35,7 @@ class ManageClassEnrollments
                 ->get();
 
             $this->ensureGenderFits($classGroup, $students);
+            $this->ensureUsable($classGroup, $semester);
 
             $affectedClasses = [$classGroup->id];
 
@@ -49,7 +50,11 @@ class ManageClassEnrollments
                     $affectedClasses[] = $enrollment->class_group_id;
                 }
 
-                $enrollment->fill(['class_group_id' => $classGroup->id, 'class_name' => $classGroup->name])->save();
+                $enrollment->fill([
+                    'class_group_id' => $classGroup->id,
+                    'class_name' => $classGroup->nameIn($semester),
+                    'level' => $classGroup->levelIn($semester),
+                ])->save();
             }
 
             foreach (array_unique($affectedClasses) as $classGroupId) {
@@ -100,6 +105,8 @@ class ManageClassEnrollments
                 ]);
             }
 
+            $targets->each(fn (ClassGroup $target) => $this->ensureUsable($target, $to));
+
             $alreadyPlaced = ClassEnrollment::query()->where('semester_id', $to->id)->pluck('student_id');
 
             $placed = 0;
@@ -129,7 +136,8 @@ class ManageClassEnrollments
                     'semester_id' => $to->id,
                     'class_group_id' => $target->id,
                     'student_id' => $source->student_id,
-                    'class_name' => $target->name,
+                    'class_name' => $target->nameIn($to),
+                    'level' => $target->levelIn($to),
                 ]);
 
                 $placed++;
@@ -156,7 +164,7 @@ class ManageClassEnrollments
         $current = $semester->chronology();
 
         $latest = ClassEnrollment::query()
-            ->with(['semester.academicYear', 'classGroup' => fn ($query) => $query->withTrashed()])
+            ->with(['semester.academicYear', 'classGroup'])
             ->whereIn('student_id', $studentIds)
             ->get()
             ->filter(fn (ClassEnrollment $enrollment) => $enrollment->semester->chronology() < $current)
@@ -166,11 +174,25 @@ class ManageClassEnrollments
         $levels = [];
 
         foreach ($studentIds as $id) {
-            $previous = $latest->get($id)?->classGroup;
-            $levels[$id] = $previous ? min($previous->level + 1, ClassGroup::MAX_LEVEL) : 1;
+            $previous = $latest->get($id);
+            // The level the student had then (kept on the placement), not the class's level now.
+            $levels[$id] = $previous ? min(($previous->level ?? $previous->classGroup->level) + 1, ClassGroup::MAX_LEVEL) : 1;
         }
 
         return $levels;
+    }
+
+    /**
+     * A class is used from its first semester until it passes the last level;
+     * a class made before v4 until its last semester.
+     */
+    private function ensureUsable(ClassGroup $classGroup, Semester $semester): void
+    {
+        if (! $classGroup->usableIn($semester)) {
+            throw ValidationException::withMessages([
+                'enrollment' => __(':class is not in use in :semester.', ['class' => $classGroup->name, 'semester' => $semester->label()]),
+            ]);
+        }
     }
 
     /**

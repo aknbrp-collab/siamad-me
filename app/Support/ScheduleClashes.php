@@ -76,7 +76,7 @@ final class ScheduleClashes
 
             return __(':subject (:class), :when: :shared', [
                 'subject' => $other->subject_name,
-                'class' => $other->classGroup->name,
+                'class' => $other->class_name,
                 'when' => $other->scheduleLabel(),
                 'shared' => $shared,
             ]);

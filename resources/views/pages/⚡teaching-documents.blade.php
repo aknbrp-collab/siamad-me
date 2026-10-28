@@ -176,7 +176,7 @@ new #[Title('Teaching documents')] class extends Component {
 
         return SpreadsheetDownload::make('dokumen-mengajar-'.$this->semesterId.'.xlsx', $this->units->map(fn (array $unit) => [
             __('Subject') => $unit['lead']->subject_code.' '.$unit['lead']->subject_name,
-            __('Classes') => $unit['members']->map(fn (CourseOffering $member) => $member->classGroup->name)->join(', '),
+            __('Classes') => $unit['members']->map(fn (CourseOffering $member) => $member->class_name)->join(', '),
             __('Muhadhir') => $unit['lead']->teacher->user->name,
             'RPS' => $status($unit['rps']),
             __('Journal') => $status($unit['journal']),
@@ -225,7 +225,7 @@ new #[Title('Teaching documents')] class extends Component {
                         <flux:table.cell class="whitespace-normal">
                             <span class="font-medium">{{ $lead->subject_name }}</span>
                             <div class="text-xs text-zinc-500">
-                                {{ $unit['members']->map(fn ($member) => $member->classGroup->name)->join(' + ') }}
+                                {{ $unit['members']->map(fn ($member) => $member->class_name)->join(' + ') }}
                                 @if ($unit['members']->count() > 1)<flux:badge size="sm" icon="link" class="ms-1">{{ __('Together') }}</flux:badge>@endif
                             </div>
                         </flux:table.cell>
@@ -297,7 +297,7 @@ new #[Title('Teaching documents')] class extends Component {
             @else
                 <flux:checkbox.group wire:model="joinIds">
                     @foreach ($this->joinCandidates as $candidate)
-                        <flux:checkbox :value="$candidate->id" :label="$candidate->classGroup->name" />
+                        <flux:checkbox :value="$candidate->id" :label="$candidate->class_name" />
                     @endforeach
                 </flux:checkbox.group>
             @endif

@@ -5,7 +5,7 @@
         <div>
             <flux:heading size="xl" level="1">{{ $offering->subject_name }}</flux:heading>
             <flux:subheading>
-                {{ $offering->subject_code }} · {{ $offering->credits }} {{ __('SKS') }} · {{ $offering->classGroup->name }} ·
+                {{ $offering->subject_code }} · {{ $offering->credits }} {{ __('SKS') }} · {{ $offering->class_name }} ·
                 {{ $offering->semester->label() }}
             </flux:subheading>
         </div>

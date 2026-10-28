@@ -6,9 +6,16 @@ Admin mengelola data induk, data orang, semester, dan memverifikasi pembayaran.
 
 Isi berurutan dari menu **Akademik**:
 1. **Program studi** — kode (mis. `MA`) dan nama.
-2. **Kelas** — satu kelas per **tingkat semester** (Semester I, II, III …) dan **Putra** atau **Putri**,
-   mis. *Semester I Putra* dan *Semester I Putri*. Mahasantri hanya dapat ditempatkan di kelas yang sesuai
-   jenis kelaminnya.
+2. **Kelas** — satu kelas untuk setiap rombongan (angkatan) **Putra** atau **Putri**. Isi **nama** tanpa
+   tingkat (mis. *Putra A*), **semester pertama**, dan **tingkat awal** (biasanya Semester I). SIAKAD
+   menamai kelasnya *Semester I Putra A*, dan kelas itu **naik sendiri** setiap semester: saat semester
+   berikutnya diaktifkan namanya menjadi *Semester II Putra A*, lalu *Semester III*, dan seterusnya (ganjil →
+   genap dan ke tahun akademik berikutnya). Rombel dan nilai semester lalu tetap memakai nama kelas pada
+   semester itu. Mahasantri hanya dapat ditempatkan di kelas yang sesuai jenis kelaminnya.
+
+   Kelas yang dibuat sebelum aturan ini (bertanda **Sampai …**) tetap memakai nama dan tingkatnya, dan hanya
+   dapat dipakai sampai semester yang aktif saat itu. Untuk semester berikutnya buat kelas baru, mis.
+   *Putra A* mulai 2026/2027 Genap pada tingkat Semester II untuk mahasantri yang sekarang di Semester I.
 3. **Mata kuliah** — kode, nama, kitab, dan SKS. Mata kuliah yang tidak dipakai lagi cukup
    dinonaktifkan, jangan dihapus.
 4. **Skala nilai** — rentang nilai akhir (0–100) menjadi huruf dan bobot. Salah satu rentang harus mulai
@@ -115,17 +122,19 @@ presensi, transkrip, dan catatan kegiatan mahasantri bimbingannya, dan berdiskus
 ## Membuka semester baru
 
 1. **Tahun akademik** → buka semester baru.
-2. Tab **Kelas**: **Salin dari semester lain** untuk menyalin rombel. Setiap semester mahasantri
-   otomatis naik satu tingkat ke kelas berjenis kelamin sama (Semester II Putra → Semester III Putra);
-   pasangan kelas dapat diubah sebelum menyalin. Mahasantri yang jenis kelaminnya tidak sesuai dengan kelas
+2. Tab **Kelas**: **Salin dari semester lain** untuk menyalin rombel. Setiap kelas membawa mahasantrinya
+   ke semester berikutnya dan naik satu tingkat (Semester I Putra A → Semester II Putra A). Kelas lama yang
+   sudah tidak dipakai dipasangkan ke kelas satu tingkat di atasnya dengan jenis kelamin sama. Pasangan
+   kelas dapat diubah sebelum menyalin. Mahasantri yang jenis kelaminnya tidak sesuai dengan kelas
    tujuan dilewati dan dapat ditempatkan manual. Saat mencari mahasantri untuk sebuah kelas, hanya yang
    sejenis kelamin yang tampil; tanda *Seharusnya: Semester …* muncul jika tingkatnya tidak sesuai
    (tetap boleh ditempatkan, mis. untuk mengulang). Mahasantri lulus, keluar,
    atau cuti dilewati. Tambahkan mahasantri satu per satu lewat
    **Tambah mahasantri: ketik NIM atau nama…** di kelas yang dipilih.
-3. Tab **Kelas kuliah**: **Salin kelas kuliah** dari semester lalu (mata kuliah × kelas × muhadhir ×
-   jadwal), lalu sesuaikan, atau **Tambah kelas kuliah**. Peserta kuliah terisi otomatis dari rombel
-   kelas.
+3. Tab **Kelas kuliah**: **Tambah kelas kuliah** untuk setiap mata kuliah × kelas × muhadhir × jadwal.
+   Karena kelas naik tingkat, mata kuliahnya berbeda tiap semester: **Salin kelas kuliah** hanya menyalin
+   kelas yang tingkatnya sama (kelas lama dalam masa pakainya); kelas yang naik tingkat diisi manual.
+   Peserta kuliah terisi otomatis dari rombel kelas.
 4. Minta Admin Keuangan **Buat tagihan** semester ini.
 5. Tutup semester lama (setelah nilai final), lalu **Aktifkan** semester baru. Hanya satu semester yang
    boleh aktif.

@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Finance\AddFeeToBills;
+use App\Actions\Finance\CopyFeeRates;
 use App\Enums\FeeFrequency;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
@@ -251,25 +252,15 @@ new #[Title('Fees')] class extends Component {
     {
         $this->validate(['copyFromYearId' => ['required', 'integer', Rule::exists('academic_years', 'id'), 'different:academicYearId']]);
 
-        $copied = 0;
-
-        foreach (FeeRate::query()->where('academic_year_id', $this->copyFromYearId)->get() as $rate) {
-            $exists = FeeRate::query()
-                ->where('academic_year_id', $this->academicYearId)
-                ->where('fee_type_id', $rate->fee_type_id)
-                ->where('class_group_id', $rate->class_group_id)
-                ->where('entry_year', $rate->entry_year)
-                ->exists();
-
-            if (! $exists) {
-                FeeRate::create([...$rate->only(['fee_type_id', 'class_group_id', 'entry_year', 'amount']), 'academic_year_id' => $this->academicYearId]);
-                $copied++;
-            }
-        }
+        $result = app(CopyFeeRates::class)->handle(AcademicYear::query()->findOrFail($this->copyFromYearId), AcademicYear::query()->findOrFail($this->academicYearId));
 
         Flux::modal('copy-rates')->close();
         unset($this->rates);
-        Flux::toast(variant: 'success', text: trans_choice(':count rate copied.|:count rates copied.', $copied));
+        Flux::toast(
+            variant: $result['skipped'] > 0 ? 'warning' : 'success',
+            text: trans_choice(':count rate copied.|:count rates copied.', $result['copied'])
+                .($result['skipped'] > 0 ? ' '.trans_choice(':count class rate skipped: no class is at that level in this year yet.|:count class rates skipped: no class is at that level in this year yet.', $result['skipped']) : ''),
+        );
     }
 }; ?>
 
@@ -471,7 +462,7 @@ new #[Title('Fees')] class extends Component {
     <flux:modal name="copy-rates" class="w-full max-w-md">
         <form wire:submit="copyRates" class="space-y-6">
             <flux:heading size="lg">{{ __('Copy rates') }}</flux:heading>
-            <flux:text>{{ __('Rates of the chosen year are copied into the selected year. Existing rates are kept.') }}</flux:text>
+            <flux:text>{{ __('Rates of the chosen year are copied into the selected year. Existing rates are kept. A rate for a class goes to the class at the same level in the selected year, since classes move up.') }}</flux:text>
             <flux:select wire:model="copyFromYearId" :label="__('Copy from')" :placeholder="__('Choose a year…')">
                 @foreach ($this->years->where('id', '!=', $academicYearId) as $year)
                     <flux:select.option :value="$year->id">{{ $year->name }}</flux:select.option>

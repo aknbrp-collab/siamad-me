@@ -149,7 +149,7 @@ class ManageTeachingDocuments
             __(':kind from :name', ['kind' => $kind->short(), 'name' => $by->name]),
             __(':subject (:classes), version :version', [
                 'subject' => $offering->subject_name,
-                'classes' => $this->members($offering)->map(fn (CourseOffering $member) => $member->classGroup->name)->join(', '),
+                'classes' => $this->members($offering)->map(fn (CourseOffering $member) => $member->class_name)->join(', '),
                 'version' => $document->version,
             ]),
             route('teaching-documents', ['semester' => $offering->semester_id]),

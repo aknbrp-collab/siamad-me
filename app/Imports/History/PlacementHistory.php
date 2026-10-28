@@ -59,7 +59,7 @@ class PlacementHistory implements HistoryImporter
         $className = trim($row['class'] ?? '');
 
         $student = $nim === '' ? null : Student::query()->with('user')->where('nim', $nim)->first();
-        $matches = $this->classes()[Str::lower($className)] ?? [];
+        $matches = $this->classes($semester)[Str::lower($className)] ?? [];
         $class = count($matches) === 1 ? $matches[0] : null;
 
         if ($student === null) {
@@ -88,7 +88,7 @@ class PlacementHistory implements HistoryImporter
             }
         }
 
-        return ['input' => ['student_id' => $student?->id, 'class_group_id' => $class?->id, 'class_name' => $class?->name], 'errors' => $errors];
+        return ['input' => ['student_id' => $student?->id, 'class_group_id' => $class?->id, 'class_name' => $class?->nameIn($semester)], 'errors' => $errors];
     }
 
     public function import(?Semester $semester, array $input, User $by): void
@@ -106,15 +106,17 @@ class PlacementHistory implements HistoryImporter
     }
 
     /**
+     * Classes by their name in that semester (classes move up, v4 D20).
+     *
      * @return array<string, list<ClassGroup>>
      */
-    private function classes(): array
+    private function classes(Semester $semester): array
     {
         if ($this->classes === null) {
             $this->classes = [];
 
-            foreach (ClassGroup::query()->get() as $class) {
-                $this->classes[Str::lower($class->name)][] = $class;
+            foreach (ClassGroup::query()->with(['entrySemester.academicYear', 'lastSemester.academicYear'])->get() as $class) {
+                $this->classes[Str::lower($class->nameIn($semester))][] = $class;
             }
         }
 

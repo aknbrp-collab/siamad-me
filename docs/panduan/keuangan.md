@@ -11,7 +11,10 @@ Menu **Keuangan → Biaya**:
    (ditagih 6× per semester), atau sekali per mahasantri.
 2. **Tambah tarif** untuk tahun akademik: nominal, dan bila perlu khusus kelas dan/atau angkatan. Saat
    tagihan dibuat, tarif yang paling spesifik yang dipakai (kelas + angkatan → kelas → angkatan → semua).
-3. Tahun berikutnya: **Salin tarif** dari tahun lalu, lalu ubah yang naik.
+3. Tahun berikutnya: **Salin tarif** dari tahun lalu, lalu ubah yang naik. Tarif khusus kelas disalin ke
+   kelas yang berada pada **tingkat yang sama** tahun itu (tarif *Semester I Putra* tahun lalu menjadi tarif
+   kelas Semester I Putra yang baru), karena kelas naik setiap semester. Bila belum ada kelas pada tingkat
+   itu, tarifnya dilewati dan dilaporkan.
 
 Mengubah tarif tidak mengubah tagihan yang sudah dibuat.
 

@@ -113,7 +113,7 @@ bills" action (D23).
   `ManageTeachingDocuments::join()`. Copying offerings keeps joint classes joined.
 - The timetable and the offering list show joined classes as one block.
 
-### Step 5 — Classes move up each semester (large)
+### Step 5 — Classes move up each semester (large) — ✅ done 2026-10-28
 
 - Migration: `class_groups.entry_semester_id`, a name without the level, and `finished_at`.
   `class_enrollments.level` is a snapshot, back-filled from today's data. Existing classes get their

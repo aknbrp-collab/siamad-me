@@ -80,11 +80,17 @@ class DatabaseSeeder extends Seeder
         $semester = $year->semesters()->where('term', SemesterTerm::Odd)->sole();
         app(SemesterLifecycle::class)->activate($semester);
 
-        // Classes per semester of study, Putra and Putri. Semester II classes are the promotion targets.
-        $classOne = ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester I Putra', 'level' => 1, 'gender' => Gender::Male]);
-        $classOnePutri = ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester I Putri', 'level' => 1, 'gender' => Gender::Female]);
-        ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester II Putra', 'level' => 2, 'gender' => Gender::Male]);
-        ClassGroup::create(['study_program_id' => $program->id, 'name' => 'Semester II Putri', 'level' => 2, 'gender' => Gender::Female]);
+        // Classes are intakes that move up every semester (v4): the new intake starts at Semester I this
+        // semester, last year's intake is at Semester II.
+        $cohort = fn (string $label, int $level, Gender $gender) => ClassGroup::create([
+            'study_program_id' => $program->id, 'label' => $label, 'gender' => $gender,
+            'entry_semester_id' => $semester->id, 'start_level' => $level,
+            'level' => $level, 'name' => ClassGroup::cohortName($level, $label),
+        ]);
+        $classOne = $cohort('Putra', 1, Gender::Male);
+        $classOnePutri = $cohort('Putri', 1, Gender::Female);
+        $cohort('Putra', 2, Gender::Male);
+        $cohort('Putri', 2, Gender::Female);
 
         // Exam rooms: putra and putri sit in separate rooms.
         Room::create(['name' => 'R.101', 'capacity' => 30, 'gender' => Gender::Male]);

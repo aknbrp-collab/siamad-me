@@ -398,7 +398,7 @@ new #[Title('Exam period')] class extends Component {
                         <flux:table.row :key="$session->id">
                             <flux:table.cell class="whitespace-normal">
                                 <span class="font-medium">{{ $session->courseOffering->subject_name }}</span>
-                                <div class="text-xs text-zinc-500">{{ $session->courseOffering->classGroup->name }}</div>
+                                <div class="text-xs text-zinc-500">{{ $session->courseOffering->class_name }}</div>
                             </flux:table.cell>
                             <flux:table.cell>{{ $session->timeLabel() }}</flux:table.cell>
                             <flux:table.cell class="whitespace-normal">{{ implode(', ', $this->sessionRooms[$session->id] ?? []) ?: '—' }}</flux:table.cell>
@@ -420,7 +420,7 @@ new #[Title('Exam period')] class extends Component {
         </div>
 
         @if ($this->unscheduled->isNotEmpty())
-            <flux:text class="mt-4 text-sm">{{ __('Still without an exam: :subjects', ['subjects' => $this->unscheduled->map(fn ($offering) => $offering->subject_name.' ('.$offering->classGroup->name.')')->join(', ')]) }}</flux:text>
+            <flux:text class="mt-4 text-sm">{{ __('Still without an exam: :subjects', ['subjects' => $this->unscheduled->map(fn ($offering) => $offering->subject_name.' ('.$offering->class_name.')')->join(', ')]) }}</flux:text>
         @endif
     @else
         <flux:input wire:model.live.debounce.400ms="search" icon="magnifying-glass" :placeholder="__('Search NIM or name…')" class="mb-4 sm:max-w-sm" />
@@ -486,7 +486,7 @@ new #[Title('Exam period')] class extends Component {
             <flux:heading size="lg">{{ $sessionId ? __('Edit exam') : __('Add exam') }}</flux:heading>
             <flux:select wire:model="course_offering_id" :label="__('Subject')" :placeholder="__('Choose…')" required>
                 @foreach ($this->offeringChoices as $offering)
-                    <flux:select.option :value="$offering->id">{{ $offering->subject_name }} — {{ $offering->classGroup->name }}</flux:select.option>
+                    <flux:select.option :value="$offering->id">{{ $offering->subject_name }} — {{ $offering->class_name }}</flux:select.option>
                 @endforeach
             </flux:select>
             <div class="grid gap-5 sm:grid-cols-3">

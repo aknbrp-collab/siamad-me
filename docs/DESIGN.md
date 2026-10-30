@@ -1018,3 +1018,16 @@ v4 Step 7 (2026-10-31) — managed templates with a designed look (D24):
   RPS/jurnal" (`teaching/{offering}/template/{kind}`, same access as the journal PDF). Page **Templat**
   for Admin, Superadmin, academic monitor. Letter templates follow in Step 8.
 
+v4 Step 8 (2026-10-31) — letters from Word templates (D19):
+- Letter types are template slots `letter.{id}` on the Templates page (starter .docx from
+  `LetterDocuments::defaultFile()`: letterhead, number, subject, recipient, `${isi}`, signature block with
+  `${ttd}` and `${stempel}` images). Allowed placeholders: `LetterDocuments::placeholders()` (letter fields
+  plus every body placeholder without braces).
+- `letters.document_template_id` pins the version in use when the letter is issued (null = built-in PDF
+  layout), so a later template never changes a sent letter. Files are filled on demand
+  (`LetterDocuments::render`: multi-line text kept, signature/stamp from `PrintMarks`).
+- `DocxToPdf` runs LibreOffice headless with its own profile per run (90 s timeout); found via
+  `siakad.libreoffice` or usual paths. Without it, or on failure (reported), the letter downloads as .docx;
+  staff can always get the .docx (`?format=docx`). Cancelled letters keep the built-in layout (DIBATALKAN).
+  The plan's queued conversion was not needed: letters are rendered on demand like the PDFs.
+

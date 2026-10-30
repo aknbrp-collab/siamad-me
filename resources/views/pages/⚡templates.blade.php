@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\DocumentTemplate;
+use App\Support\LetterDocuments;
 use App\Support\Templates;
 use App\Support\TeachingTemplates;
 use Flux\Flux;
@@ -28,7 +29,7 @@ new #[Title('Templates')] class extends Component {
         $current = DocumentTemplate::query()->with('uploader')->get()->groupBy('key')->map(fn ($versions) => $versions->sortByDesc('version')->first());
 
         return collect(Templates::slots())
-            ->map(fn (array $slot, string $key) => ['key' => $key, 'label' => $slot['label'], 'format' => $slot['format'], 'group' => $slot['group'], 'current' => $current->get($key)])
+            ->map(fn (array $slot, string $key) => ['key' => $key, 'label' => $slot['label'], 'format' => $slot['format'], 'group' => $slot['group'], 'source' => $slot['source'], 'current' => $current->get($key)])
             ->groupBy('group', preserveKeys: true);
     }
 
@@ -75,7 +76,7 @@ new #[Title('Templates')] class extends Component {
                                         @if ($custom)
                                             {{ __('Replacement :name, uploaded by :by :time', ['name' => $slot['current']->original_name, 'by' => $slot['current']->uploader->name, 'time' => $slot['current']->created_at->diffForHumans()]) }}
                                         @else
-                                            {{ __('Built-in template') }}
+                                            {{ $slot['source'] === 'letter' ? __('Built-in PDF layout: the download is a Word starting point') : __('Built-in template') }}
                                         @endif
                                     </flux:text>
                                 </div>
@@ -94,7 +95,12 @@ new #[Title('Templates')] class extends Component {
                         </div>
                     @endforeach
                 </div>
-                @if ($slots->first()['format'] === 'xlsx')
+                @if ($slots->first()['source'] === 'letter')
+                    <flux:text class="mt-2 text-xs">
+                        {{ __('A letter type without a Word template uses the built-in PDF layout. With one, new letters are filled from it and turned into PDF when LibreOffice is installed (otherwise they download as Word); letters already issued keep their version. Placeholders:') }}
+                        {{ collect(LetterDocuments::placeholders())->map(fn ($label, $name) => '${'.$name.'} '.$label)->join(' · ') }}.
+                    </flux:text>
+                @elseif ($slots->first()['format'] === 'xlsx')
                     <flux:text class="mt-2 text-xs">{{ __('Keep the column names in the first row: SIAKAD reads them. Colours, widths and extra sheets are yours to change.') }}</flux:text>
                 @else
                     <flux:text class="mt-2 text-xs">

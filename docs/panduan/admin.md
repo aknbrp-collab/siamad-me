@@ -179,6 +179,13 @@ status **RPS** dan **jurnal** muhadhir. Saring yang belum lengkap atau menunggu 
   berikutnya (satu nomor urut untuk semua jenis, mulai dari 1 setiap Januari).
 - **Register**: semua surat per tahun, dapat dicari dan disaring per jenis, diunduh ke Excel; tombol
   **PDF** mencetak surat (dengan atau tanpa gambar tanda tangan dan stempel).
+- **Templat Word per jenis surat** (halaman **Templat** → *Persuratan*): unduh contoh Word, atur kop,
+  tata letak, tanda tangan (`${ttd}`) dan stempel (`${stempel}`), lalu unggah. Surat baru jenis itu diisi
+  dari templat tersebut (`${nomor}`, `${perihal}`, `${kepada}`, `${isi}`, `${mahasantri.nama}` …) dan
+  menjadi **PDF** bila LibreOffice terpasang di server; bila belum, tombol PDF mengunduh file **Word**.
+  Tombol **Word** selalu memberi file Word-nya. Surat yang sudah terbit tetap memakai versi templat saat
+  diterbitkan; surat yang dibatalkan dicetak dengan tata letak bawaan bertanda DIBATALKAN. Jenis surat
+  tanpa templat Word tetap memakai tata letak PDF bawaan.
 - Surat yang sudah terbit **tidak dapat diubah**. Bila salah, **batalkan** dengan alasan (nomornya tetap
   tercatat sebagai dibatalkan dan tidak dipakai lagi), lalu buat surat baru.
 - **Permohonan**: permohonan surat dari mahasantri (mis. surat keterangan aktif kuliah) beserta

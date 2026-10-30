@@ -371,6 +371,9 @@ new #[Title('Outgoing letters')] class extends Component {
                             <flux:table.cell align="end">
                                 <x-print-button size="sm" variant="ghost" icon="printer" :href="route('letters.pdf', $letter)" :document="PrintDocument::Letter"
                                     :preset="['signatory' => $letter->signatory_id, 'stamp' => $letter->stamp_id, 'marks' => $letter->print_marks]">{{ __('PDF') }}</x-print-button>
+                                @if ($letter->document_template_id && ! $letter->isCancelled())
+                                    <flux:button size="sm" variant="ghost" icon="document-text" :href="route('letters.pdf', ['letter' => $letter, 'format' => 'docx'])" data-test="word-{{ $letter->id }}">{{ __('Word') }}</flux:button>
+                                @endif
                                 @unless ($letter->isCancelled())
                                     <flux:button size="sm" variant="ghost" icon="no-symbol" wire:click="startCancel({{ $letter->id }})" :aria-label="__('Cancel letter')" data-test="cancel-{{ $letter->id }}" />
                                 @endunless

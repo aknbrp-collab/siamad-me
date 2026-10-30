@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Support\LetterNumbering;
 use App\Support\Notify;
 use App\Support\NumberSequence;
+use App\Support\Templates;
 use App\Support\Upload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -124,13 +125,16 @@ class ManageLetters
         }
 
         $date = Carbon::parse($data['issued_on']);
+        $template = Templates::current("letter.{$type->id}");
 
-        $letter = DB::transaction(function () use ($type, $data, $date, $by, $request) {
+        $letter = DB::transaction(function () use ($type, $data, $date, $by, $request, $template) {
             $number = LetterNumbering::take($type->code, $date);
 
             $letter = Letter::create([
                 ...$number,
                 'letter_type_id' => $type->id,
+                // The Word template in use now, if any: the letter keeps this version (v4 D19).
+                'document_template_id' => $template?->file_path !== null ? $template->id : null,
                 'student_id' => $type->subject === LetterSubject::Student ? $data['student_id'] : null,
                 'teacher_id' => $type->subject === LetterSubject::Teacher ? $data['teacher_id'] : null,
                 'letter_request_id' => $request?->id,

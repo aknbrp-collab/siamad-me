@@ -211,7 +211,7 @@ Route::middleware('portal')->group(function () {
     // Managed templates (v4 D24): Admin, Superadmin and the academic monitor.
     Route::middleware('role:admin,superadmin,academic_monitor')->group(function () {
         Route::livewire('templates', 'pages::templates')->name('templates');
-        Route::get('templates/{key}', [TemplateController::class, 'show'])->where('key', '[a-z]+\.[a-z]+')->name('templates.show');
+        Route::get('templates/{key}', [TemplateController::class, 'show'])->where('key', '[a-z]+\.[a-z0-9]+')->name('templates.show');
     });
 
     // Outgoing letter PDF: Admin and Superadmin, or the mahasantri it is about.

@@ -42,6 +42,16 @@ final class LetterTemplate
 
     public static function fill(string $template, ?Student $student, ?Teacher $teacher, CarbonInterface $date, ?string $purpose = null): string
     {
+        return strtr($template, self::values($student, $teacher, $date, $purpose));
+    }
+
+    /**
+     * Placeholder => value. Placeholders of a person the letter is not about are left out.
+     *
+     * @return array<string, string>
+     */
+    public static function values(?Student $student, ?Teacher $teacher, CarbonInterface $date, ?string $purpose = null): array
+    {
         $semester = Semester::active();
         $values = [
             '{tahun_akademik}' => $semester?->label() ?? '',
@@ -74,6 +84,6 @@ final class LetterTemplate
             ];
         }
 
-        return strtr($template, $values);
+        return $values;
     }
 }

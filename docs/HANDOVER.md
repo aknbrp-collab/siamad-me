@@ -222,6 +222,9 @@ edition) · Tailwind 4 · Alpine (via Livewire) · Fortify (auth, 2FA, passkeys)
   `upload_max_filesize = 12M` and `post_max_size = 16M` in php.ini (Herd: `~/.config/herd/bin/php84/php.ini`,
   then restart Herd; on the server likewise, plus nginx `client_max_body_size`). The browser also stops
   larger files before uploading (`resources/js/upload-limit.js`).
+- **LibreOffice** (optional): turns letters made from a Word template into PDF. SIAKAD looks for `soffice`
+  in the usual install places or at `SIAKAD_LIBREOFFICE`; without it those letters download as Word.
+  Not installed on the development PC yet.
 - **Selects:** `resources/views/flux/select/{index,variants/default}.blade.php` override Flux. When a
   `wire:model` value is empty, Livewire unselects every option and the browser then shows the first
   enabled one, which looked chosen but was not. So the placeholder is not disabled, and a select without

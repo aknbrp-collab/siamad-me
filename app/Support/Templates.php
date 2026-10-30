@@ -10,6 +10,7 @@ use App\Imports\History\PlacementHistory;
 use App\Imports\Importer;
 use App\Imports\Importers;
 use App\Models\DocumentTemplate;
+use App\Models\LetterType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,11 @@ final class Templates
 
         $slots['teaching.rps'] = ['label' => __('RPS'), 'format' => 'docx', 'group' => __('Teaching documents'), 'source' => 'rps'];
         $slots['teaching.journal'] = ['label' => __('Teaching journal'), 'format' => 'docx', 'group' => __('Teaching documents'), 'source' => 'journal'];
+
+        // One per letter type (v4 D19); without a replacement the type keeps the built-in PDF layout.
+        foreach (LetterType::query()->orderBy('name')->get() as $type) {
+            $slots["letter.{$type->id}"] = ['label' => "{$type->name} ({$type->code})", 'format' => 'docx', 'group' => __('Letters'), 'source' => 'letter'];
+        }
 
         return $slots;
     }
@@ -97,7 +103,8 @@ final class Templates
     {
         $slot = self::slot($key);
         [$path, $temporary] = self::file($key);
-        $response = response()->download($path, 'template-'.Str::after($key, '.').'.'.$slot['format']);
+        $name = $slot['source'] === 'letter' ? 'surat-'.Str::slug($slot['label']) : Str::after($key, '.');
+        $response = response()->download($path, "template-{$name}.{$slot['format']}");
 
         return $temporary ? $response->deleteFileAfterSend() : $response;
     }
@@ -105,6 +112,10 @@ final class Templates
     public static function defaultFile(string $key): string
     {
         $slot = self::slot($key);
+
+        if ($slot['source'] === 'letter') {
+            return LetterDocuments::defaultFile();
+        }
 
         if ($slot['format'] === 'docx') {
             return TeachingTemplates::defaultFile($slot['source']);
@@ -126,7 +137,7 @@ final class Templates
         Validator::make(['file' => $file], ['file' => ['required', 'file', 'mimes:'.($slot['format'] === 'docx' ? 'docx' : 'xlsx'), Upload::max()]])->validate();
 
         /** @var UploadedFile $file */
-        $slot['format'] === 'docx' ? self::checkWord($file) : self::checkSheet($slot, $file);
+        $slot['format'] === 'docx' ? self::checkWord($file, self::wordPlaceholders($slot)) : self::checkSheet($slot, $file);
 
         return DB::transaction(function () use ($key, $slot, $file, $by) {
             $version = self::nextVersion($key);
@@ -192,9 +203,24 @@ final class Templates
     }
 
     /**
-     * A Word replacement must open, and may only use known placeholders.
+     * Placeholder names a Word slot may use.
+     *
+     * @param  array{label: string, format: string, group: string, source: string}  $slot
+     * @return list<string>
      */
-    private static function checkWord(UploadedFile $file): void
+    public static function wordPlaceholders(array $slot): array
+    {
+        return $slot['source'] === 'letter'
+            ? array_keys(LetterDocuments::placeholders())
+            : [...array_keys(TeachingTemplates::placeholders()), ...array_keys(TeachingTemplates::journalRow())];
+    }
+
+    /**
+     * A Word replacement must open, and may only use known placeholders.
+     *
+     * @param  list<string>  $known
+     */
+    private static function checkWord(UploadedFile $file, array $known): void
     {
         try {
             $variables = (new TemplateProcessor($file->getRealPath()))->getVariables();
@@ -202,7 +228,7 @@ final class Templates
             throw ValidationException::withMessages(['file' => __('This file is not a Word document SIAKAD can read.')]);
         }
 
-        $unknown = array_diff(array_unique($variables), array_keys(TeachingTemplates::placeholders()), array_keys(TeachingTemplates::journalRow()));
+        $unknown = array_diff(array_unique($variables), $known);
 
         if ($unknown !== []) {
             throw ValidationException::withMessages(['file' => __('Unknown placeholders: :names.', ['names' => implode(', ', array_map(fn ($name) => '${'.$name.'}', $unknown))])]);

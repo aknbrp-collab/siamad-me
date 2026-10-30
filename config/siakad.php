@@ -50,6 +50,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | LibreOffice
+    |--------------------------------------------------------------------------
+    |
+    | Turns letters made from a Word template into PDF. Leave empty to look in
+    | the usual install places; without LibreOffice those letters are given
+    | out as Word files.
+    |
+    */
+
+    'libreoffice' => env('SIAKAD_LIBREOFFICE'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Backups (php artisan siakad:backup, scheduled daily)
     |--------------------------------------------------------------------------
     |

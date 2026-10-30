@@ -148,7 +148,10 @@ final class TeachingTemplates
         return $path;
     }
 
-    private static function letterhead(Section $section): void
+    /**
+     * The institution letterhead, with ${institusi} and ${alamat} (also used by Word letters).
+     */
+    public static function letterhead(Section $section): void
     {
         $head = Branding::letterhead();
         $table = $section->addTable(['borderBottomSize' => 18, 'borderBottomColor' => self::GREEN, 'width' => 100 * 50, 'unit' => TblWidth::PERCENT]);

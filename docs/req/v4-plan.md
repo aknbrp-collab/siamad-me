@@ -144,7 +144,7 @@ bills" action (D23).
 - The muhadhir **Dokumen** tab gets **Unduh template RPS** and **Unduh template jurnal**. The jurnal
   template is pre-filled with the class's meetings when possible.
 
-### Step 8 — Letter templates in Word (medium–large)
+### Step 8 — Letter templates in Word (medium–large) — ✅ done 2026-10-31
 
 - `letter_types.template_path`, uploaded on the letter type page through the template slots (Step 7).
   The page lists the placeholders, and checks the upload for unknown ones.

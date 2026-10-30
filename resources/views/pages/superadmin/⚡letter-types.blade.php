@@ -7,6 +7,7 @@ use App\Models\Signatory;
 use App\Models\Stamp;
 use App\Support\LetterNumbering;
 use App\Support\LetterTemplate;
+use App\Support\Templates;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -47,6 +48,17 @@ new #[Title('Letter types')] class extends Component {
     public function types(): Collection
     {
         return LetterType::query()->with(['signatory', 'stamp'])->orderByDesc('is_active')->orderBy('name')->get();
+    }
+
+    /**
+     * Letter types whose letters are made from an uploaded Word template (v4 D19).
+     *
+     * @return list<int>
+     */
+    #[Computed]
+    public function wordTypes(): array
+    {
+        return $this->types->filter(fn (LetterType $type) => Templates::current("letter.{$type->id}")?->file_path !== null)->modelKeys();
     }
 
     /**
@@ -194,6 +206,11 @@ new #[Title('Letter types')] class extends Component {
                             <span class="ms-1 font-mono text-xs text-zinc-500">{{ $type->code }}</span>
                             @if ($type->requestable)<flux:badge size="sm" color="green" class="ms-1">{{ __('Requestable') }}</flux:badge>@endif
                             @unless ($type->is_active)<flux:badge size="sm" class="ms-1">{{ __('Inactive') }}</flux:badge>@endunless
+                            <div class="mt-1">
+                                <flux:badge size="sm" :color="in_array($type->id, $this->wordTypes, true) ? 'sky' : 'zinc'" icon="document-text">
+                                    {{ in_array($type->id, $this->wordTypes, true) ? __('Word template') : __('Built-in PDF layout') }}
+                                </flux:badge>
+                            </div>
                         </flux:table.cell>
                         <flux:table.cell class="text-sm">{{ $type->subject->label() }}</flux:table.cell>
                         <flux:table.cell class="text-sm">{{ $type->signatory?->label() ?? '—' }}</flux:table.cell>
@@ -224,7 +241,8 @@ new #[Title('Letter types')] class extends Component {
                 </div>
             </div>
             <flux:error name="requestable" />
-            <flux:textarea wire:model="template" :label="__('Template')" rows="12" class="font-mono text-sm" required />
+            <flux:textarea wire:model="template" :label="__('Template')" rows="12" class="font-mono text-sm" required
+                :description:trailing="__('The letter text, filled in and editable when a letter is made. For your own layout (kop, signature and stamp in place), upload a Word template for this type on the Templates page.')" />
             <details class="text-sm">
                 <summary class="cursor-pointer text-zinc-600 dark:text-zinc-400">{{ __('Placeholders') }}</summary>
                 <dl class="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">

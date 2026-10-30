@@ -65,6 +65,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] As Admin, on Templates: download the mahasantri import template (green header, example row, Petunjuk sheet), upload a changed copy and see the import page download it; a copy without the nim column is refused; Use built-in restores it
 - [ ] Fill the journal fields of a few meetings, print the journal, upload the RPS and the signed journal recap (Dokumen tab); after the Admin returns the RPS with a note, upload a new version
 - [ ] Add the putri class of a subject at the same time, muhadhir and room as the putra class: SIAKAD asks "joint class or mistake"; choose joint class and see the badge, one timetable block, and one RPS for both. Another subject at that time is still refused
+- [ ] Letters: download the Word starting point for Surat Keterangan Aktif on Templates, adjust the layout, upload it; issue a letter and open it (PDF with LibreOffice, else Word) with number, name and signature in place; replace the template and see the earlier letter unchanged
 - [ ] As Admin: join the putra and putri classes of a subject taught together, accept one document and return another (Dokumen mengajar); the monitor sees the same list without the review buttons
 
 ## Petugas Pembayaran (a putri mahasantri)

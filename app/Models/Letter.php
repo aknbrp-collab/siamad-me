@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $year
  * @property int $sequence
  * @property int $letter_type_id
+ * @property int|null $document_template_id The Word template version it was issued with (null: the built-in PDF layout)
  * @property int|null $student_id
  * @property int|null $teacher_id
  * @property int|null $letter_request_id
@@ -32,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $cancelled_by
  * @property string|null $cancel_reason
  * @property-read LetterType $type
+ * @property-read DocumentTemplate|null $documentTemplate
  * @property-read Student|null $student
  * @property-read Teacher|null $teacher
  * @property-read User $issuer
@@ -39,7 +41,7 @@ use Illuminate\Support\Carbon;
  * @property-read Stamp|null $stamp
  */
 #[Fillable([
-    'number', 'year', 'sequence', 'letter_type_id', 'student_id', 'teacher_id', 'letter_request_id', 'recipient', 'subject_line',
+    'number', 'year', 'sequence', 'letter_type_id', 'document_template_id', 'student_id', 'teacher_id', 'letter_request_id', 'recipient', 'subject_line',
     'body', 'issued_on', 'issued_by', 'signatory_id', 'stamp_id', 'print_marks', 'cancelled_at', 'cancelled_by', 'cancel_reason',
 ])]
 class Letter extends Model
@@ -71,6 +73,14 @@ class Letter extends Model
     public function subjectName(): ?string
     {
         return $this->student?->user->name ?? $this->teacher?->user->name;
+    }
+
+    /**
+     * @return BelongsTo<DocumentTemplate, $this>
+     */
+    public function documentTemplate(): BelongsTo
+    {
+        return $this->belongsTo(DocumentTemplate::class);
     }
 
     /**

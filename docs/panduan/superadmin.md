@@ -81,6 +81,13 @@ diverifikasi tidak pernah memuat gambar tanda tangan dan stempel.
   stempel bawaan. Lima jenis sudah tersedia: Surat Keterangan Aktif Kuliah, Surat Tugas, Surat Undangan,
   Surat Rekomendasi, dan Surat Keterangan Lulus; sesuaikan templatnya.
 
+## Templat Word surat
+
+Di **Jenis surat** setiap jenis menunjukkan **Templat Word** atau **Tata letak PDF bawaan**. Templat Word
+diunggah di halaman **Templat** (bagian *Persuratan*). Agar surat dari templat Word menjadi PDF, pasang
+**LibreOffice** di server (SIAKAD mencarinya di tempat pemasangan biasa, atau atur `SIAKAD_LIBREOFFICE`
+di `.env` ke lokasi `soffice`).
+
 ## Pengaturan sistem
 
 **Sistem → Pengaturan**: **rekening untuk transfer** (ditampilkan kepada mahasantri dan wali saat konfirmasi transfer),

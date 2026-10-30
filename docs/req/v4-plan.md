@@ -133,7 +133,7 @@ bills" action (D23).
   notified.
 - A button on **Biaya** ("Tambahkan ke tagihan yang sudah ada").
 
-### Step 7 — Managed templates with a designed look (medium–large)
+### Step 7 — Managed templates with a designed look (medium–large) — ✅ done 2026-10-31
 
 - `templates` table (slot key, file, uploaded by, version) and a **Template** page (Admin, Superadmin,
   academic monitor). The page lists every slot with **Unduh**, **Unggah pengganti** and **Kembalikan

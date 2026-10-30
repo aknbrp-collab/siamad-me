@@ -1004,3 +1004,17 @@ v4 Step 5 (2026-10-28) — classes move up (D20), with the answers of 2026-10-28
   are assigned by hand, per the client). Fee rates copy by level (`CopyFeeRates`), skipping classes with
   no counterpart. The placement history import matches class names as they were in that semester.
 
+v4 Step 7 (2026-10-31) — managed templates with a designed look (D24):
+- Every .xlsx SIAKAD hands out goes through `SpreadsheetDownload`: green bold header, bordered cells,
+  column widths from the content, header row frozen. `templatePath()` adds a grey example row and an
+  "Instructions" (Petunjuk) sheet with each column's description.
+- `App\Support\Templates`: slots `import.*`, `history.*`, `teaching.rps|journal`. `document_templates`
+  keeps every upload as a version (no file = back to built-in). Excel replacements must still have the
+  required columns; Word replacements may only use known placeholders. The import pages download the
+  slot in use.
+- `TeachingTemplates` (PhpWord): designed RPS (identity table, 16-meeting plan, references) and journal
+  (landscape, one `${no}` row cloned per meeting from `TeachingJournal::rows`), both with letterhead and
+  signature block; `fill()` works on the default or a replacement. Muhadhir Dokumen tab: "Unduh templat
+  RPS/jurnal" (`teaching/{offering}/template/{kind}`, same access as the journal PDF). Page **Templat**
+  for Admin, Superadmin, academic monitor. Letter templates follow in Step 8.
+

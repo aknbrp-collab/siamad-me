@@ -39,6 +39,9 @@ Pertemuan yang sudah diisi presensinya dapat diubah tetapi tidak dapat dihapus.
 ## Dokumen mengajar (RPS dan jurnal)
 
 Setiap kelas kuliah punya tab **Dokumen**:
+- **Unduh templat RPS** / **Unduh templat jurnal**: file Word dengan kop lembaga yang sudah terisi mata
+  kuliah, kelas, dan nama Anda; templat jurnal juga sudah berisi pertemuan-pertemuan kelas ini. Lengkapi,
+  tanda tangani, lalu unggah.
 - **RPS**: unggah RPS mata kuliah untuk semester ini (PDF atau Word, maks. 10 MB).
 - **Jurnal mengajar**: isi kolom **Materi yang disampaikan**, **Metode**, dan **Catatan** pada setiap
   pertemuan (tab Pertemuan → ubah pertemuan). Di tab Dokumen, **Cetak jurnal** membuat jurnal dari

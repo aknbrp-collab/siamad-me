@@ -115,6 +115,7 @@ resources/views/
     ustadz/                dashboard, offerings/{meetings,materials,assignments,assignment,quizzes,quiz,forum,grades,documents}
     teaching-documents     RPS / journal overview (Admin reviews, monitor reads)
     finance/pending        where unverified payments wait (Keuangan, Admin, Superadmin)
+    templates              managed templates: download, replace, back to built-in
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
                            print-button + print-options (staff print dialog), theme-switch, app-logo-mark,
@@ -177,7 +178,8 @@ tests/Feature/             Admin, Auth, Finance, Teaching, Lms, Superadmin, Sett
 **Stack:** PHP 8.3+ (8.4 locally) · Laravel 13 · Livewire 4 (single-file components) · Flux UI 2 (free
 edition) · Tailwind 4 · Alpine (via Livewire) · Fortify (auth, 2FA, passkeys) · **PostgreSQL 17** (dev DB
 `siakad`, tests DB `siakad_test`) · Pest 5 · Larastan · Pint.
-**Added packages:** `spatie/simple-excel ^3.11` (import/export), `barryvdh/laravel-dompdf ^3.1` (PDFs).
+**Added packages:** `spatie/simple-excel ^3.11` (import/export), `barryvdh/laravel-dompdf ^3.1` (PDFs),
+`phpoffice/phpword ^1.4` (Word templates, v4).
 
 **Architecture & conventions**
 - Pages are thin: validate input shape, call an **Action**, toast. Actions throw

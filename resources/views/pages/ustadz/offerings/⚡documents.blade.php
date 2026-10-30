@@ -104,9 +104,15 @@ new #[Title('Teaching documents')] class extends Component {
                     @endif
                 </div>
 
-                @if ($kind === TeachingDocumentKind::Journal)
-                    <flux:button size="sm" icon="printer" :href="route('teaching.journal', $offering)" target="_blank">{{ __('Print the journal') }}</flux:button>
-                @endif
+                <div class="flex flex-wrap gap-2">
+                    {{-- A Word file with the class filled in (and, for the journal, its meetings), to finish and upload. --}}
+                    <flux:button size="sm" icon="document-arrow-down" :href="route('teaching.template', [$offering, $kind->value])" data-test="template-{{ $kind->value }}">
+                        {{ $kind === TeachingDocumentKind::Rps ? __('Download the RPS template') : __('Download the journal template') }}
+                    </flux:button>
+                    @if ($kind === TeachingDocumentKind::Journal)
+                        <flux:button size="sm" icon="printer" :href="route('teaching.journal', $offering)" target="_blank">{{ __('Print the journal') }}</flux:button>
+                    @endif
+                </div>
 
                 @if ($latest?->review_note)
                     <flux:callout :icon="$latest->status === TeachingDocumentStatus::Returned ? 'arrow-uturn-left' : 'chat-bubble-left'" :color="$latest->status->color()" :text="$latest->review_note" />

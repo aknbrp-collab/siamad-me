@@ -143,6 +143,21 @@ presensi, transkrip, dan catatan kegiatan mahasantri bimbingannya, dan berdiskus
 semester itu hanya dapat dibaca. Jika masih ada nilai yang belum final, SIAKAD meminta konfirmasi. Hanya
 Superadmin yang dapat membukanya kembali.
 
+## Templat
+
+Menu **Templat** (Admin, Superadmin, Pemantau akademik) berisi semua templat yang diunduh dari SIAKAD:
+templat impor (mahasantri, muhadhir, mata kuliah), templat data tahun sebelumnya, serta **RPS** dan
+**jurnal mengajar**. Setiap templat punya versi **bawaan** yang sudah dirancang (judul kolom berwarna,
+lebar kolom rapi, baris contoh, dan lembar **Petunjuk**; dokumen Word dengan kop lembaga dan tabel).
+- **Unduh**, ubah di Excel/Word, lalu **Unggah pengganti**. Semua unduhan sejak itu memakai file Anda.
+- Templat Excel: jangan ubah nama kolom di baris pertama (SIAKAD membacanya); file yang kehilangan
+  kolom wajib ditolak.
+- Templat Word boleh memakai isian seperti `${mata_kuliah}`, `${kelas}`, `${muhadhir}`, `${semester}`
+  (daftar lengkap ada di halaman). Jurnal: letakkan `${no}`, `${tgl}`, `${materi}`, `${metode}`,
+  `${hadir}`, `${catatan}` dalam satu baris tabel; baris itu diulang untuk setiap pertemuan. Isian lain
+  yang tidak dikenal ditolak.
+- **Pakai bawaan** mengembalikan templat bawaan (file lama tetap tersimpan sebagai riwayat).
+
 ## Dokumen mengajar (RPS dan jurnal)
 
 Menu **Akademik → Dokumen mengajar**: setiap kelas kuliah (atau kelas yang digabung) per semester dengan

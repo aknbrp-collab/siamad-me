@@ -11,7 +11,7 @@ use App\Imports\Importers;
 use App\Models\Semester;
 use App\Support\ActiveRole;
 use App\Support\MaintenanceMode;
-use App\Support\SpreadsheetDownload;
+use App\Support\Templates;
 use App\Support\Upload;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
@@ -139,12 +139,9 @@ new #[Title('Previous-year data')] class extends Component {
 
     public function template(): BinaryFileResponse
     {
-        $importer = $this->importer;
-        $header = fn (string $column) => $column.(str_starts_with($importer->columns()[$column], __('Required')) ? '*' : '');
+        abort_unless(isset(self::TYPES[$this->type]), 404);
 
-        return SpreadsheetDownload::make("template-{$this->type}.xlsx", [
-            array_combine(array_map($header, array_keys($importer->columns())), array_values($importer->example())),
-        ]);
+        return Templates::download("history.{$this->type}");
     }
 
     /**

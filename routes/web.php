@@ -13,6 +13,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ScoreTemplateController;
 use App\Http\Controllers\TeachingJournalController;
+use App\Http\Controllers\TemplateController;
 use App\Imports\Importers;
 use App\Support\ActiveRole;
 use Illuminate\Support\Facades\Route;
@@ -201,6 +202,17 @@ Route::middleware('portal')->group(function () {
 
     // Jurnal mengajar PDF: the muhadhir of the class, Admin, Superadmin, academic monitor.
     Route::get('teaching/{offering}/journal', TeachingJournalController::class)->name('teaching.journal');
+
+    // RPS / jurnal Word template of a class, filled in (same people as the journal PDF).
+    Route::get('teaching/{offering}/template/{kind}', [TemplateController::class, 'teaching'])
+        ->whereIn('kind', ['rps', 'journal'])
+        ->name('teaching.template');
+
+    // Managed templates (v4 D24): Admin, Superadmin and the academic monitor.
+    Route::middleware('role:admin,superadmin,academic_monitor')->group(function () {
+        Route::livewire('templates', 'pages::templates')->name('templates');
+        Route::get('templates/{key}', [TemplateController::class, 'show'])->where('key', '[a-z]+\.[a-z]+')->name('templates.show');
+    });
 
     // Outgoing letter PDF: Admin and Superadmin, or the mahasantri it is about.
     Route::get('letters/{letter}/pdf', LetterPdfController::class)->name('letters.pdf');

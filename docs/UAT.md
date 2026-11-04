@@ -66,6 +66,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Bimbingan: in your writing group send a message with a file, reply to one, add a note, mute a mahasantri until tomorrow and lock the discussion; the mahasantri sees why they cannot post
 - [ ] LPPPK: post in Penelitian, reply to a mahasantri's question (only they are notified), see unread counts on channels you never opened
 - [ ] Articles: approve one mahasantri article and ask for changes on another (with a note); publish your own article directly, edit it and publish again
+- [ ] With the CMS staging values in .env: publish an article, see "Diterima editor website" within a minute or two; after the CMS editor approves it, "Periksa status" shows the website link; withdraw it and it leaves the website
 - [ ] Fill the journal fields of a few meetings, print the journal, upload the RPS and the signed journal recap (Dokumen tab); after the Admin returns the RPS with a note, upload a new version
 - [ ] Add the putri class of a subject at the same time, muhadhir and room as the putra class: SIAKAD asks "joint class or mistake"; choose joint class and see the badge, one timetable block, and one RPS for both. Another subject at that time is still refused
 - [ ] Letters: download the Word starting point for Surat Keterangan Aktif on Templates, adjust the layout, upload it; issue a letter and open it (PDF with LibreOffice, else Word) with number, name and signature in place; replace the template and see the earlier letter unchanged

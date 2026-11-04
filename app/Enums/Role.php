@@ -227,6 +227,7 @@ enum Role: string
                 $item(__('Letter types'), 'document-duplicate', 'superadmin.letter-types'),
                 $item(__('Settings'), 'adjustments-horizontal', 'superadmin.settings'),
                 $item(__('Maintenance mode'), 'wrench-screwdriver', 'superadmin.maintenance'),
+                $item(__('CMS integration'), 'arrows-right-left', 'superadmin.cms'),
                 $item(__('Audit log'), 'clipboard-document-list', 'superadmin.audit-logs'),
             ]];
         }

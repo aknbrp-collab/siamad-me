@@ -118,7 +118,7 @@ Source: `docs/req/v5.md`, with the CMS contract in `docs/req/siakad-api-spec.md`
   muhadhir. No public page in SIAKAD: the website shows the articles.
 - Notifications to the author and the reviewers.
 
-### Step 5 — CMS integration: articles (medium)
+### Step 5 — CMS integration: articles (medium) — ✅ done 2026-11-04
 
 - `CmsClient` (signing, JSON body as sent, timeouts), `PushArticle` / `WithdrawArticle` / `CheckArticle`
   jobs with backoff, a daily status check, and the `cms_requests` log.

@@ -1083,3 +1083,20 @@ v5 Step 4 (2026-11-04) — articles (D29):
   (app.css) instead of a typography plugin.
 - Visibility: author, every muhadhir and the staff who oversee; published articles to every active user.
 
+v5 Step 5 (2026-11-04) — CMS integration for articles (D31, D32; spec v1.1):
+- Settings `services.cms.*` (`CMS_WEBHOOK_URL`, `CMS_WEBHOOK_SECRET`, `SIAKAD_API_KEY`, `CMS_ARTICLE_TYPE`,
+  `CMS_ANSWERED_BY`); the integration is off while the URL or secret is empty.
+- `CmsClient`: HMAC-SHA256 of "{timestamp}.{raw body}" in `X-Siakad-Timestamp` / `X-Siakad-Signature`, the
+  exact JSON bytes sent (empty for GET/DELETE), 15 s timeout; every call logged in `cms_requests`
+  (direction, endpoint, subject, status, duration, request id, short response or error).
+- Jobs `PushArticle` (§3.1, latest version; `id` = article code), `WithdrawArticle` (§3.3; 404 = nothing to
+  take down) and `CheckArticle` (§3.2) share `CmsArticleJob`: 5 tries, backoff 1/5/15/60 min on 5xx and
+  connection errors, `429` released after `Retry-After`, other 4xx recorded in `articles.cms_error` and not
+  retried. Listeners on `ArticlePublished` / `ArticleWithdrawn` dispatch them after commit.
+- Articles keep `cms_id`, `cms_status`, `cms_review_note`, `cms_public_url`, `cms_changes_pending`,
+  `cms_sent_version`, `cms_sent_at`, `cms_checked_at`. The article page shows them ("Di website") with
+  "Kirim ulang" and "Periksa status". `siakad:cms-check` reads every sent article daily.
+- The scheduler runs `queue:work --stop-when-empty --max-time=55` every minute (D32).
+- Superadmin **Integrasi CMS**: configuration check (secret length, API key, queue backlog, failed jobs),
+  "Uji koneksi" (GET of a non-existent article: 404 proves the signature, 401 does not) and the call log.
+

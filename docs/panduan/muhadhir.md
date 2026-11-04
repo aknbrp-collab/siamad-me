@@ -55,7 +55,8 @@ alasannya.
 
 Menu **Artikel saya**: tulis artikel sederhana untuk website (bukan makalah jurnal) dengan Markdown.
 Artikel Anda **terbit langsung** (**Terbitkan**), lalu diperiksa editor website. Mengubah artikel yang
-terbit membuat versi baru; **Terbitkan lagi** untuk mengirimnya.
+terbit membuat versi baru; **Terbitkan lagi** untuk mengirimnya. Kotak **Di website** di halaman artikel menunjukkan status di editor
+website dan tautannya; **Kirim ulang** bila pengiriman gagal.
 
 **Antrean pemeriksaan** (tombol di Artikel saya, dan notifikasi): artikel mahasantri yang menunggu
 diperiksa. Buka artikelnya, lalu **Setujui** atau **Minta perbaikan** dengan catatan. Artikel terbit

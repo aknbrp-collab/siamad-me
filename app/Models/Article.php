@@ -27,10 +27,20 @@ use Illuminate\Support\Str;
  * @property Carbon|null $submitted_at
  * @property Carbon|null $published_at First publication
  * @property Carbon|null $withdrawn_at
+ * @property string|null $cms_id
+ * @property string|null $cms_status draft | under_review | approved | rejected | withdrawn (as the CMS reports it)
+ * @property string|null $cms_review_note
+ * @property string|null $cms_public_url
+ * @property bool $cms_changes_pending
+ * @property int|null $cms_sent_version
+ * @property Carbon|null $cms_sent_at
+ * @property Carbon|null $cms_checked_at
+ * @property string|null $cms_error
  * @property Carbon $updated_at
  * @property-read User $author
  */
-#[Fillable(['code', 'user_id', 'title', 'summary', 'body_md', 'keywords', 'status', 'review_round', 'submitted_at', 'published_at', 'withdrawn_at'])]
+#[Fillable(['code', 'user_id', 'title', 'summary', 'body_md', 'keywords', 'status', 'review_round', 'submitted_at', 'published_at', 'withdrawn_at',
+    'cms_id', 'cms_status', 'cms_review_note', 'cms_public_url', 'cms_changes_pending', 'cms_sent_version', 'cms_sent_at', 'cms_checked_at', 'cms_error'])]
 class Article extends Model
 {
     use Auditable;
@@ -55,6 +65,10 @@ class Article extends Model
             'submitted_at' => 'datetime',
             'published_at' => 'datetime',
             'withdrawn_at' => 'datetime',
+            'cms_changes_pending' => 'boolean',
+            'cms_sent_version' => 'integer',
+            'cms_sent_at' => 'datetime',
+            'cms_checked_at' => 'datetime',
         ];
     }
 
@@ -64,6 +78,31 @@ class Article extends Model
     public static function render(string $markdown): string
     {
         return Str::markdown($markdown, ['html_input' => 'strip', 'allow_unsafe_links' => false]);
+    }
+
+    /**
+     * What the website editors' state means for the author.
+     */
+    public function cmsStatusLabel(): ?string
+    {
+        $label = match ($this->cms_status) {
+            'draft' => __('Received by the website editors'),
+            'under_review' => __('Being checked by the website editors'),
+            'approved' => __('On the website'),
+            'rejected' => __('Not accepted by the website editors'),
+            'withdrawn' => __('Removed from the website'),
+            default => null,
+        };
+
+        return is_string($label) ? $label : null;
+    }
+
+    /**
+     * The version that is published now (the latest one).
+     */
+    public function latestVersion(): ?ArticleVersion
+    {
+        return $this->versions()->orderByDesc('version')->first();
     }
 
     public function bodyHtml(): string

@@ -72,7 +72,8 @@ sebagai draf, lalu **Kirim untuk diperiksa**. Muhadhir memeriksanya: artikel **t
 dua muhadhir**. Bila ada yang **meminta perbaikan**, baca catatannya, ubah, lalu kirim lagi (putaran
 baru). Setelah terbit, artikel dikirim ke editor website. Mengubah artikel yang sudah terbit membuat
 versi baru yang diperiksa lagi; versi lama tetap tayang sampai versi baru terbit. Anda dapat **menarik**
-artikel dari website.
+artikel dari website. Di halaman artikel, kotak **Di website** menunjukkan status di editor website
+(diterima, sedang diperiksa, tayang beserta tautannya, atau tidak diterima beserta catatannya).
 
 ## KHS dan transkrip
 

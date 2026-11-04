@@ -51,6 +51,27 @@ Check what is scheduled with `php artisan schedule:list`. Scheduled jobs:
 | --- | --- | --- |
 | `siakad:backup` | daily 02:00 | database + private files (section 3) |
 | `siakad:send-reminders` | hourly | in-app reminders: work due within 24 h, bills due in 7 days / today (each once per person) |
+| `siakad:cms-check` | daily 06:00 | asks the website CMS for the review status and link of every article sent (v5) |
+| `queue:work --stop-when-empty` | every minute | works the queue: calls to the CMS and their retries (v5) |
+
+**Queue (v5).** Calls to the website CMS run on the database queue and are retried (1, 5, 15, 60 minutes)
+when the CMS is busy or down. The scheduler starts a worker every minute, so nothing else is needed. On a
+server with Supervisor a permanent worker is better (then the scheduled one finds nothing to do):
+
+```
+[program:siakad-queue]
+command=php /path/to/siakad/artisan queue:work --sleep=3 --tries=5 --max-time=3600
+autostart=true
+autorestart=true
+user=www-data
+```
+
+**CMS integration (v5).** In `.env`: `CMS_WEBHOOK_URL` (e.g. `https://admin.pondok.example/api/webhooks/siakad`),
+`CMS_WEBHOOK_SECRET` (the same value as `SIAKAD_WEBHOOK_SECRET` in the CMS, 32+ random characters,
+`openssl rand -hex 32`), `SIAKAD_API_KEY` (the Bearer token the CMS sends to SIAKAD) and `CMS_ARTICLE_TYPE`
+(`article`; `research` until the CMS knows the article type). Keep the server clock in sync (NTP): signed
+calls older than 5 minutes are refused. Superadmin → **Integrasi CMS** checks the settings, tests the
+connection and lists every call.
 
 Notifications themselves need no queue worker: they are written to the database while the request runs,
 and Web Push pop-ups are sent right after the response (a slow push service never delays a page).

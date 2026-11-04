@@ -119,7 +119,8 @@ resources/views/
     discussion             a discussion room (bimbingan group or LPPPK channel): chat, files, notes, members
     bimbingan/             index (my groups: muhadhir, mahasantri), groups (Admin, academic monitor)
     lpppk/                 index (channels; staff add/close), moderation (LPPPK-wide mute / restrict)
-    articles/              index (my articles), edit (write, Markdown preview), show (read, act, review), review (queue)
+    articles/              index (my articles), edit (write, Markdown preview), show (read, act, review, website status), review (queue)
+    superadmin/cms         CMS integration: settings check, connection test, call log
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
                            print-button + print-options (staff print dialog), theme-switch, app-logo-mark,

@@ -118,6 +118,14 @@ Klik **Matikan** setelah selesai; semua kembali terkunci. Halaman ini juga menam
   misalnya transfer yang ternyata dibatalkan bank. Kuitansinya menjadi *BATAL* dan tagihan dihitung ulang.
 - **Mengubah batas cicilan** satu tagihan (halaman tagihan → **Ubah batas cicilan**), wajib dengan alasan.
 
+## Integrasi CMS
+
+Menu **Sistem → Integrasi CMS** menunjukkan hubungan SIAKAD dengan CMS website: alamat CMS, rahasia
+bersama, kunci API, jenis artikel yang dikirim, dan apakah antrean berjalan (pengaturannya di `.env`,
+lihat docs/OPERATIONS.md). **Uji koneksi** memastikan alamat, rahasia, dan jam server benar. Daftar
+**Panggilan** mencatat setiap panggilan ke dan dari CMS (waktu, alamat, artikel/pertanyaan, jawaban),
+untuk ditelusuri bila ada masalah.
+
 ## Log audit
 
 **Sistem → Log audit** mencatat setiap perubahan data: siapa, data apa, nilai lama → baru, kapan, dan

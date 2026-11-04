@@ -5,6 +5,9 @@ use App\Enums\ArticleStatus;
 use App\Enums\Role;
 use App\Models\Article;
 use App\Models\ArticleReview;
+use App\Jobs\Cms\CheckArticle;
+use App\Jobs\Cms\PushArticle;
+use App\Support\Cms\CmsClient;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -82,6 +85,30 @@ new #[Title('Article')] class extends Component {
         $this->refreshArticle($approve ? __('Approved.') : __('Sent back to the author with your note.'));
     }
 
+    #[Computed]
+    public function seesWebsite(): bool
+    {
+        return $this->article->published_at !== null
+            && ($this->mine || auth()->user()->hasRole(Role::Admin, Role::Superadmin, Role::AcademicMonitor));
+    }
+
+    /**
+     * Send the published version to the website again (e.g. after a refusal or an outage).
+     */
+    public function resend(): void
+    {
+        abort_unless($this->seesWebsite && CmsClient::enabled() && $this->article->status === ArticleStatus::Published, 403);
+        PushArticle::dispatch($this->article->id);
+        Flux::toast(variant: 'success', text: __('Queued. The website status updates in a minute or two.'));
+    }
+
+    public function checkWebsite(): void
+    {
+        abort_unless($this->seesWebsite && CmsClient::enabled() && $this->article->cms_sent_at !== null, 403);
+        CheckArticle::dispatch($this->article->id);
+        Flux::toast(variant: 'success', text: __('Queued. The website status updates in a minute or two.'));
+    }
+
     public function withdraw(ManageArticles $manage): void
     {
         $manage->withdraw($this->article, auth()->user());
@@ -155,6 +182,47 @@ new #[Title('Article')] class extends Component {
                 <flux:badge size="sm">{{ $keyword }}</flux:badge>
             @endforeach
         </div>
+    @endif
+
+    @if ($this->seesWebsite)
+        @php($latest = $article->latestVersion())
+        <flux:card class="mb-8 space-y-2" data-test="website-status">
+            <div class="flex flex-wrap items-center gap-2">
+                <flux:heading class="me-auto">{{ __('On the website') }}</flux:heading>
+                @if (CmsClient::enabled() && $article->cms_sent_at)
+                    <flux:button size="xs" variant="ghost" icon="arrow-path" wire:click="checkWebsite">{{ __('Check status') }}</flux:button>
+                @endif
+                @if (CmsClient::enabled() && $article->status === ArticleStatus::Published && ($article->cms_error || ! $article->cms_sent_at || $article->cms_sent_version !== $latest?->version))
+                    <flux:button size="xs" icon="paper-airplane" wire:click="resend" data-test="resend">{{ __('Send again') }}</flux:button>
+                @endif
+            </div>
+            @if (! CmsClient::enabled())
+                <flux:text class="text-sm">{{ __('SIAKAD is not connected to the website yet; the academic office sets this up.') }}</flux:text>
+            @elseif (! $article->cms_sent_at && ! $article->cms_error)
+                <flux:text class="text-sm">{{ __('Being sent to the website editors…') }}</flux:text>
+            @else
+                @if ($article->cmsStatusLabel())
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <flux:badge size="sm" :color="match ($article->cms_status) { 'approved' => 'green', 'rejected' => 'red', 'withdrawn' => 'zinc', default => 'blue' }">{{ $article->cmsStatusLabel() }}</flux:badge>
+                        @if ($article->cms_public_url)
+                            <flux:link :href="$article->cms_public_url" target="_blank" class="text-sm">{{ __('Open on the website') }}</flux:link>
+                        @endif
+                    </div>
+                @endif
+                @if ($article->cms_status === 'rejected' && $article->cms_review_note)
+                    <flux:text class="text-sm">{{ __("Editors' note: :note", ['note' => $article->cms_review_note]) }}</flux:text>
+                @endif
+                @if ($article->cms_changes_pending)
+                    <flux:text class="text-sm">{{ __('Your latest changes wait for the editors; the website shows the earlier version until then.') }}</flux:text>
+                @endif
+                @if ($article->cms_sent_at)
+                    <flux:text class="text-xs">{{ __('Version :version sent :time', ['version' => $article->cms_sent_version, 'time' => $article->cms_sent_at->diffForHumans()]) }}@if ($article->cms_checked_at) · {{ __('checked :time', ['time' => $article->cms_checked_at->diffForHumans()]) }}@endif</flux:text>
+                @endif
+            @endif
+            @if ($article->cms_error)
+                <flux:callout variant="danger" icon="exclamation-triangle" :text="$article->cms_error" />
+            @endif
+        </flux:card>
     @endif
 
     @if ($this->canReview)

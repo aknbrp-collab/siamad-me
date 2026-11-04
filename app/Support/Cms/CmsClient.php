@@ -51,7 +51,9 @@ class CmsClient
             $request = $request->withBody($body, 'application/json');
         }
 
-        $url = rtrim((string) config('services.cms.url'), '/').'/'.ltrim($path, '/');
+        // A path below the CMS webhook URL, or a full URL the CMS gave (e.g. a Tanya Hukum callback_url).
+        $url = str_starts_with($path, 'http') ? $path : rtrim((string) config('services.cms.url'), '/').'/'.ltrim($path, '/');
+        $path = str_starts_with($path, 'http') ? (string) parse_url($path, PHP_URL_PATH) : $path;
 
         try {
             $response = $request->send($method, $url);

@@ -38,7 +38,7 @@ final class DiscussionAccess
 
         return match ($discussion->kind) {
             DiscussionKind::Bimbingan => self::member($user, $discussion) !== null,
-            DiscussionKind::Lpppk => self::inLpppk($user) && ! (self::sanction($user)?->isRestricted() ?? false),
+            DiscussionKind::Lpppk, DiscussionKind::TanyaHukum => self::inLpppk($user) && ! (self::sanction($user)?->isRestricted() ?? false),
         };
     }
 
@@ -74,7 +74,7 @@ final class DiscussionAccess
         }
 
         $member = self::member($user, $discussion);
-        $sanction = $discussion->kind === DiscussionKind::Lpppk ? self::sanction($user) : null;
+        $sanction = $discussion->kind !== DiscussionKind::Bimbingan ? self::sanction($user) : null;
 
         if ($sanction?->isMuted()) {
             return $sanction->muted_until

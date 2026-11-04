@@ -75,6 +75,11 @@ versi baru yang diperiksa lagi; versi lama tetap tayang sampai versi baru terbit
 artikel dari website. Di halaman artikel, kotak **Di website** menunjukkan status di editor website
 (diterima, sedang diperiksa, tayang beserta tautannya, atau tidak diterima beserta catatannya).
 
+## Tanya Hukum
+
+Di **LPPPK → Tanya Hukum** Anda dapat membaca pertanyaan dari website dan ikut berdiskusi di ruang
+**Diskusi** setiap pertanyaan. Jawabannya ditulis dan disetujui para muhadhir.
+
 ## KHS dan transkrip
 
 - **KHS**: pilih semester untuk melihat SKS, nilai, nilai huruf, dan IPS. Hanya nilai yang sudah final

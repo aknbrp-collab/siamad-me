@@ -1100,3 +1100,19 @@ v5 Step 5 (2026-11-04) — CMS integration for articles (D31, D32; spec v1.1):
 - Superadmin **Integrasi CMS**: configuration check (secret length, API key, queue backlog, failed jobs),
   "Uji koneksi" (GET of a non-existent article: 404 proves the signature, 401 does not) and the call log.
 
+v5 Step 6 (2026-11-04) — Tanya Hukum (D30; spec §4.1, §3.4):
+- `routes/api.php` (new): `POST /api/cms/legal-questions`, throttled 60/min. `VerifyCmsRequest` checks the
+  Bearer key (`SIAKAD_API_KEY`), the timestamp (±300 s) and the HMAC signature of the raw body, all in
+  constant time; 403 while the integration is not set up, 401 otherwise; every inbound call is logged.
+- `ManageLegalQuestions::receive()`: idempotent on `cms_question_id` (the Idempotency-Key; a concurrent
+  duplicate is caught by the unique index) → 201 `{"id": "SIAKAD-Q-000123"}` or 200 for a repeat; 422 JSON
+  errors; `callback_url` must be on the CMS host (no SSRF). The asker's name is dropped when anonymous.
+  Each question gets a `discussions` row of kind `tanya_hukum` (access as LPPPK, `created_by` null).
+- Answers are versions (`legal_answers`: draft → awaiting → approved → sent; superseded when a correction
+  is sent). Any muhadhir edits the draft; the last to save is the drafter and cannot approve. Two other
+  muhadhir approve (`legal_answer_approvals`, under a row lock), then `SendLegalAnswer` posts §3.4 to the
+  callback with the article job's retry rules; the CMS's `question_status` and `correction_pending` are
+  kept. "Kembali ke draf" drops approvals; "Koreksi jawaban" starts a new version from the sent one.
+- Pages **Tanya Hukum** (`tanya-hukum`, linked from LPPPK with the count not answered) and the question page
+  (answer form, approvals, versions, link to its discussion).
+

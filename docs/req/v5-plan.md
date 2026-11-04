@@ -127,7 +127,7 @@ Source: `docs/req/v5.md`, with the CMS contract in `docs/req/siakad-api-spec.md`
 - Tests with `Http::fake()`: the signature matches the spec example, `201`/`200`, `422` not retried,
   `429` and `5xx` retried, status read.
 
-### Step 6 — Tanya Hukum (large)
+### Step 6 — Tanya Hukum (large) — ✅ done 2026-11-04
 
 - `POST /api/cms/legal-questions`:
   - **Checks:** the Bearer key, the signature (300 s window, constant-time compare), validation (`422`

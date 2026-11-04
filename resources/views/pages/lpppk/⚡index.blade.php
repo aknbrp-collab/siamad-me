@@ -67,6 +67,12 @@ new #[Title('LPPPK')] class extends Component {
         return DiscussionMessage::query()->with('user')->whereKey($ids)->get()->keyBy('discussion_id');
     }
 
+    #[Computed]
+    public function openQuestions(): int
+    {
+        return \App\Models\LegalQuestion::query()->whereDoesntHave('answers', fn ($query) => $query->where('status', 'sent'))->count();
+    }
+
     public function create(): void
     {
         abort_unless($this->moderator, 403);
@@ -126,6 +132,17 @@ new #[Title('LPPPK')] class extends Component {
                 :text="($sanction->muted_until ? __('You are muted in LPPPK until :date.', ['date' => $sanction->muted_until->translatedFormat('j M Y H:i')]) : __('You are muted in LPPPK.')).($sanction->reason ? ' '.$sanction->reason : '')" />
         @endif
     @endif
+
+    <a href="{{ route('tanya-hukum') }}" wire:navigate class="mb-4 flex items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800" data-test="tanya-hukum-link">
+        <flux:icon.scale class="size-5 shrink-0 text-zinc-400" />
+        <span class="min-w-0 flex-1">
+            <span class="block font-medium">{{ __('Tanya Hukum') }}</span>
+            <span class="block text-xs text-zinc-500">{{ __('Questions from the website: discuss them and answer.') }}</span>
+        </span>
+        @if ($this->openQuestions > 0)
+            <flux:badge size="sm" color="amber">{{ trans_choice(':count not answered|:count not answered', $this->openQuestions) }}</flux:badge>
+        @endif
+    </a>
 
     <div class="divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700">
         @forelse ($this->channels as $channel)

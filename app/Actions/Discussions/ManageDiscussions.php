@@ -147,7 +147,7 @@ class ManageDiscussions
     {
         $member = DiscussionAccess::member($user, $discussion);
 
-        if ($member === null && $discussion->kind === DiscussionKind::Lpppk && DiscussionAccess::canView($user, $discussion)) {
+        if ($member === null && $discussion->kind !== DiscussionKind::Bimbingan && DiscussionAccess::canView($user, $discussion)) {
             $member = DiscussionMember::query()->firstOrCreate(['discussion_id' => $discussion->id, 'user_id' => $user->id]);
         }
 

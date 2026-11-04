@@ -121,6 +121,8 @@ resources/views/
     lpppk/                 index (channels; staff add/close), moderation (LPPPK-wide mute / restrict)
     articles/              index (my articles), edit (write, Markdown preview), show (read, act, review, website status), review (queue)
     superadmin/cms         CMS integration: settings check, connection test, call log
+    tanya-hukum/           index (questions from the CMS), show (question, answer drafting, approvals, versions)
+  routes/api.php           POST /api/cms/legal-questions (CMS → SIAKAD, Bearer + signature)
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
                            print-button + print-options (staff print dialog), theme-switch, app-logo-mark,

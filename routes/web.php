@@ -227,6 +227,9 @@ Route::middleware('portal')->group(function () {
 
     // LPPPK (v5 D28): channels for every active mahasantri and muhadhir (checked by the page), moderation for staff.
     Route::livewire('lpppk', 'pages::lpppk.index')->name('lpppk');
+    // Tanya Hukum (v5 D30): questions from the website, answered in LPPPK; access is checked by the pages.
+    Route::livewire('tanya-hukum', 'pages::tanya-hukum.index')->name('tanya-hukum');
+    Route::livewire('tanya-hukum/{question}', 'pages::tanya-hukum.show')->name('tanya-hukum.show');
     Route::livewire('lpppk/moderation', 'pages::lpppk.moderation')->middleware('role:admin,superadmin,academic_monitor')->name('lpppk.moderation');
 
     // Managed templates (v4 D24): Admin, Superadmin and the academic monitor.

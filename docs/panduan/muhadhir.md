@@ -51,6 +51,19 @@ menunjukkan pesan yang belum dibaca. Setiap kanal memakai ruang diskusi yang sam
 dapat membisukan Anda di LPPPK (tetap dapat membaca) atau menutup akses Anda; Anda diberi tahu beserta
 alasannya.
 
+## Tanya Hukum
+
+Di **LPPPK → Tanya Hukum** masuk pertanyaan dari website yang diteruskan moderatornya (kategori, kota
+penanya, catatan moderator; nama penanya hanya bila tidak anonim). Setiap pertanyaan punya ruang
+**Diskusi** sendiri yang dapat diikuti semua mahasantri dan muhadhir.
+- **Tulis jawaban** (Markdown, dengan pratinjau) dan **rujukan kitab**, **Simpan draf**, lalu
+  **Ajukan persetujuan**. Muhadhir mana pun boleh melanjutkan draf; yang terakhir menyimpan dianggap
+  penulisnya.
+- Jawaban dikirim ke website setelah **dua muhadhir lain menyetujuinya**. **Kembali ke draf** untuk
+  mengubahnya (persetujuan yang sudah ada batal).
+- **Koreksi jawaban** setelah terkirim membuat versi baru yang perlu dua persetujuan lagi; bila jawaban
+  sudah tayang, moderator website yang memutuskan koreksinya.
+
 ## Artikel
 
 Menu **Artikel saya**: tulis artikel sederhana untuk website (bukan makalah jurnal) dengan Markdown.

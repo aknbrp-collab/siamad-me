@@ -257,6 +257,9 @@ new #[Title('Discussion')] class extends Component {
             @elseif ($discussion->locked_at)
                 <flux:badge color="amber" icon="lock-closed">{{ __('Locked') }}</flux:badge>
             @endif
+            @if ($discussion->kind === DiscussionKind::TanyaHukum && ($question = \App\Models\LegalQuestion::query()->where('discussion_id', $discussion->id)->first()))
+                <flux:button size="sm" icon="scale" :href="route('tanya-hukum.show', $question)" wire:navigate>{{ __('Question and answer') }}</flux:button>
+            @endif
             @if ($this->moderator && ! $discussion->closed_at)
                 <flux:button size="sm" :icon="$discussion->locked_at ? 'lock-open' : 'lock-closed'" wire:click="toggleLock" data-test="toggle-lock">
                     {{ $discussion->locked_at ? __('Unlock') : __('Lock') }}

@@ -73,6 +73,11 @@ user=www-data
 calls older than 5 minutes are refused. Superadmin → **Integrasi CMS** checks the settings, tests the
 connection and lists every call.
 
+The CMS forwards Tanya Hukum questions to `POST {APP_URL}/api/cms/legal-questions`; in the CMS `.env`
+set `SIAKAD_DRIVER=http` and `SIAKAD_BASE_URL={APP_URL}/api/cms`. SIAKAD checks the Bearer key
+(`SIAKAD_API_KEY`), the signature and the clock, accepts answers only for callbacks on the CMS host, and
+rate-limits the endpoint to 60 calls a minute.
+
 Notifications themselves need no queue worker: they are written to the database while the request runs,
 and Web Push pop-ups are sent right after the response (a slow push service never delays a page).
 Set `APP_URL` to the address people open; notification links are stored as paths, so a wrong

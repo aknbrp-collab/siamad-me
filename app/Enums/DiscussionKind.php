@@ -10,11 +10,15 @@ enum DiscussionKind: string
     /** LPPPK channels: every active mahasantri and muhadhir (v5 D28). */
     case Lpppk = 'lpppk';
 
+    /** The discussion of one Tanya Hukum question, open like LPPPK (v5 D30). */
+    case TanyaHukum = 'tanya_hukum';
+
     public function label(): string
     {
         return match ($this) {
             self::Bimbingan => __('Bimbingan'),
             self::Lpppk => __('LPPPK'),
+            self::TanyaHukum => __('Tanya Hukum'),
         };
     }
 }

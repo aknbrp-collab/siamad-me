@@ -20,6 +20,12 @@ Menu **Dokumen mengajar** menampilkan status RPS dan jurnal mengajar setiap kela
 diunggah, menunggu pemeriksaan, diterima, dikembalikan), dengan saringan dan unduhan Excel. Pemantau
 hanya melihat; pemeriksaan dilakukan Admin.
 
+## Kelompok bimbingan
+
+Menu **Kelompok bimbingan**: buat kelompok bimbingan penelitian dan penulisan, pilih muhadhir
+pembimbing, tambahkan mahasantri, dan tutup kelompok yang sudah selesai (lihat panduan Admin). Anda
+dapat membuka dan memoderasi ruang diskusi setiap kelompok.
+
 ## Catatan kegiatan
 
 Menu **Catatan kegiatan** untuk kegiatan pesantren: halaqah, tahfidz (setoran hafalan), kajian, ibadah,

@@ -1047,3 +1047,12 @@ v5 Step 1 (2026-11-04) — discussion rooms (D26, D27):
   render (a computed `null` is not cached by Livewire). Files are served as `discussion-file` to whoever
   may view the room, and not once the message is removed.
 
+v5 Step 2 (2026-11-04) — bimbingan penelitian dan penulisan (D25):
+- Bimbingan groups are `discussions` of kind bimbingan. Admin, Superadmin and the academic monitor manage
+  them on **Kelompok bimbingan** (`bimbingan/groups`): name, description, lead muhadhir, mahasantri
+  (search and add, remove), close / reopen. A new lead takes over; the previous lead's member row is
+  removed (their messages stay). New members are told.
+- Muhadhir and mahasantri: **Bimbingan** (`bimbingan`) lists their groups with the last message and the
+  unread count; the sidebar item shows the total unread (navigation items may name a `badge`).
+- The demo data seeds a writing group led by Ahmad with two mahasantri, a message and a note.
+

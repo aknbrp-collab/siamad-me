@@ -94,7 +94,7 @@ Source: `docs/req/v5.md`, with the CMS contract in `docs/req/siakad-api-spec.md`
   badges go in the sidebar, and notifications are grouped (D27).
 - Tests: access by membership, mute/restrict/lock, file access, polling query count.
 
-### Step 2 — Bimbingan penelitian dan penulisan (medium)
+### Step 2 — Bimbingan penelitian dan penulisan (medium) — ✅ done 2026-11-04
 
 - **Admin and academic monitor:** create, rename and close groups, pick the lead muhadhir, and add or
   remove mahasantri (search, several at once).

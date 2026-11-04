@@ -21,6 +21,8 @@
                         :badge="$unreadNotifications ?: null" wire:navigate data-test="notifications-link">
                         {{ __('Notifications') }}
                     </flux:sidebar.item>
+                    {{-- Counts named by navigation items (`badge`). --}}
+                    @php($badges = ['bimbingan' => array_sum(app(\App\Actions\Discussions\ManageDiscussions::class)->unread(auth()->user(), \App\Enums\DiscussionKind::Bimbingan))])
                     @foreach ($activeRole->navigation() as $group)
                         <flux:sidebar.group :heading="$group['heading']" class="grid">
                             @foreach ($group['items'] as $item)
@@ -28,6 +30,7 @@
                                     :icon="$item['icon']"
                                     :href="route($item['route'])"
                                     :current="request()->routeIs(...explode('|', $item['match']))"
+                                    :badge="$item['badge'] ? ($badges[$item['badge']] ?: null) : null"
                                     wire:navigate
                                 >
                                     {{ $item['label'] }}

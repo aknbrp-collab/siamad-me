@@ -51,8 +51,8 @@ test('members post messages, replies and files; others are told once per room', 
 
     expect($reply->reply_to_id)->toBe($first->id)
         ->and(DiscussionFile::query()->sole()->original_name)->toBe('bab1.docx')
-        // Budi has one notification for the room, counting the messages.
-        ->and($this->budi->user->unreadNotifications()->count())->toBe(1)
+        // Budi was told he joined, then one notification for the room counts the messages.
+        ->and($this->budi->user->unreadNotifications()->count())->toBe(2)
         ->and($this->manage->unread($this->budi->user))->toBe([$this->group->id => 3])
         // Posting marks the room read for the poster.
         ->and($this->manage->unread($this->ali->user))->toBe([]);

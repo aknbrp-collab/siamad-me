@@ -41,6 +41,20 @@ Menu **Pembimbing akademik** menampilkan muhadhir pembimbing Anda beserta kontak
 bimbingan** untuk berdiskusi dengan pembimbing dan teman satu bimbingan. Pembimbing dapat melihat nilai,
 presensi, dan catatan kegiatan Anda untuk membantu studi Anda.
 
+## Bimbingan
+
+Menu **Bimbingan** berisi kelompok bimbingan penelitian dan penulisan Anda (bisa lebih dari satu),
+dengan jumlah pesan yang belum dibaca. Ruang diskusi punya empat bagian:
+- **Obrolan**: tulis pesan lalu **Enter** (Shift+Enter untuk baris baru). Lampirkan hingga 5 file
+  (maks. 10 MB per file). Arahkan ke pesan untuk **Balas** atau **Hapus** pesan Anda sendiri. Pesan baru
+  muncul sendiri dalam beberapa detik.
+- **File**: semua file yang pernah dibagikan di ruang ini.
+- **Catatan**: catatan tersemat, mis. kerangka, tenggat, atau rujukan. Semua anggota dapat menambah;
+  hanya penulisnya atau pembimbing yang dapat mengubah.
+- **Anggota**: daftar anggota kelompok.
+
+Kelompok yang sudah ditutup tetap dapat dibaca.
+
 ## KHS dan transkrip
 
 - **KHS**: pilih semester untuk melihat SKS, nilai, nilai huruf, dan IPS. Hanya nilai yang sudah final

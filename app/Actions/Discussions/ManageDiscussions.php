@@ -55,21 +55,80 @@ class ManageDiscussions
         });
     }
 
+    public function rename(Discussion $discussion, string $name, ?string $description): void
+    {
+        $name = trim($name);
+
+        if ($name === '' || mb_strlen($name) > 150) {
+            $this->fail('name', __('Give the discussion a name (max 150 characters).'));
+        }
+
+        $discussion->update(['name' => $name, 'description' => filled($description) ? trim((string) $description) : null]);
+    }
+
     /**
-     * Add people (user ids); people already in stay as they are.
+     * Hand a bimbingan group to another muhadhir. The previous lead leaves the
+     * group; their messages stay.
+     */
+    public function setLead(Discussion $discussion, Teacher $lead): void
+    {
+        if ($discussion->lead_teacher_id === $lead->id) {
+            return;
+        }
+
+        DB::transaction(function () use ($discussion, $lead) {
+            $discussion->members()->where('role', 'lead')->get()->each->delete();
+            $discussion->update(['lead_teacher_id' => $lead->id]);
+
+            $member = DiscussionMember::query()->firstOrNew(['discussion_id' => $discussion->id, 'user_id' => $lead->user_id]);
+            $member->fill(['role' => 'lead', 'muted_at' => null, 'muted_until' => null])->save();
+        });
+
+        $this->tellAdded($discussion, [$lead->user_id]);
+    }
+
+    /**
+     * Add people (user ids); people already in stay as they are. The new ones
+     * are told.
      *
      * @param  list<int>  $userIds
      */
     public function addMembers(Discussion $discussion, array $userIds): int
     {
-        $added = 0;
+        $added = [];
 
         foreach (array_unique($userIds) as $userId) {
             $member = DiscussionMember::query()->firstOrCreate(['discussion_id' => $discussion->id, 'user_id' => $userId]);
-            $added += $member->wasRecentlyCreated ? 1 : 0;
+
+            if ($member->wasRecentlyCreated) {
+                $added[] = (int) $userId;
+            }
         }
 
-        return $added;
+        if ($discussion->kind === DiscussionKind::Bimbingan) {
+            $this->tellAdded($discussion, $added);
+        }
+
+        return count($added);
+    }
+
+    /**
+     * @param  list<int>  $userIds
+     */
+    private function tellAdded(Discussion $discussion, array $userIds): void
+    {
+        if ($userIds === []) {
+            return;
+        }
+
+        Notify::send(
+            User::query()->whereKey($userIds)->get(),
+            'discussion',
+            __('You joined :name', ['name' => $discussion->name]),
+            $discussion->leadTeacher ? __('Bimbingan led by :lead.', ['lead' => $discussion->leadTeacher->displayName()]) : $discussion->kind->label(),
+            route('discussions.show', $discussion),
+            'user-group',
+        );
     }
 
     public function removeMember(DiscussionMember $member): void

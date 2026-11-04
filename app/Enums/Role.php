@@ -96,14 +96,15 @@ enum Role: string
 
     /**
      * Sidebar navigation for this role, as headed groups. `match` is the route
-     * name pattern that marks an item as current.
+     * name pattern that marks an item as current; `badge` names a count the
+     * sidebar shows next to the item (e.g. unread bimbingan messages).
      *
-     * @return list<array{heading: string, items: list<array{label: string, icon: string, route: string, match: string}>}>
+     * @return list<array{heading: string, items: list<array{label: string, icon: string, route: string, match: string, badge: string|null}>}>
      */
     public function navigation(): array
     {
-        $item = fn (string $label, string $icon, string $route, ?string $match = null) => [
-            'label' => $label, 'icon' => $icon, 'route' => $route, 'match' => $match ?? $route,
+        $item = fn (string $label, string $icon, string $route, ?string $match = null, ?string $badge = null) => [
+            'label' => $label, 'icon' => $icon, 'route' => $route, 'match' => $match ?? $route, 'badge' => $badge,
         ];
 
         $groups = [
@@ -115,10 +116,15 @@ enum Role: string
             $groups[0]['items'][] = $item(__('My supervisees'), 'user-group', 'ustadz.supervision', 'ustadz.supervision*');
         }
 
+        if (in_array($this, [self::Teacher, self::Student], true)) {
+            $groups[0]['items'][] = $item(__('Bimbingan'), 'pencil-square', 'bimbingan', 'bimbingan', 'bimbingan');
+        }
+
         if ($this === self::AcademicMonitor) {
             $groups[0]['items'][] = $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities');
             $groups[0]['items'][] = $item(__('Teaching documents'), 'document-check', 'teaching-documents');
             $groups[0]['items'][] = $item(__('Templates'), 'document-duplicate', 'templates');
+            $groups[0]['items'][] = $item(__('Bimbingan groups'), 'pencil-square', 'bimbingan.groups');
         }
 
         if ($this === self::Student) {
@@ -160,6 +166,7 @@ enum Role: string
                 $item(__('Grade scale'), 'scale', 'admin.grade-scale'),
                 $item(__('Teaching documents'), 'document-check', 'teaching-documents'),
                 $item(__('Templates'), 'document-duplicate', 'templates'),
+                $item(__('Bimbingan groups'), 'pencil-square', 'bimbingan.groups'),
                 $item(__('Academic monitor'), 'chart-bar', 'monitor.dashboard'),
                 $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities'),
             ]];

@@ -26,6 +26,22 @@ untuk melihat KHS per semester, transkrip, dan catatan kegiatan pesantren (hanya
 bimbingan** adalah forum bersama Anda dan semua mahasantri bimbingan; Anda dapat menyematkan, mengunci,
 dan menghapus topik/pesan. Penetapan pembimbing dilakukan Admin.
 
+## Bimbingan penelitian dan penulisan
+
+Menu **Bimbingan** berisi kelompok yang Anda bimbing (dibuat bagian akademik), dengan jumlah pesan yang
+belum dibaca. Ruang diskusi punya empat bagian:
+- **Obrolan**: tulis pesan lalu **Enter** (Shift+Enter untuk baris baru). Lampirkan hingga 5 file
+  (maks. 10 MB per file). Arahkan ke pesan untuk **Balas** atau **Hapus** pesan Anda sendiri. Pesan baru
+  muncul sendiri dalam beberapa detik.
+- **File**: semua file yang pernah dibagikan di ruang ini.
+- **Catatan**: catatan tersemat, mis. kerangka, tenggat, atau rujukan. Semua anggota dapat menambah;
+  hanya penulisnya atau pembimbing yang dapat mengubah.
+- **Anggota**: daftar anggota kelompok.
+
+Sebagai pembimbing Anda adalah moderator kelompok: **Hapus** pesan siapa pun (teksnya tetap tersimpan
+untuk audit), **Bisukan** anggota di tab Anggota (sampai waktu tertentu atau sampai dicabut; ia tetap
+dapat membaca), dan **Kunci** diskusi agar hanya Anda yang dapat menulis.
+
 ## Pertemuan dan presensi
 
 1. **Tambah pertemuan**: tanggal, topik, dan mode: **Tatap muka** atau **Daring** dengan tautan

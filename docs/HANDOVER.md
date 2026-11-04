@@ -117,6 +117,7 @@ resources/views/
     finance/pending        where unverified payments wait (Keuangan, Admin, Superadmin)
     templates              managed templates: download, replace, back to built-in
     discussion             a discussion room (bimbingan group or LPPPK channel): chat, files, notes, members
+    bimbingan/             index (my groups: muhadhir, mahasantri), groups (Admin, academic monitor)
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
                            print-button + print-options (staff print dialog), theme-switch, app-logo-mark,

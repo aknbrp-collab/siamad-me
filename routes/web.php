@@ -211,6 +211,10 @@ Route::middleware('portal')->group(function () {
     // Discussion rooms (v5 D26): bimbingan groups and LPPPK channels; access is checked by the page.
     Route::livewire('discussions/{discussion}', 'pages::discussion')->name('discussions.show');
 
+    // Bimbingan penelitian dan penulisan (v5 D25): my groups, and managing them.
+    Route::livewire('bimbingan', 'pages::bimbingan.index')->middleware('role:teacher,student')->name('bimbingan');
+    Route::livewire('bimbingan/groups', 'pages::bimbingan.groups')->middleware('role:admin,superadmin,academic_monitor')->name('bimbingan.groups');
+
     // Managed templates (v4 D24): Admin, Superadmin and the academic monitor.
     Route::middleware('role:admin,superadmin,academic_monitor')->group(function () {
         Route::livewire('templates', 'pages::templates')->name('templates');

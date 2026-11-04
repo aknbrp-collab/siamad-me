@@ -143,6 +143,16 @@ presensi, transkrip, dan catatan kegiatan mahasantri bimbingannya, dan berdiskus
 semester itu hanya dapat dibaca. Jika masih ada nilai yang belum final, SIAKAD meminta konfirmasi. Hanya
 Superadmin yang dapat membukanya kembali.
 
+## Kelompok bimbingan penelitian dan penulisan
+
+Menu **Akademik → Kelompok bimbingan** (juga untuk Pemantau akademik):
+- **Tambah kelompok**: nama, keterangan, dan **muhadhir pembimbing**.
+- Pilih kelompok, lalu ketik NIM atau nama untuk **menambahkan mahasantri** (seorang mahasantri boleh di
+  beberapa kelompok). Anggota baru mendapat notifikasi. Tombol × mengeluarkan anggota; pesannya tetap.
+- **Ubah**: ganti nama atau pembimbing. Pembimbing baru mengambil alih; yang lama keluar dari kelompok.
+- **Tutup** kelompok yang sudah selesai: diskusinya tetap dapat dibaca. **Buka kembali** bila perlu.
+- **Buka diskusi** untuk melihat ruangnya; Admin dan Pemantau dapat memoderasi semua kelompok.
+
 ## Templat
 
 Menu **Templat** (Admin, Superadmin, Pemantau akademik) berisi semua templat yang diunduh dari SIAKAD:

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Actions\Academic\SaveAcademicYear;
 use App\Actions\Academic\SemesterLifecycle;
+use App\Actions\Discussions\ManageDiscussions;
 use App\Actions\Enrollment\ManageClassEnrollments;
 use App\Actions\Enrollment\ManageCourseOfferings;
 use App\Actions\Finance\GenerateBills;
@@ -18,6 +19,7 @@ use App\Actions\People\ManageUserAccounts;
 use App\Actions\Supervision\ManageSupervision;
 use App\Actions\Teaching\ManageGrades;
 use App\Actions\Teaching\ManageMeetings;
+use App\Enums\DiscussionKind;
 use App\Enums\DocumentType;
 use App\Enums\FeeFrequency;
 use App\Enums\Gender;
@@ -147,6 +149,13 @@ class DatabaseSeeder extends Seeder
         $supervision->assign($ahmad, array_values($putra->map(fn (Student $student) => $student->id)->all()), $staff['admin']);
         $supervision->assign($hasan, array_values($putri->map(fn (Student $student) => $student->id)->all()), $staff['admin']);
         app(ManageForum::class)->startThread(new SupervisionForum($ahmad), $ahmad->user, 'Rencana studi semester ini', 'Silakan tulis target hafalan dan kitab yang ingin diselesaikan semester ini.');
+
+        // Bimbingan penelitian dan penulisan (v5): Ahmad leads a writing group of two mahasantri.
+        $discussions = app(ManageDiscussions::class);
+        $writing = $discussions->create(DiscussionKind::Bimbingan, 'Bimbingan Penulisan Makalah Fiqh', 'Makalah akhir semester: kerangka, draf, dan revisi.', $ahmad, $staff['admin']);
+        $discussions->addMembers($writing, array_values($students->take(2)->map(fn (Student $student) => $student->user_id)->all()));
+        $discussions->post($writing, $ahmad->user, 'Assalamualaikum. Silakan kirim kerangka makalah paling lambat pekan depan.');
+        $discussions->saveNote($writing, $ahmad->user, null, 'Jadwal', "Kerangka: pekan ke-10\nDraf bab 1: pekan ke-12\nNaskah lengkap: pekan ke-14");
 
         // Fatimah collects and records the payments of the putri (v2 Petugas Pembayaran).
         foreach ($putri as $student) {

@@ -208,6 +208,9 @@ Route::middleware('portal')->group(function () {
         ->whereIn('kind', ['rps', 'journal'])
         ->name('teaching.template');
 
+    // Discussion rooms (v5 D26): bimbingan groups and LPPPK channels; access is checked by the page.
+    Route::livewire('discussions/{discussion}', 'pages::discussion')->name('discussions.show');
+
     // Managed templates (v4 D24): Admin, Superadmin and the academic monitor.
     Route::middleware('role:admin,superadmin,academic_monitor')->group(function () {
         Route::livewire('templates', 'pages::templates')->name('templates');

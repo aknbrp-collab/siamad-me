@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\PaymentSource;
 use App\Enums\Role;
 use App\Models\CashEntry;
+use App\Models\DiscussionFile;
+use App\Models\DiscussionMessage;
 use App\Models\IncomingLetter;
 use App\Models\Material;
 use App\Models\Payment;
@@ -15,6 +17,7 @@ use App\Models\Teacher;
 use App\Models\TeacherDocument;
 use App\Models\TeachingDocument;
 use App\Support\ActiveRole;
+use App\Support\DiscussionAccess;
 use App\Support\OfferingAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +30,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class PrivateFileController extends Controller
 {
-    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'incoming-letter', 'teaching-document', 'material', 'submission'];
+    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'incoming-letter', 'teaching-document', 'discussion-file', 'material', 'submission'];
 
     public function __invoke(Request $request, string $kind, int $id): StreamedResponse
     {
@@ -37,6 +40,15 @@ class PrivateFileController extends Controller
 
         if ($kind === 'teaching-document') {
             return $this->teachingDocument($request, $id);
+        }
+
+        if ($kind === 'discussion-file') {
+            $file = DiscussionFile::query()->with('discussion')->findOrFail($id);
+            // Members of the room (and those who oversee rooms), while the message is not removed.
+            abort_unless(DiscussionAccess::canView($request->user(), $file->discussion), 403);
+            abort_if(DiscussionMessage::query()->whereKey($file->discussion_message_id)->whereNotNull('hidden_at')->exists(), 404);
+
+            return $this->serve($file->file_path, $file->original_name);
         }
 
         [$path, $ownerUserId, $downloadName] = match ($kind) {

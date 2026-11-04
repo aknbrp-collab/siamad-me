@@ -1031,3 +1031,19 @@ v4 Step 8 (2026-10-31) — letters from Word templates (D19):
   staff can always get the .docx (`?format=docx`). Cancelled letters keep the built-in layout (DIBATALKAN).
   The plan's queued conversion was not needed: letters are rendered on demand like the PDFs.
 
+v5 Step 1 (2026-11-04) — discussion rooms (D26, D27):
+- Tables `discussions`, `discussion_members`, `discussion_messages`, `discussion_files`,
+  `discussion_notes` (not `rooms`: that is the exam room table). `DiscussionKind`: bimbingan | lpppk.
+- `DiscussionAccess`: bimbingan rooms for their lead and members, LPPPK for every active mahasantri and
+  muhadhir (member row made on the first visit); Admin, Superadmin and the academic monitor see and
+  moderate everything, the lead muhadhir moderates their group. `whyNotPost()` gives the reason
+  (closed, locked, muted).
+- `ManageDiscussions`: post (text and/or up to 5 files, reply), hide (author or moderator; text kept),
+  mute until a time or until lifted, lock, close, notes (author or moderator edits; removing hides),
+  read markers and unread counts. Notifications: bimbingan members get one grouped notification per
+  room while unread; LPPPK only tells the author of the message replied to.
+- Page `discussions/{discussion}`: chat refreshed every 5 s while visible (`wire:poll.5s.visible`),
+  "show earlier" in steps of 50, Files, Notes and Members tabs. The post check is computed once per
+  render (a computed `null` is not cached by Livewire). Files are served as `discussion-file` to whoever
+  may view the room, and not once the message is removed.
+

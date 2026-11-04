@@ -1,0 +1,225 @@
+openapi: 3.1.0
+info:
+  title: SIAKAD ⇄ CMS Integration
+  version: 1.1.0
+  description: |
+    Contract between SIAKAD and the CMS. Prose version, signing rules and changelog: siakad-api-spec.md.
+    Every request in both directions carries X-Siakad-Timestamp and X-Siakad-Signature
+    (hex HMAC-SHA256 of "{timestamp}.{raw body}" with the shared webhook secret; empty body for GET/DELETE).
+servers:
+  - url: https://admin.pondok.example/api/webhooks/siakad
+    description: CMS webhooks (SIAKAD → CMS)
+  - url: https://siakad.example.ac.id/api/cms
+    description: SIAKAD API (CMS → SIAKAD)
+security:
+  - siakadSignature: []
+paths:
+  /articles:
+    post:
+      summary: Create or update an article (idempotent on id)
+      description: |
+        Re-sending an approved, rejected or withdrawn article returns it to under_review.
+        For an approved article the website keeps the approved version until it is approved again.
+      servers: [{ url: https://admin.pondok.example/api/webhooks/siakad }]
+      parameters: [{ $ref: '#/components/parameters/Timestamp' }, { $ref: '#/components/parameters/Signature' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Article' }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/ArticleReceived' } } } }
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/ArticleReceived' } } } }
+        '401': { $ref: '#/components/responses/InvalidSignature' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /articles/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9._:-]+$' } }
+    get:
+      summary: Review status and public URL of an article
+      description: Not written to the CMS integration log; may be polled within the rate limit.
+      servers: [{ url: https://admin.pondok.example/api/webhooks/siakad }]
+      parameters: [{ $ref: '#/components/parameters/Timestamp' }, { $ref: '#/components/parameters/Signature' }]
+      responses:
+        '200': { description: Current state, content: { application/json: { schema: { $ref: '#/components/schemas/ArticleStatus' } } } }
+        '401': { $ref: '#/components/responses/InvalidSignature' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+    delete:
+      summary: Withdraw an article from the website
+      servers: [{ url: https://admin.pondok.example/api/webhooks/siakad }]
+      parameters: [{ $ref: '#/components/parameters/Timestamp' }, { $ref: '#/components/parameters/Signature' }]
+      responses:
+        '200':
+          description: Withdrawn
+          content:
+            application/json:
+              schema: { type: object, properties: { status: { const: withdrawn }, cms_id: { type: string } } }
+        '401': { $ref: '#/components/responses/InvalidSignature' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /answers:
+    post:
+      summary: Answer (or corrected answer) to a forwarded Tanya Hukum question
+      description: |
+        Before publication a new answer replaces the previous one. After publication it is held as a
+        correction for a CMS moderator (correction_pending: true); the published answer does not change.
+      servers: [{ url: https://admin.pondok.example/api/webhooks/siakad }]
+      parameters: [{ $ref: '#/components/parameters/Timestamp' }, { $ref: '#/components/parameters/Signature' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Answer' }
+      responses:
+        '200':
+          description: Received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { const: received }
+                  cms_id: { type: string }
+                  question_status: { type: string, enum: [answered, published] }
+                  correction_pending: { type: boolean }
+        '401': { $ref: '#/components/responses/InvalidSignature' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /legal-questions:
+    post:
+      summary: (Hosted by SIAKAD) receive a question forwarded by the CMS
+      description: |
+        The CMS makes up to 5 attempts (retries after 1, 5, 15 and 60 minutes) for 408, 429, 5xx, timeouts,
+        connection errors and 2xx responses without id. Any other 4xx hands the question back to the moderator at once.
+      servers: [{ url: https://siakad.example.ac.id/api/cms }]
+      security: [{ bearerApiKey: [], siakadSignature: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Timestamp' }
+        - { $ref: '#/components/parameters/Signature' }
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string }, description: Equals cms_question_id; repeat calls must return the existing question. }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ForwardedQuestion' }
+      responses:
+        '201':
+          description: Accepted
+          content:
+            application/json:
+              schema: { type: object, required: [id], properties: { id: { type: string } } }
+        '200':
+          description: Already received (idempotent repeat)
+          content:
+            application/json:
+              schema: { type: object, required: [id], properties: { id: { type: string } } }
+        '401': { description: Bad API key or signature (not retried by the CMS) }
+        '422': { $ref: '#/components/responses/ValidationError' }
+components:
+  securitySchemes:
+    siakadSignature:
+      type: apiKey
+      in: header
+      name: X-Siakad-Signature
+      description: Hex HMAC-SHA256 of "{X-Siakad-Timestamp}.{raw body}"; timestamp must be within 300 s. Secret of 32+ random characters.
+    bearerApiKey:
+      type: http
+      scheme: bearer
+  parameters:
+    Timestamp: { name: X-Siakad-Timestamp, in: header, required: true, schema: { type: string, pattern: '^[0-9]+$' } }
+    Signature: { name: X-Siakad-Signature, in: header, required: true, schema: { type: string, pattern: '^[0-9a-f]{64}$' } }
+  responses:
+    InvalidSignature:
+      description: Missing, invalid or expired signature
+      content: { application/json: { schema: { $ref: '#/components/schemas/Message' } } }
+    NotFound:
+      description: Unknown article or question
+      content: { application/json: { schema: { $ref: '#/components/schemas/Message' } } }
+    Conflict:
+      description: Question was not forwarded to SIAKAD
+      content: { application/json: { schema: { $ref: '#/components/schemas/Message' } } }
+    RateLimited:
+      description: Rate limited (120 requests per minute per IP); retry after the Retry-After header
+      headers: { Retry-After: { schema: { type: integer } } }
+    ValidationError:
+      description: Invalid payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }
+              errors: { type: object, additionalProperties: { type: array, items: { type: string } } }
+  schemas:
+    Message:
+      type: object
+      properties:
+        message: { type: string }
+    Article:
+      type: object
+      required: [id, title, authors, year]
+      properties:
+        id: { type: string, maxLength: 191 }
+        type: { type: string, enum: [research, journal_article, bahtsul_masail, thesis, book], default: research }
+        title: { type: string, maxLength: 255 }
+        authors:
+          oneOf:
+            - { type: array, items: { type: string, maxLength: 255 } }
+            - { type: string, maxLength: 255 }
+        year: { type: integer, minimum: 1900, description: At most next year. }
+        abstract: { type: string, maxLength: 20000 }
+        body_html: { type: string, maxLength: 1000000 }
+        keywords:
+          oneOf:
+            - { type: array, items: { type: string, maxLength: 100 } }
+            - { type: string }
+        doi: { type: string, maxLength: 255 }
+        file_url: { type: string, format: uri, maxLength: 2048 }
+        source_url: { type: string, format: uri, maxLength: 2048 }
+    ArticleReceived:
+      type: object
+      properties:
+        status: { const: received }
+        cms_id: { type: string }
+        review_status: { type: string, enum: [draft, under_review, approved, rejected, withdrawn] }
+    ArticleStatus:
+      type: object
+      properties:
+        id: { type: string, description: SIAKAD article id }
+        cms_id: { type: string }
+        review_status: { type: string, enum: [draft, under_review, approved, rejected, withdrawn] }
+        review_note: { type: [string, 'null'], description: "Reviewer's reason, only when rejected" }
+        reviewed_at: { type: [string, 'null'], format: date-time }
+        changes_pending_review: { type: boolean, description: An update to an approved article waits for re-approval }
+        public_url: { type: [string, 'null'], format: uri, description: "Website page; null while not publicly visible" }
+        received_at: { type: string, format: date-time }
+    Answer:
+      type: object
+      required: [answer_html, answered_by]
+      properties:
+        question_id: { type: string, description: cms_question_id (preferred) }
+        siakad_question_id: { type: string }
+        answer_html: { type: string, maxLength: 200000 }
+        answered_by: { type: string, maxLength: 255 }
+        references: { type: string, maxLength: 5000 }
+    ForwardedQuestion:
+      type: object
+      required: [cms_question_id, tracking_code, category, question, asker, callback_url]
+      properties:
+        cms_question_id: { type: string }
+        tracking_code: { type: string }
+        category: { type: string, enum: [ibadah, muamalah, munakahat, mawaris, jinayah, akhlak, lainnya] }
+        question: { type: string }
+        asker:
+          type: object
+          properties:
+            name: { type: [string, 'null'] }
+            city: { type: [string, 'null'] }
+            anonymous: { type: boolean }
+        submitted_at: { type: string, format: date-time }
+        moderator_note: { type: [string, 'null'] }
+        callback_url: { type: string, format: uri }

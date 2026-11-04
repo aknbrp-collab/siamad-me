@@ -1056,3 +1056,14 @@ v5 Step 2 (2026-11-04) — bimbingan penelitian dan penulisan (D25):
   unread count; the sidebar item shows the total unread (navigation items may name a `badge`).
 - The demo data seeds a writing group led by Ahmad with two mahasantri, a message and a note.
 
+v5 Step 3 (2026-11-04) — LPPPK channels and moderation (D28):
+- LPPPK channels are `discussions` of kind lpppk, created, renamed and closed by Admin, Superadmin and the
+  academic monitor on **LPPPK** (`lpppk`); every active mahasantri and muhadhir sees them, with unread
+  counts that also cover channels never opened (`ManageDiscussions::unreadLpppk`).
+- `lpppk_sanctions` (one row per person): mute in every channel until a time or until lifted, or restrict
+  (no access to LPPPK). `ModerateLpppk` (staff only, never on staff) tells the person, with the reason.
+  `DiscussionAccess` applies them to LPPPK only; bimbingan groups are not affected. Page **Moderasi LPPPK**
+  (`lpppk/moderation`). Per-channel locking and message removal stay in the room itself (Step 1).
+- Sidebar badges are worked out only for items that name one (bimbingan, lpppk).
+- The demo data seeds the channels Penelitian, Pengembangan, Pengabdian and Umum.
+

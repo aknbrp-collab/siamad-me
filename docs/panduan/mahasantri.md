@@ -55,6 +55,15 @@ dengan jumlah pesan yang belum dibaca. Ruang diskusi punya empat bagian:
 
 Kelompok yang sudah ditutup tetap dapat dibaca.
 
+## LPPPK
+
+Menu **LPPPK** (Lembaga Penelitian, Pengembangan, dan Pengabdian Keilmuan) berisi kanal diskusi untuk
+semua mahasantri dan muhadhir, mis. *Penelitian*, *Pengembangan*, *Pengabdian*, *Umum*. Angka hijau
+menunjukkan pesan yang belum dibaca. Setiap kanal memakai ruang diskusi yang sama dengan bimbingan
+(obrolan, file, catatan). Di LPPPK Anda hanya mendapat notifikasi bila pesan Anda dibalas. Moderator
+dapat membisukan Anda di LPPPK (tetap dapat membaca) atau menutup akses Anda; Anda diberi tahu beserta
+alasannya.
+
 ## KHS dan transkrip
 
 - **KHS**: pilih semester untuk melihat SKS, nilai, nilai huruf, dan IPS. Hanya nilai yang sudah final

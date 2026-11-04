@@ -157,6 +157,11 @@ class DatabaseSeeder extends Seeder
         $discussions->post($writing, $ahmad->user, 'Assalamualaikum. Silakan kirim kerangka makalah paling lambat pekan depan.');
         $discussions->saveNote($writing, $ahmad->user, null, 'Jadwal', "Kerangka: pekan ke-10\nDraf bab 1: pekan ke-12\nNaskah lengkap: pekan ke-14");
 
+        // LPPPK channels (v5): open to every active mahasantri and muhadhir.
+        foreach (['Penelitian' => 'Rencana dan hasil penelitian.', 'Pengembangan' => 'Pengembangan kurikulum dan keilmuan.', 'Pengabdian' => 'Kegiatan pengabdian kepada masyarakat.', 'Umum' => 'Diskusi umum keilmuan.'] as $channel => $about) {
+            $discussions->create(DiscussionKind::Lpppk, $channel, $about, null, $staff['admin']);
+        }
+
         // Fatimah collects and records the payments of the putri (v2 Petugas Pembayaran).
         foreach ($putri as $student) {
             app(ManageUserAccounts::class)->setCollector($student->user, Gender::Female);

@@ -26,6 +26,16 @@ Menu **Kelompok bimbingan**: buat kelompok bimbingan penelitian dan penulisan, p
 pembimbing, tambahkan mahasantri, dan tutup kelompok yang sudah selesai (lihat panduan Admin). Anda
 dapat membuka dan memoderasi ruang diskusi setiap kelompok.
 
+## LPPPK: kanal dan moderasi
+
+Menu **LPPPK** (Admin, Superadmin, Pemantau akademik):
+- **Tambah kanal** (nama dan keterangan), ubah, atau **tutup** kanal (tetap dapat dibaca). Di dalam
+  kanal: **Kunci** agar hanya moderator yang menulis, dan hapus pesan yang tidak pantas.
+- **Moderasi**: cari mahasantri atau muhadhir, lalu **Bisukan** di semua kanal LPPPK (sampai waktu
+  tertentu atau sampai dicabut; ia tetap dapat membaca) atau **Tutup akses** (LPPPK tidak terlihat
+  baginya). Isi alasan; orang itu mendapat notifikasi. Daftar di bawahnya menunjukkan siapa yang sedang
+  dibisukan atau tanpa akses; **Cabut** untuk memulihkan. Bimbingan tidak terpengaruh.
+
 ## Catatan kegiatan
 
 Menu **Catatan kegiatan** untuk kegiatan pesantren: halaqah, tahfidz (setoran hafalan), kajian, ibadah,

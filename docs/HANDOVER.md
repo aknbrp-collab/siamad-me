@@ -118,6 +118,7 @@ resources/views/
     templates              managed templates: download, replace, back to built-in
     discussion             a discussion room (bimbingan group or LPPPK channel): chat, files, notes, members
     bimbingan/             index (my groups: muhadhir, mahasantri), groups (Admin, academic monitor)
+    lpppk/                 index (channels; staff add/close), moderation (LPPPK-wide mute / restrict)
     wali/                  academic, bills
   components/              page-header, offering-header (ustadz tabs; button grid on phones), account-panel,
                            print-button + print-options (staff print dialog), theme-switch, app-logo-mark,

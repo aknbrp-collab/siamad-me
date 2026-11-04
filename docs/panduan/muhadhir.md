@@ -42,6 +42,15 @@ Sebagai pembimbing Anda adalah moderator kelompok: **Hapus** pesan siapa pun (te
 untuk audit), **Bisukan** anggota di tab Anggota (sampai waktu tertentu atau sampai dicabut; ia tetap
 dapat membaca), dan **Kunci** diskusi agar hanya Anda yang dapat menulis.
 
+## LPPPK
+
+Menu **LPPPK** (Lembaga Penelitian, Pengembangan, dan Pengabdian Keilmuan) berisi kanal diskusi untuk
+semua mahasantri dan muhadhir, mis. *Penelitian*, *Pengembangan*, *Pengabdian*, *Umum*. Angka hijau
+menunjukkan pesan yang belum dibaca. Setiap kanal memakai ruang diskusi yang sama dengan bimbingan
+(obrolan, file, catatan). Di LPPPK Anda hanya mendapat notifikasi bila pesan Anda dibalas. Moderator
+dapat membisukan Anda di LPPPK (tetap dapat membaca) atau menutup akses Anda; Anda diberi tahu beserta
+alasannya.
+
 ## Pertemuan dan presensi
 
 1. **Tambah pertemuan**: tanggal, topik, dan mode: **Tatap muka** atau **Daring** dengan tautan

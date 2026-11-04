@@ -102,7 +102,7 @@ Source: `docs/req/v5.md`, with the CMS contract in `docs/req/siakad-api-spec.md`
   Both open the room from there.
 - Closed groups stay readable.
 
-### Step 3 — LPPPK channels and moderation (medium)
+### Step 3 — LPPPK channels and moderation (medium) — ✅ done 2026-11-04
 
 - A **LPPPK** menu for every mahasantri and muhadhir, with the channels list and room.
 - Admin and the academic monitor create, rename and lock channels.

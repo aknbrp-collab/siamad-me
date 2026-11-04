@@ -215,6 +215,10 @@ Route::middleware('portal')->group(function () {
     Route::livewire('bimbingan', 'pages::bimbingan.index')->middleware('role:teacher,student')->name('bimbingan');
     Route::livewire('bimbingan/groups', 'pages::bimbingan.groups')->middleware('role:admin,superadmin,academic_monitor')->name('bimbingan.groups');
 
+    // LPPPK (v5 D28): channels for every active mahasantri and muhadhir (checked by the page), moderation for staff.
+    Route::livewire('lpppk', 'pages::lpppk.index')->name('lpppk');
+    Route::livewire('lpppk/moderation', 'pages::lpppk.moderation')->middleware('role:admin,superadmin,academic_monitor')->name('lpppk.moderation');
+
     // Managed templates (v4 D24): Admin, Superadmin and the academic monitor.
     Route::middleware('role:admin,superadmin,academic_monitor')->group(function () {
         Route::livewire('templates', 'pages::templates')->name('templates');

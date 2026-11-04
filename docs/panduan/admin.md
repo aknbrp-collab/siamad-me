@@ -153,6 +153,16 @@ Menu **Akademik → Kelompok bimbingan** (juga untuk Pemantau akademik):
 - **Tutup** kelompok yang sudah selesai: diskusinya tetap dapat dibaca. **Buka kembali** bila perlu.
 - **Buka diskusi** untuk melihat ruangnya; Admin dan Pemantau dapat memoderasi semua kelompok.
 
+## LPPPK: kanal dan moderasi
+
+Menu **LPPPK** (Admin, Superadmin, Pemantau akademik):
+- **Tambah kanal** (nama dan keterangan), ubah, atau **tutup** kanal (tetap dapat dibaca). Di dalam
+  kanal: **Kunci** agar hanya moderator yang menulis, dan hapus pesan yang tidak pantas.
+- **Moderasi**: cari mahasantri atau muhadhir, lalu **Bisukan** di semua kanal LPPPK (sampai waktu
+  tertentu atau sampai dicabut; ia tetap dapat membaca) atau **Tutup akses** (LPPPK tidak terlihat
+  baginya). Isi alasan; orang itu mendapat notifikasi. Daftar di bawahnya menunjukkan siapa yang sedang
+  dibisukan atau tanpa akses; **Cabut** untuk memulihkan. Bimbingan tidak terpengaruh.
+
 ## Templat
 
 Menu **Templat** (Admin, Superadmin, Pemantau akademik) berisi semua templat yang diunduh dari SIAKAD:

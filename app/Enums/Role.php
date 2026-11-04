@@ -118,6 +118,7 @@ enum Role: string
 
         if (in_array($this, [self::Teacher, self::Student], true)) {
             $groups[0]['items'][] = $item(__('Bimbingan'), 'pencil-square', 'bimbingan', 'bimbingan', 'bimbingan');
+            $groups[0]['items'][] = $item(__('LPPPK'), 'chat-bubble-left-right', 'lpppk', 'lpppk*', 'lpppk');
         }
 
         if ($this === self::AcademicMonitor) {
@@ -125,6 +126,7 @@ enum Role: string
             $groups[0]['items'][] = $item(__('Teaching documents'), 'document-check', 'teaching-documents');
             $groups[0]['items'][] = $item(__('Templates'), 'document-duplicate', 'templates');
             $groups[0]['items'][] = $item(__('Bimbingan groups'), 'pencil-square', 'bimbingan.groups');
+            $groups[0]['items'][] = $item(__('LPPPK'), 'chat-bubble-left-right', 'lpppk', 'lpppk*');
         }
 
         if ($this === self::Student) {
@@ -167,6 +169,7 @@ enum Role: string
                 $item(__('Teaching documents'), 'document-check', 'teaching-documents'),
                 $item(__('Templates'), 'document-duplicate', 'templates'),
                 $item(__('Bimbingan groups'), 'pencil-square', 'bimbingan.groups'),
+                $item(__('LPPPK'), 'chat-bubble-left-right', 'lpppk', 'lpppk*'),
                 $item(__('Academic monitor'), 'chart-bar', 'monitor.dashboard'),
                 $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities'),
             ]];

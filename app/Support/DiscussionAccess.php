@@ -8,6 +8,7 @@ use App\Enums\StudentStatus;
 use App\Enums\TeacherStatus;
 use App\Models\Discussion;
 use App\Models\DiscussionMember;
+use App\Models\LpppkSanction;
 use App\Models\User;
 
 /**
@@ -37,7 +38,7 @@ final class DiscussionAccess
 
         return match ($discussion->kind) {
             DiscussionKind::Bimbingan => self::member($user, $discussion) !== null,
-            DiscussionKind::Lpppk => self::inLpppk($user),
+            DiscussionKind::Lpppk => self::inLpppk($user) && ! (self::sanction($user)?->isRestricted() ?? false),
         };
     }
 
@@ -73,6 +74,13 @@ final class DiscussionAccess
         }
 
         $member = self::member($user, $discussion);
+        $sanction = $discussion->kind === DiscussionKind::Lpppk ? self::sanction($user) : null;
+
+        if ($sanction?->isMuted()) {
+            return $sanction->muted_until
+                ? __('You are muted in LPPPK until :date.', ['date' => $sanction->muted_until->translatedFormat('j M Y H:i')])
+                : __('You are muted in LPPPK.');
+        }
 
         if ($member?->isMuted()) {
             return $member->muted_until
@@ -81,6 +89,22 @@ final class DiscussionAccess
         }
 
         return null;
+    }
+
+    /**
+     * The person's LPPPK-wide mute or restriction (v5 D28), if any.
+     */
+    public static function sanction(User $user): ?LpppkSanction
+    {
+        return LpppkSanction::query()->where('user_id', $user->id)->first();
+    }
+
+    /**
+     * May $user open LPPPK at all (the channel list)?
+     */
+    public static function canUseLpppk(User $user): bool
+    {
+        return $user->is_active && (self::oversees($user) || (self::inLpppk($user) && ! (self::sanction($user)?->isRestricted() ?? false)));
     }
 
     public static function member(User $user, Discussion $discussion): ?DiscussionMember

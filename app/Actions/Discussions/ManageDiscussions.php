@@ -334,6 +334,33 @@ class ManageDiscussions
     }
 
     /**
+     * Unread LPPPK messages per channel of $user: channels they opened count
+     * from their read marker, channels never opened count every message.
+     *
+     * @return array<int, int> discussion id => count
+     */
+    public function unreadLpppk(User $user): array
+    {
+        $opened = $this->unread($user, DiscussionKind::Lpppk);
+        $visited = DiscussionMember::query()->where('user_id', $user->id)->pluck('discussion_id');
+
+        $unopened = DiscussionMessage::query()
+            ->join('discussions', 'discussions.id', '=', 'discussion_messages.discussion_id')
+            ->where('discussions.kind', DiscussionKind::Lpppk->value)
+            ->whereNull('discussions.closed_at')
+            ->whereNotIn('discussion_messages.discussion_id', $visited)
+            ->where('discussion_messages.user_id', '!=', $user->id)
+            ->whereNull('discussion_messages.hidden_at')
+            ->groupBy('discussion_messages.discussion_id')
+            ->selectRaw('discussion_messages.discussion_id as id, count(*) as aggregate')
+            ->pluck('aggregate', 'id')
+            ->map(fn ($count) => (int) $count)
+            ->all();
+
+        return $opened + $unopened;
+    }
+
+    /**
      * Bimbingan: everyone else in the group, one grouped notification per room
      * while unread (D27). LPPPK channels are large: only the author of the
      * message replied to is told.

@@ -1067,3 +1067,19 @@ v5 Step 3 (2026-11-04) — LPPPK channels and moderation (D28):
 - Sidebar badges are worked out only for items that name one (bimbingan, lpppk).
 - The demo data seeds the channels Penelitian, Pengembangan, Pengabdian and Umum.
 
+v5 Step 4 (2026-11-04) — articles (D29):
+- `articles` (working copy: title, summary, Markdown body, keywords, status draft | in_review |
+  changes_requested | published | withdrawn, review_round, code `ART-{year}-{id}` given on the first
+  publication), `article_reviews` (one decision per muhadhir per round) and `article_versions` (a snapshot on
+  every publication).
+- `ManageArticles`: mahasantri send for review; any other active muhadhir approves or asks for changes (note
+  required); `APPROVALS_NEEDED` = 2 approvals in the current round publish (under a row lock, so two
+  approvals at once publish once). Muhadhir publish directly. Editing a published or withdrawn article
+  makes the working copy a draft; the published version is unchanged until the next publication. Drafts
+  never sent can be deleted; published articles are withdrawn by their author or staff.
+- Events `ArticlePublished` (with the version) and `ArticleWithdrawn` are where the CMS integration
+  (Step 5) hooks in.
+- Markdown is rendered with `Str::markdown` (`html_input: strip`, no unsafe links); styles in `.article-body`
+  (app.css) instead of a typography plugin.
+- Visibility: author, every muhadhir and the staff who oversee; published articles to every active user.
+

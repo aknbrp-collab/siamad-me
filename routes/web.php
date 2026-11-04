@@ -215,6 +215,15 @@ Route::middleware('portal')->group(function () {
     Route::livewire('bimbingan', 'pages::bimbingan.index')->middleware('role:teacher,student')->name('bimbingan');
     Route::livewire('bimbingan/groups', 'pages::bimbingan.groups')->middleware('role:admin,superadmin,academic_monitor')->name('bimbingan.groups');
 
+    // Articles (v5 D29): written by mahasantri and muhadhir; reviewed by muhadhir; each page checks access.
+    Route::middleware('role:teacher,student')->group(function () {
+        Route::livewire('articles', 'pages::articles.index')->name('articles.mine');
+        Route::livewire('articles/new', 'pages::articles.edit')->name('articles.create');
+        Route::livewire('articles/{article}/edit', 'pages::articles.edit')->name('articles.edit');
+    });
+    Route::livewire('articles/review', 'pages::articles.review')->middleware('role:teacher')->name('articles.review');
+    Route::livewire('articles/{article}', 'pages::articles.show')->name('articles.show');
+
     // LPPPK (v5 D28): channels for every active mahasantri and muhadhir (checked by the page), moderation for staff.
     Route::livewire('lpppk', 'pages::lpppk.index')->name('lpppk');
     Route::livewire('lpppk/moderation', 'pages::lpppk.moderation')->middleware('role:admin,superadmin,academic_monitor')->name('lpppk.moderation');

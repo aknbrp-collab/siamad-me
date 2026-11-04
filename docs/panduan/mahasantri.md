@@ -64,6 +64,16 @@ menunjukkan pesan yang belum dibaca. Setiap kanal memakai ruang diskusi yang sam
 dapat membisukan Anda di LPPPK (tetap dapat membaca) atau menutup akses Anda; Anda diberi tahu beserta
 alasannya.
 
+## Artikel saya
+
+Menu **Artikel saya**: tulis artikel sederhana untuk website (bukan makalah jurnal). **Tulis artikel**:
+judul, ringkasan, kata kunci, dan isi dengan Markdown (**Pratinjau** untuk melihat hasilnya). Simpan
+sebagai draf, lalu **Kirim untuk diperiksa**. Muhadhir memeriksanya: artikel **terbit setelah disetujui
+dua muhadhir**. Bila ada yang **meminta perbaikan**, baca catatannya, ubah, lalu kirim lagi (putaran
+baru). Setelah terbit, artikel dikirim ke editor website. Mengubah artikel yang sudah terbit membuat
+versi baru yang diperiksa lagi; versi lama tetap tayang sampai versi baru terbit. Anda dapat **menarik**
+artikel dari website.
+
 ## KHS dan transkrip
 
 - **KHS**: pilih semester untuk melihat SKS, nilai, nilai huruf, dan IPS. Hanya nilai yang sudah final

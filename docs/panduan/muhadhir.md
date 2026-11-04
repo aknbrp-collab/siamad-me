@@ -51,6 +51,16 @@ menunjukkan pesan yang belum dibaca. Setiap kanal memakai ruang diskusi yang sam
 dapat membisukan Anda di LPPPK (tetap dapat membaca) atau menutup akses Anda; Anda diberi tahu beserta
 alasannya.
 
+## Artikel
+
+Menu **Artikel saya**: tulis artikel sederhana untuk website (bukan makalah jurnal) dengan Markdown.
+Artikel Anda **terbit langsung** (**Terbitkan**), lalu diperiksa editor website. Mengubah artikel yang
+terbit membuat versi baru; **Terbitkan lagi** untuk mengirimnya.
+
+**Antrean pemeriksaan** (tombol di Artikel saya, dan notifikasi): artikel mahasantri yang menunggu
+diperiksa. Buka artikelnya, lalu **Setujui** atau **Minta perbaikan** dengan catatan. Artikel terbit
+setelah dua muhadhir berbeda menyetujuinya dalam satu putaran.
+
 ## Pertemuan dan presensi
 
 1. **Tambah pertemuan**: tanggal, topik, dan mode: **Tatap muka** atau **Daring** dengan tautan

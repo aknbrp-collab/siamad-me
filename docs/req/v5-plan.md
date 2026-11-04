@@ -109,7 +109,7 @@ Source: `docs/req/v5.md`, with the CMS contract in `docs/req/siakad-api-spec.md`
 - A **Moderation** page: search a person and mute (until a date), restrict or lift; the list of everyone
   muted or restricted.
 
-### Step 4 — Articles in SIAKAD (large)
+### Step 4 — Articles in SIAKAD (large) — ✅ done 2026-11-04
 
 - `articles` table (author user, title, summary, body_md, keywords, status draft | in_review |
   changes_requested | published | withdrawn, published_at), `article_reviews` (round, reviewer, decision,

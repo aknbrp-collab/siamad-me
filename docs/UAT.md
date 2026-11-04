@@ -65,6 +65,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] As Admin, on Templates: download the mahasantri import template (green header, example row, Petunjuk sheet), upload a changed copy and see the import page download it; a copy without the nim column is refused; Use built-in restores it
 - [ ] Bimbingan: in your writing group send a message with a file, reply to one, add a note, mute a mahasantri until tomorrow and lock the discussion; the mahasantri sees why they cannot post
 - [ ] LPPPK: post in Penelitian, reply to a mahasantri's question (only they are notified), see unread counts on channels you never opened
+- [ ] Articles: approve one mahasantri article and ask for changes on another (with a note); publish your own article directly, edit it and publish again
 - [ ] Fill the journal fields of a few meetings, print the journal, upload the RPS and the signed journal recap (Dokumen tab); after the Admin returns the RPS with a note, upload a new version
 - [ ] Add the putri class of a subject at the same time, muhadhir and room as the putra class: SIAKAD asks "joint class or mistake"; choose joint class and see the badge, one timetable block, and one RPS for both. Another subject at that time is still refused
 - [ ] Letters: download the Word starting point for Surat Keterangan Aktif on Templates, adjust the layout, upload it; issue a letter and open it (PDF with LibreOffice, else Word) with number, name and signature in place; replace the template and see the earlier letter unchanged
@@ -86,6 +87,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Pay a bill by transfer and send the confirmation with a photo of the receipt
 - [ ] Request a Surat Keterangan Aktif Kuliah; after the Admin issues it, download it from Surat saya
 - [ ] Request a letter choosing the first letter type in the list (it must not say no letter was chosen)
+- [ ] Artikel: write an article with a list and a quote, check the preview, send it for review; after a muhadhir asks for changes, revise and send again; after two approvals it shows Published
 - [ ] Bimbingan: open your group from the menu (unread count shown), read the muhadhir's message, answer with a file; a message from someone else appears within seconds
 
 ## Wali santri (on a phone)

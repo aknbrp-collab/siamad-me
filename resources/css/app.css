@@ -196,3 +196,17 @@ select:focus[data-flux-control] {
 [x-cloak] {
     display: none !important;
 }
+
+/* Article text rendered from Markdown (v5 articles); no typography plugin needed. */
+.article-body {
+    @apply text-sm leading-relaxed text-zinc-800 dark:text-zinc-200;
+}
+.article-body > * + * { @apply mt-3; }
+.article-body h1 { @apply text-xl font-semibold; }
+.article-body h2 { @apply mt-5 text-lg font-semibold; }
+.article-body h3 { @apply mt-4 font-semibold; }
+.article-body ul { @apply list-disc ps-5; }
+.article-body ol { @apply list-decimal ps-5; }
+.article-body blockquote { @apply border-s-4 border-zinc-300 ps-3 italic text-zinc-600 dark:border-zinc-600 dark:text-zinc-400; }
+.article-body a { @apply text-[var(--color-accent-content)] underline; }
+.article-body code { @apply rounded bg-zinc-100 px-1 font-mono text-xs dark:bg-zinc-800; }

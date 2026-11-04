@@ -119,6 +119,7 @@ enum Role: string
         if (in_array($this, [self::Teacher, self::Student], true)) {
             $groups[0]['items'][] = $item(__('Bimbingan'), 'pencil-square', 'bimbingan', 'bimbingan', 'bimbingan');
             $groups[0]['items'][] = $item(__('LPPPK'), 'chat-bubble-left-right', 'lpppk', 'lpppk*', 'lpppk');
+            $groups[0]['items'][] = $item(__('My articles'), 'newspaper', 'articles.mine', 'articles.*');
         }
 
         if ($this === self::AcademicMonitor) {

@@ -1159,3 +1159,17 @@ v6 Step 3 (2026-11-07) — Muhadhir evaluation (D35):
   dashboard reminder) and **Evaluasi saya** (`ustadz.evaluations`, own classes once the period closed).
 - `required_for_khs`: while open, the mahasantri's own KHS page and PDF for that semester wait until every
   class is evaluated; staff and wali are not affected.
+
+v6 Step 4 (2026-11-07) — App appearance (D36):
+- Settings `app.name`, `app.short_name`, `app.login_title`, `app.login_text` (empty = default) and the
+  images `app_logo` (moved from Identity, same key), `app_icon` and `login_background` in
+  `Branding::IMAGES`. `Branding::appName()` falls back to `config('siakad.app_name')` (APP_NAME),
+  `appShortName()` to the institution's short name, then "SIAKAD".
+- `Branding::applyToConfig()` runs after boot (quietly skipped without a database) and sets `app.name`
+  and `mail.from.name`, so the browser tab and Laravel's emails follow the setting.
+- Icons (tab, apple-touch, manifest) come from `iconPath()`: the app icon, else the app logo, else the
+  built-in ones; the manifest uses the app name and short name. `brand/login-background` is public.
+- Sidebar brand: short name. Login layout: app name under the logo, the welcome title and text, and the
+  background photo with the form on a card. Documents keep `institution.*` and the institution logo.
+- Identity and Tampilan aplikasi share `BrandImagesPage` and `<x-brand-images>`; each page only
+  accepts its own images. Push pop-ups keep the event title and use the app icon.

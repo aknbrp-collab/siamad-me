@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Setting;
 use App\Support\Branding;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -10,9 +9,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Public brand assets: the app logo and the app icons (sidebar, login page,
- * browser tab, installed app). Icons are made from the uploaded app logo,
- * or fall back to the built-in ones in public/icons. Signatures and stamps
+ * Public brand assets: the app logo, the login background and the app icons
+ * (sidebar, login page, browser tab, installed app). Icons are made from the
+ * app icon or else the app logo, or fall back to the built-in ones in
+ * public/icons. Signatures and stamps
  * are never served here.
  */
 class BrandController extends Controller
@@ -30,13 +30,15 @@ class BrandController extends Controller
 
     public function asset(string $asset): Response
     {
-        $logo = Branding::imagePath('app_logo');
+        if ($asset === 'app-logo' || $asset === 'login-background') {
+            $path = Branding::imagePath($asset === 'app-logo' ? 'app_logo' : 'login_background');
+            abort_if($path === null, 404);
 
-        if ($asset === 'app-logo') {
-            abort_if($logo === null, 404);
-
-            return $this->png(Storage::disk('local')->path($logo));
+            return $this->png(Storage::disk('local')->path($path));
         }
+
+        // Icons come from the app icon, else the app logo (v6 D36).
+        $logo = Branding::iconPath();
 
         [$size, $fallback] = self::ICONS[$asset];
 
@@ -63,7 +65,7 @@ class BrandController extends Controller
 
     public function manifest(): JsonResponse
     {
-        $version = substr(md5((string) Branding::imagePath('app_logo')), 0, 8);
+        $version = substr(md5((string) Branding::iconPath()), 0, 8);
         $icon = fn (string $asset, string $size, string $purpose) => [
             'src' => route('brand.asset', ['asset' => $asset, 'v' => $version], false),
             'sizes' => $size,
@@ -72,8 +74,8 @@ class BrandController extends Controller
         ];
 
         return response()->json([
-            'name' => (string) Setting::get('institution.name'),
-            'short_name' => (string) (Setting::get('institution.short_name') ?: 'SIAKAD'),
+            'name' => Branding::appName(),
+            'short_name' => Branding::appShortName(),
             'description' => 'Sistem informasi akademik',
             'lang' => 'id',
             'start_url' => '/dashboard',

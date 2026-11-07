@@ -46,12 +46,27 @@ yang dinonaktifkan langsung keluar pada permintaan berikutnya.
 **Sistem → Identitas**: nama dan nama singkat lembaga, yayasan, SK izin operasional, alamat, **kota**
 (dicetak sebelum tanggal pada blok tanda tangan), telepon, email, situs web, dan nama pimpinan (Mudir).
 Di bagian **Gambar**, unggah:
-- **Logo aplikasi**: tampil di menu samping, halaman masuk, tab peramban, dan ikon aplikasi terpasang;
 - **Logo lembaga**: di sisi kiri kop surat setiap PDF;
 - **Nama dalam kaligrafi Arab**: di atas nama lembaga pada kop surat.
 
 Gunakan PNG berlatar transparan; JPG/WebP juga diterima dan gambar besar diperkecil otomatis.
-**Pratinjau kop surat** membuka contoh PDF dengan kop dan blok tanda tangan.
+**Pratinjau kop surat** membuka contoh PDF dengan kop dan blok tanda tangan. Data di halaman ini dipakai
+untuk dokumen (KHS, transkrip, surat, kuitansi).
+
+## Tampilan aplikasi
+
+**Sistem → Tampilan aplikasi** mengatur tampilan SIAKAD sendiri, terpisah dari identitas lembaga:
+- **Nama aplikasi**: tab peramban, halaman masuk, aplikasi terpasang, dan nama pengirim email. Kosong:
+  nama dari `APP_NAME` di `.env`.
+- **Nama singkat**: menu samping dan label ikon di layar utama ponsel (maks. 20 huruf). Kosong: nama
+  singkat lembaga, atau "SIAKAD".
+- **Halaman masuk**: **Judul sambutan** dan **Teks sambutan**, serta **Latar halaman masuk** (foto,
+  misalnya kampus; formulir tetap tampil di atas kartu putih agar terbaca).
+- **Logo aplikasi** (menu samping, halaman masuk) dan **Ikon aplikasi** (tab peramban dan ikon di layar
+  utama). Tanpa ikon, ikon dibuat dari logo aplikasi; tanpa keduanya, dipakai logo bawaan.
+
+Pratinjau di sisi kanan menunjukkan halaman masuk setelah disimpan. Warna tema tetap hijau. Ponsel yang
+sudah memasang SIAKAD bisa baru menampilkan ikon atau nama baru setelah aplikasi dibuka ulang.
 
 ## Tanda tangan & stempel
 

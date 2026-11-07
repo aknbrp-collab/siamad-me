@@ -22,7 +22,7 @@ Route::redirect('/', '/dashboard')->name('home');
 
 // Logo and app icons are public: the login page and installed-app icons need them.
 Route::get('brand/{asset}', [BrandController::class, 'asset'])
-    ->whereIn('asset', ['app-logo', 'icon-192', 'icon-512', 'apple-touch-icon'])
+    ->whereIn('asset', ['app-logo', 'login-background', 'icon-192', 'icon-512', 'apple-touch-icon'])
     ->name('brand.asset');
 Route::get('manifest.webmanifest', [BrandController::class, 'manifest'])->name('brand.manifest');
 
@@ -57,6 +57,7 @@ Route::middleware('portal')->group(function () {
         Route::view('/', 'dashboard', ['role' => Role::Superadmin])->name('dashboard');
         Route::livewire('settings', 'pages::superadmin.settings')->name('settings');
         Route::livewire('identity', 'pages::superadmin.identity')->name('identity');
+        Route::livewire('appearance', 'pages::superadmin.appearance')->name('appearance');
         Route::livewire('signatures', 'pages::superadmin.signatures')->name('signatures');
         Route::livewire('maintenance', 'pages::superadmin.maintenance')->name('maintenance');
         Route::livewire('cms', 'pages::superadmin.cms')->name('cms');

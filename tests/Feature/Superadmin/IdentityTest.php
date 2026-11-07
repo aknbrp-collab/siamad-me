@@ -61,11 +61,17 @@ test('superadmin keeps the identity of the institution', function () {
 test('uploaded logos are stored as scaled PNGs and served as the app logo and icons', function () {
     $this->actingAs($this->superadmin)->get(route('superadmin.identity'));
 
-    Livewire::test('pages::superadmin.identity')
+    // The app logo is on Tampilan aplikasi (v6 D36); Identity keeps the institution's images.
+    Livewire::test('pages::superadmin.appearance')
         ->set('uploads.app_logo', transparentPng())
-        ->assertHasNoErrors()
+        ->assertHasNoErrors();
+    Livewire::test('pages::superadmin.identity')
         ->set('uploads.arabic_name', UploadedFile::fake()->create('nama.pdf', 10, 'application/pdf'))
-        ->assertHasErrors('uploads.arabic_name');
+        ->assertHasErrors('uploads.arabic_name')
+        ->set('uploads.institution_logo', transparentPng())
+        ->assertHasNoErrors();
+
+    expect(Branding::imagePath('institution_logo'))->not->toBeNull();
 
     $path = Branding::imagePath('app_logo');
     [$width, $height] = getimagesizefromstring((string) Storage::disk('local')->get($path));

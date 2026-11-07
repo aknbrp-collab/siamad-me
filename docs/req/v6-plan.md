@@ -115,11 +115,11 @@ are recorded as decisions D33–D41.
   comments and Excel. Each muhadhir sees their own results after the period closes; at least 3 answers
   are needed to show results (D35).
 
-### Step 4 — App appearance (small–medium)
+### Step 4 — App appearance (small–medium) — done 2026-11-07
 
-- `Tampilan aplikasi` page and settings `app.name`, `app.short_name`, `app.logo`, `app.icon`,
-  `app.login_title`, `app.login_text`, `app.login_background`. The current app logo moves from the
-  Identity page, with a migration.
+- `Tampilan aplikasi` page and settings `app.name`, `app.short_name`, `app.login_title`, `app.login_text`,
+  and the images `branding.app_logo`, `branding.app_icon`, `branding.login_background`. The app logo
+  moves from the Identity page; it keeps its setting key, so no data migration was needed.
 - Used in the layout title, sidebar, login, manifest, notification titles and emails. PDFs keep using the
   institution.
 

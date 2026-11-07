@@ -1,4 +1,4 @@
-{{-- The uploaded app logo (Superadmin → Identity), or the built-in mark on a green tile. --}}
+{{-- The uploaded app logo (Superadmin → Tampilan aplikasi), or the built-in mark on a green tile. --}}
 @props(['size' => 'size-8'])
 
 @if ($url = \App\Support\Branding::appLogoUrl())

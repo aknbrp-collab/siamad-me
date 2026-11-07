@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Support\Branding;
 use App\Support\Upload;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
             EnsurePasswordIsChanged::class,
             EnsureRole::class,
         ]);
+
+        // The app name set on Tampilan aplikasi (v6 D36) for the browser tab and emails. Skipped
+        // quietly when the database is not there yet (first install, some artisan commands).
+        $this->app->booted(fn () => rescue(fn () => Branding::applyToConfig(), report: false));
 
         // Livewire's temporary upload uses the same size limit as our own rules.
         config(['livewire.temporary_file_upload.rules' => ['required', 'file', Upload::max()]]);

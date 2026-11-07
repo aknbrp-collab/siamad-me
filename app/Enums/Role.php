@@ -232,6 +232,7 @@ enum Role: string
             $groups[] = ['heading' => __('System'), 'items' => [
                 $item(__('Users & roles'), 'user-plus', 'superadmin.users.index', 'superadmin.users.*'),
                 $item(__('Identity'), 'building-library', 'superadmin.identity'),
+                $item(__('App appearance'), 'swatch', 'superadmin.appearance'),
                 $item(__('Signatures & stamps'), 'pencil', 'superadmin.signatures'),
                 $item(__('Letter types'), 'document-duplicate', 'superadmin.letter-types'),
                 $item(__('Settings'), 'adjustments-horizontal', 'superadmin.settings'),

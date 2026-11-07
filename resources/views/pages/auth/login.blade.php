@@ -1,6 +1,6 @@
 <x-layouts::auth :title="__('Log in')">
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to SIAKAD')" :description="__('Enter your ID number and password below to log in')" />
+        <x-auth-header :title="\App\Support\Branding::loginTitle()" :description="\App\Support\Branding::loginText()" />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />

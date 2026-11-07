@@ -9,9 +9,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The institution's identity: text settings and images (app logo,
- * institution logo, name in Arabic calligraphy). Images live on the private
- * disk; logos are served by BrandController, the rest only go into PDFs.
+ * The institution's identity (text settings, institution logo, name in
+ * Arabic calligraphy: for documents) and the app's own look (v6 D36: name,
+ * short name, logo, icon, login page). Images live on the private disk; the
+ * app images are served by BrandController, the rest only go into PDFs.
  */
 final class Branding
 {
@@ -20,9 +21,68 @@ final class Branding
      */
     public const IMAGES = [
         'app_logo' => 'branding.app_logo',
+        'app_icon' => 'branding.app_icon',
+        'login_background' => 'branding.login_background',
         'institution_logo' => 'branding.institution_logo',
         'arabic_name' => 'branding.arabic_name',
     ];
+
+    /**
+     * The app's name: browser tab, login page, installed app, emails.
+     */
+    public static function appName(): string
+    {
+        return self::text('app.name') ?? (string) config('siakad.app_name', 'SIAKAD');
+    }
+
+    /**
+     * Put the app name where Laravel reads config('app.name'): the browser tab and emails.
+     */
+    public static function applyToConfig(): void
+    {
+        $name = self::appName();
+        config(['app.name' => $name, 'mail.from.name' => $name]);
+    }
+
+    /**
+     * The short name: sidebar and the home-screen label of the installed app.
+     */
+    public static function appShortName(): string
+    {
+        return self::text('app.short_name') ?? self::text('institution.short_name') ?? 'SIAKAD';
+    }
+
+    public static function loginTitle(): string
+    {
+        return self::text('app.login_title') ?? __('Log in to SIAKAD');
+    }
+
+    public static function loginText(): string
+    {
+        return self::text('app.login_text') ?? __('Enter your ID number and password below to log in');
+    }
+
+    /**
+     * The image icons are made from: the app icon, else the app logo.
+     */
+    public static function iconPath(): ?string
+    {
+        return self::imagePath('app_icon') ?? self::imagePath('app_logo');
+    }
+
+    public static function loginBackgroundUrl(): ?string
+    {
+        $path = self::imagePath('login_background');
+
+        return $path === null ? null : route('brand.asset', ['asset' => 'login-background', 'v' => substr(md5($path), 0, 8)]);
+    }
+
+    private static function text(string $key): ?string
+    {
+        $value = Setting::get($key);
+
+        return is_string($value) && trim($value) !== '' ? trim($value) : null;
+    }
 
     public static function imagePath(string $image): ?string
     {

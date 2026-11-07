@@ -5,8 +5,8 @@
     {{ filled($title ?? null) ? __($title).' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
 </title>
 
-@if ($brandIcon = \App\Support\Branding::appLogoUrl())
-    {{-- The uploaded app logo (Superadmin → Identity) as the tab and home-screen icon. --}}
+@if ($brandIcon = \App\Support\Branding::iconPath())
+    {{-- The app icon or logo (Superadmin → Tampilan aplikasi) as the tab and home-screen icon. --}}
     <link rel="icon" href="{{ route('brand.asset', ['asset' => 'icon-192', 'v' => substr(md5($brandIcon), 0, 8)]) }}" type="image/png">
 @else
     <link rel="icon" href="/favicon.ico" sizes="any">

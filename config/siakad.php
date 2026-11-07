@@ -12,7 +12,15 @@ return [
     |
     */
 
+    // The app name before Superadmin sets one on Tampilan aplikasi (v6 D36).
+    'app_name' => env('APP_NAME', 'SIAKAD Mahad Aly'),
+
     'settings' => [
+        // Tampilan aplikasi (v6 D36); empty values fall back to app_name and the institution's short name.
+        'app.name' => null,
+        'app.short_name' => null,
+        'app.login_title' => null,
+        'app.login_text' => null,
         'institution.name' => env('APP_NAME', 'SIAKAD Mahad Aly'),
         'institution.short_name' => null,
         'institution.foundation' => null,

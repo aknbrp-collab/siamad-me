@@ -146,8 +146,32 @@ the web.
 | Tinjau artikel | `GET /articles/review` (muhadhir), `POST /articles/{id}/review` (`approve`, `note`) |
 | Tanya Hukum | `GET /tanya-hukum?show=open|approval|answered|all`, `GET /tanya-hukum/{id}` (open answer with approvals, sent versions, `can`), `PUT …/draft` (`answer`, `references`), `POST …/submit`, `POST …/approve`, `POST …/reopen`, `POST …/correction`, `POST …/resend`; the question's room is `discussion_id` |
 
-Room management (creating bimbingan groups, LPPPK channels, person-wide LPPPK sanctions) is staff work and
-comes with Step 9.
+### Admin akademik and pemantau (Step 9)
+
+Under `/admin`, for Admin and Superadmin; the academic monitor reaches the monitoring, activity, teaching
+document, bimbingan and LPPPK endpoints and the evaluation results (writes there that the web keeps for
+Admin answer 403). Staff also read any mahasantri's records under `/students/{id}/…`.
+
+| Screen | Endpoints |
+| --- | --- |
+| Tahun akademik | `GET /admin/academic-years` (with semesters), `POST`, `PUT /admin/academic-years/{id}`, `POST /admin/semesters/{id}/activate`, `POST …/close` (`confirmed: true` to close; without it the number of classes with grades not final), `POST …/reopen` (Superadmin, `reason`) |
+| Program studi, mata kuliah, ruang, kelas | `GET`/`POST /admin/study-programs`, `DELETE /admin/study-programs/{id}`; `GET`/`POST /admin/subjects`; `GET`/`POST /admin/rooms`; `GET`/`POST /admin/classes`, `DELETE /admin/classes/{id}`; `GET /admin/grade-scale` (a `POST` without `id` adds, with `id` changes) |
+| Penempatan kelas | `GET /admin/semesters/{id}/placements?class=` (classes, roster), `GET …/placements/candidates?search=&class=`, `POST …/placements` (`class_id`, `student_ids`), `DELETE …/placements/{id}`, `POST …/placements/copy` (`from_semester_id`, `class_map`) |
+| Kelas kuliah, jadwal | `GET /admin/semesters/{id}/classes`, `POST …/classes` (with `id` to change; `joint: true` after a `joint_class` 422), `DELETE …/classes/{id}`, `POST …/classes/copy` |
+| Ujian | `GET`/`POST /admin/semesters/{id}/exam-periods`, `GET /admin/exam-periods/{id}` (schedule, rooms, capacity), `POST …/sessions`, `DELETE …/sessions/{id}`, `PUT …/rooms`, `POST …/seats`, `PUT …/publish`, `GET …/participants`, `POST`/`DELETE …/dispensations/{student}` |
+| Mahasantri, muhadhir, wali | `GET /admin/students` (`search`, `status`, `program`), `GET /admin/students/{id}`, `POST /admin/students` (returns the temporary `password` once), `POST /admin/students/{id}` (change, multipart for `photo`); the same for `/admin/teachers`; `GET`/`POST /admin/guardians` (`student_ids`); `POST /admin/users/{id}/reset-password`, `PUT /admin/users/{id}/active` |
+| Dokumen | `GET /admin/documents?owner=students|teachers&status=`, `POST /admin/documents/{id}/review` (`owner`, `verify`, `note`) |
+| Pembimbing akademik | `GET /admin/supervision?teacher=`, `POST /admin/supervision` (`teacher_id`, `student_ids`), `DELETE /admin/supervision/{id}` |
+| Catatan kegiatan | `GET`/`POST /admin/activities`, `DELETE /admin/activities/{id}` |
+| Persuratan | `GET /admin/letters/overview` (types, waiting requests), `GET /admin/letters`, `POST /admin/letters/draft` (filled template), `POST /admin/letters` (issue; `letter_request_id` answers a request), `POST /admin/letters/{id}/cancel`, `POST /admin/letter-requests/{id}/reject`, `GET`/`POST /admin/incoming-letters` |
+| Pemantauan | `GET /admin/monitor?semester=`, `POST /admin/classes/{id}/unlock-grades` (Admin) |
+| Dokumen mengajar | `GET /admin/teaching-documents?filter=`, `POST /admin/teaching-documents/{id}/review`, `POST /admin/teaching-documents/join` (`class_ids`, lead first), `DELETE /admin/teaching-documents/join/{lead id}` |
+| Kelompok bimbingan, LPPPK | `GET`/`POST /admin/bimbingan-groups`, `POST /admin/bimbingan-groups/{id}/members`, `DELETE …/members/{member}`, `PUT /admin/discussions/{id}/closed`, `POST /admin/lpppk-channels`, `GET /admin/lpppk-sanctions`, `POST`/`DELETE /admin/lpppk-sanctions/{user}` |
+| Kritik & saran | `GET /admin/feedback`, `PUT /admin/feedback/{id}` (`reply`, `status`) |
+| Evaluasi muhadhir | `GET /admin/evaluations?semester=` (results), `GET`/`PUT /admin/semesters/{id}/evaluation`, `POST …/evaluation/prepare`, `POST …/evaluation/statements` |
+
+Web only: Excel imports, previous-year data (maintenance mode) and changing the grade scale; payment
+verification comes with finance (Step 10).
 
 ### Per role
 
@@ -158,7 +182,7 @@ Added step by step (v6 plan):
 | Mahasantri, wali santri | 6 | Done: see above |
 | Muhadhir | 7 | Done: see above |
 | Discussions | 8 | Done: see above |
-| Admin, pemantau | 9 | Data akademik, orang, dokumen, surat, pemantauan, kritik & saran, evaluasi |
+| Admin, pemantau | 9 | Done: see above |
 | Keuangan, petugas | 10 | Tagihan, pembayaran, setoran, transfer, buku kas, rekap angsuran |
 | Superadmin | 11 | Pengguna, pengaturan, identitas dan tampilan, tanda tangan, jenis surat, log audit |
 

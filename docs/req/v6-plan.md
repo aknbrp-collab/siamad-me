@@ -150,7 +150,7 @@ are recorded as decisions D33–D41.
 - Bimbingan and LPPPK rooms (messages with polling `after_id`, files, notes, moderation), articles (write,
   send, review, publish, withdraw, website status) and Tanya Hukum (questions, drafts, approvals).
 
-### Step 9 — API: academic admin and monitor (large)
+### Step 9 — API: academic admin and monitor (large) — done 2026-11-08
 
 - Academic years and semesters, classes, subjects, class kuliah and schedule, placements, exams and
   rooms, people (mahasantri, muhadhir, wali), documents review, supervision, letters, incoming letters,

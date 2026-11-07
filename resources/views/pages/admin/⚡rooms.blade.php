@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Academic\ManageReferenceData;
 use App\Enums\Gender;
 use App\Models\Room;
 use Flux\Flux;
@@ -58,8 +59,8 @@ new #[Title('Exam rooms')] class extends Component {
             'gender.required' => __('Choose Putra or Putri.'),
         ]);
 
-        Room::query()->updateOrCreate(['id' => $this->editingId], [
-            'name' => trim($data['name']),
+        app(ManageReferenceData::class)->saveRoom($this->editingId ? Room::query()->findOrFail($this->editingId) : null, [
+            'name' => $data['name'],
             'capacity' => $data['capacity'],
             'gender' => $data['gender'],
             'is_active' => $data['isActive'],

@@ -2,6 +2,14 @@
 
 use App\Http\Controllers\Api\LegalQuestionController;
 use App\Http\Controllers\Api\V1\AccountController;
+use App\Http\Controllers\Api\V1\Admin\AcademicController;
+use App\Http\Controllers\Api\V1\Admin\CommunityController;
+use App\Http\Controllers\Api\V1\Admin\ExamController as AdminExamController;
+use App\Http\Controllers\Api\V1\Admin\LetterController as AdminLetterController;
+use App\Http\Controllers\Api\V1\Admin\MonitorController;
+use App\Http\Controllers\Api\V1\Admin\PeopleController;
+use App\Http\Controllers\Api\V1\Admin\RecordsController;
+use App\Http\Controllers\Api\V1\Admin\SemesterController;
 use App\Http\Controllers\Api\V1\AppInfoController;
 use App\Http\Controllers\Api\V1\ArticleController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -164,6 +172,114 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('reopen', [TanyaHukumController::class, 'reopen'])->name('reopen');
             Route::post('correction', [TanyaHukumController::class, 'correction'])->name('correction');
             Route::post('resend', [TanyaHukumController::class, 'resend'])->name('resend');
+        });
+
+        // Academic staff (Step 9): Admin and Superadmin; the academic monitor where the web lets them.
+        Route::prefix('admin')->name('admin.')->group(function () {
+            Route::middleware('role:admin,superadmin')->group(function () {
+                Route::get('academic-years', [AcademicController::class, 'years'])->name('years');
+                Route::post('academic-years', [AcademicController::class, 'storeYear'])->name('years.store');
+                Route::put('academic-years/{year}', [AcademicController::class, 'updateYear'])->name('years.update');
+                Route::post('semesters/{semester}/activate', [AcademicController::class, 'activate'])->name('semesters.activate');
+                Route::post('semesters/{semester}/close', [AcademicController::class, 'close'])->name('semesters.close');
+                Route::post('semesters/{semester}/reopen', [AcademicController::class, 'reopen'])->name('semesters.reopen');
+                Route::get('study-programs', [AcademicController::class, 'programs'])->name('programs');
+                Route::post('study-programs', [AcademicController::class, 'saveProgram'])->name('programs.save');
+                Route::delete('study-programs/{program}', [AcademicController::class, 'deleteProgram'])->name('programs.delete');
+                Route::get('subjects', [AcademicController::class, 'subjects'])->name('subjects');
+                Route::post('subjects', [AcademicController::class, 'saveSubject'])->name('subjects.save');
+                Route::get('rooms', [AcademicController::class, 'rooms'])->name('rooms');
+                Route::post('rooms', [AcademicController::class, 'saveRoom'])->name('rooms.save');
+                Route::get('classes', [AcademicController::class, 'classes'])->name('classes');
+                Route::post('classes', [AcademicController::class, 'saveClass'])->name('classes.save');
+                Route::delete('classes/{class}', [AcademicController::class, 'deleteClass'])->name('classes.delete');
+                Route::get('grade-scale', [AcademicController::class, 'gradeScale'])->name('grade-scale');
+
+                Route::prefix('semesters/{semester}')->name('semesters.')->group(function () {
+                    Route::get('placements', [SemesterController::class, 'placements'])->name('placements');
+                    Route::get('placements/candidates', [SemesterController::class, 'candidates'])->name('placements.candidates');
+                    Route::post('placements', [SemesterController::class, 'enroll'])->name('placements.enroll');
+                    Route::delete('placements/{placement}', [SemesterController::class, 'removePlacement'])->name('placements.remove');
+                    Route::post('placements/copy', [SemesterController::class, 'copyPlacements'])->name('placements.copy');
+                    Route::get('classes', [SemesterController::class, 'offerings'])->name('offerings');
+                    Route::post('classes', [SemesterController::class, 'saveOffering'])->name('offerings.save');
+                    Route::delete('classes/{offering}', [SemesterController::class, 'deleteOffering'])->name('offerings.delete');
+                    Route::post('classes/copy', [SemesterController::class, 'copyOfferings'])->name('offerings.copy');
+                    Route::get('exam-periods', [AdminExamController::class, 'periods'])->name('exams');
+                    Route::post('exam-periods', [AdminExamController::class, 'storePeriod'])->name('exams.store');
+                });
+
+                Route::prefix('exam-periods/{period}')->name('exams.')->group(function () {
+                    Route::get('/', [AdminExamController::class, 'show'])->name('show');
+                    Route::post('sessions', [AdminExamController::class, 'saveSession'])->name('sessions.save');
+                    Route::delete('sessions/{session}', [AdminExamController::class, 'deleteSession'])->name('sessions.delete');
+                    Route::put('rooms', [AdminExamController::class, 'rooms'])->name('rooms');
+                    Route::post('seats', [AdminExamController::class, 'assignSeats'])->name('seats');
+                    Route::put('publish', [AdminExamController::class, 'publish'])->name('publish');
+                    Route::get('participants', [AdminExamController::class, 'participants'])->name('participants');
+                    Route::post('dispensations/{student}', [AdminExamController::class, 'grantDispensation'])->name('dispensations.grant');
+                    Route::delete('dispensations/{student}', [AdminExamController::class, 'revokeDispensation'])->name('dispensations.revoke');
+                });
+
+                Route::get('students', [PeopleController::class, 'students'])->name('students');
+                Route::post('students', [PeopleController::class, 'storeStudent'])->name('students.store');
+                Route::get('students/{student}', [PeopleController::class, 'student'])->name('students.show');
+                Route::post('students/{student}', [PeopleController::class, 'updateStudent'])->name('students.update');
+                Route::get('teachers', [PeopleController::class, 'teachers'])->name('teachers');
+                Route::post('teachers', [PeopleController::class, 'storeTeacher'])->name('teachers.store');
+                Route::get('teachers/{teacher}', [PeopleController::class, 'teacher'])->name('teachers.show');
+                Route::post('teachers/{teacher}', [PeopleController::class, 'updateTeacher'])->name('teachers.update');
+                Route::get('guardians', [PeopleController::class, 'guardians'])->name('guardians');
+                Route::post('guardians', [PeopleController::class, 'saveGuardian'])->name('guardians.save');
+                Route::post('users/{user}/reset-password', [PeopleController::class, 'resetPassword'])->name('users.reset-password');
+                Route::put('users/{user}/active', [PeopleController::class, 'setActive'])->name('users.active');
+
+                Route::get('documents', [RecordsController::class, 'documents'])->name('documents');
+                Route::post('documents/{document}/review', [RecordsController::class, 'reviewDocument'])->whereNumber('document')->name('documents.review');
+                Route::get('supervision', [RecordsController::class, 'supervision'])->name('supervision');
+                Route::post('supervision', [RecordsController::class, 'assignSupervision'])->name('supervision.assign');
+                Route::delete('supervision/{supervision}', [RecordsController::class, 'endSupervision'])->name('supervision.end');
+
+                Route::get('letters', [AdminLetterController::class, 'index'])->name('letters');
+                Route::get('letters/overview', [AdminLetterController::class, 'overview'])->name('letters.overview');
+                Route::post('letters/draft', [AdminLetterController::class, 'draft'])->name('letters.draft');
+                Route::post('letters', [AdminLetterController::class, 'issue'])->name('letters.issue');
+                Route::post('letters/{letter}/cancel', [AdminLetterController::class, 'cancel'])->name('letters.cancel');
+                Route::post('letter-requests/{letterRequest}/reject', [AdminLetterController::class, 'reject'])->name('letter-requests.reject');
+                Route::get('incoming-letters', [AdminLetterController::class, 'incoming'])->name('incoming');
+                Route::post('incoming-letters', [AdminLetterController::class, 'saveIncoming'])->name('incoming.save');
+            });
+
+            Route::middleware('role:admin,superadmin,academic_monitor')->group(function () {
+                Route::get('activities', [RecordsController::class, 'activities'])->name('activities');
+                Route::post('activities', [RecordsController::class, 'storeActivity'])->name('activities.store');
+                Route::delete('activities/{log}', [RecordsController::class, 'deleteActivity'])->name('activities.delete');
+
+                Route::get('monitor', [MonitorController::class, 'dashboard'])->name('monitor');
+                Route::post('classes/{offering}/unlock-grades', [MonitorController::class, 'unlock'])->name('grades.unlock');
+                Route::get('teaching-documents', [MonitorController::class, 'teachingDocuments'])->name('teaching-documents');
+                Route::post('teaching-documents/{document}/review', [MonitorController::class, 'review'])->name('teaching-documents.review');
+                Route::post('teaching-documents/join', [MonitorController::class, 'join'])->name('teaching-documents.join');
+                Route::delete('teaching-documents/join/{offering}', [MonitorController::class, 'split'])->name('teaching-documents.split');
+
+                Route::get('bimbingan-groups', [CommunityController::class, 'groups'])->name('groups');
+                Route::post('bimbingan-groups', [CommunityController::class, 'saveGroup'])->name('groups.save');
+                Route::post('bimbingan-groups/{group}/members', [CommunityController::class, 'addMembers'])->name('groups.members.add');
+                Route::delete('bimbingan-groups/{group}/members/{member}', [CommunityController::class, 'removeMember'])->name('groups.members.remove');
+                Route::put('discussions/{discussion}/closed', [CommunityController::class, 'setClosed'])->name('discussions.closed');
+                Route::post('lpppk-channels', [CommunityController::class, 'saveChannel'])->name('channels.save');
+                Route::get('lpppk-sanctions', [CommunityController::class, 'sanctions'])->name('sanctions');
+                Route::post('lpppk-sanctions/{person}', [CommunityController::class, 'sanction'])->name('sanctions.store');
+                Route::delete('lpppk-sanctions/{person}', [CommunityController::class, 'lift'])->name('sanctions.lift');
+
+                Route::get('feedback', [CommunityController::class, 'feedback'])->name('feedback');
+                Route::put('feedback/{feedback}', [CommunityController::class, 'answerFeedback'])->name('feedback.answer');
+                Route::get('evaluations', [CommunityController::class, 'evaluationResults'])->name('evaluations');
+                Route::get('semesters/{semester}/evaluation', [CommunityController::class, 'evaluationSetup'])->name('evaluations.setup');
+                Route::put('semesters/{semester}/evaluation', [CommunityController::class, 'saveEvaluationPeriod'])->name('evaluations.period');
+                Route::post('semesters/{semester}/evaluation/prepare', [CommunityController::class, 'prepareStatements'])->name('evaluations.prepare');
+                Route::post('semesters/{semester}/evaluation/statements', [CommunityController::class, 'saveStatement'])->name('evaluations.statements');
+            });
         });
 
         // Muhadhir (Step 7). Each class route checks that the muhadhir teaches it.

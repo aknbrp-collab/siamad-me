@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Academic\ManageReferenceData;
 use App\Actions\Academic\ManageClassGroups;
 use App\Enums\Gender;
 use App\Enums\SemesterStatus;
@@ -131,18 +132,13 @@ new #[Title('Classes')] class extends Component {
 
     public function delete(int $id): void
     {
-        $classGroup = ClassGroup::query()->findOrFail($id);
-
-        $active = Semester::active();
-
-        if ($active && ClassEnrollment::query()->where('semester_id', $active->id)->where('class_group_id', $id)->exists()) {
-            Flux::toast(variant: 'danger', text: __('This class has mahasantri in the active semester.'));
+        try {
+            app(ManageReferenceData::class)->deleteClass(ClassGroup::query()->findOrFail($id));
+        } catch (ValidationException $exception) {
+            Flux::toast(variant: 'danger', text: $exception->getMessage());
 
             return;
         }
-
-        // Soft delete: past enrolments still point to it.
-        $classGroup->delete();
         unset($this->classGroups);
         Flux::toast(variant: 'success', text: __('Class removed.'));
     }

@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Validation\ValidationException;
+use App\Actions\Academic\ManageReferenceData;
 use App\Models\StudyProgram;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
@@ -42,12 +44,9 @@ new #[Title('Study programs')] class extends Component {
 
     public function save(): void
     {
-        $data = $this->validate([
-            'code' => ['required', 'string', 'max:20', 'alpha_dash', Rule::unique('study_programs', 'code')->ignore($this->editingId)],
-            'name' => ['required', 'string', 'max:255'],
-        ]);
+        $data = $this->validate(ManageReferenceData::programRules($this->editingId));
 
-        StudyProgram::query()->updateOrCreate(['id' => $this->editingId], $data);
+        app(ManageReferenceData::class)->saveProgram($this->editingId ? StudyProgram::query()->findOrFail($this->editingId) : null, $data);
 
         Flux::modal('program-form')->close();
         Flux::toast(variant: 'success', text: __('Study program saved.'));
@@ -55,15 +54,13 @@ new #[Title('Study programs')] class extends Component {
 
     public function delete(int $id): void
     {
-        $program = StudyProgram::query()->withCount(['classGroups', 'subjects', 'students'])->findOrFail($id);
-
-        if ($program->class_groups_count + $program->subjects_count + $program->students_count > 0) {
-            Flux::toast(variant: 'danger', text: __('This study program is still used by classes, subjects or mahasantri.'));
+        try {
+            app(ManageReferenceData::class)->deleteProgram(StudyProgram::query()->findOrFail($id));
+        } catch (ValidationException $exception) {
+            Flux::toast(variant: 'danger', text: $exception->getMessage());
 
             return;
         }
-
-        $program->delete();
         Flux::toast(variant: 'success', text: __('Study program removed.'));
     }
 }; ?>

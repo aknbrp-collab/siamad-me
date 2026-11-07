@@ -1242,3 +1242,19 @@ v6 Step 8 (2026-11-07) — API for discussions, articles and Tanya Hukum (D37):
   wraps `ManageLegalQuestions`: list by state, detail with the open version, approvals and sent versions,
   draft, submit, approve, reopen, correction, resend.
 - Room, channel and sanction management stays for Step 9 (staff).
+
+v6 Step 9 (2026-11-08) — API for academic staff (D37):
+- `/admin/*` (role admin, superadmin; the monitor on activities, monitoring, teaching documents, bimbingan
+  groups, LPPPK and evaluation results, with Admin-only writes checked in the controller as on the web):
+  academic years and the semester lifecycle (`SaveAcademicYear`, `SemesterLifecycle`), study programs,
+  subjects, rooms, classes, grade scale (read), placements (`ManageClassEnrollments`), classes kuliah
+  (`ManageCourseOfferings`, `joint_class` answered with `joint: true`), exams (`ManageExams`,
+  `ExamEligibility`), people (`CreateStudent`/`UpdateStudent`, `CreateTeacher`/`UpdateTeacher`,
+  `SaveGuardian`; temporary passwords returned once; `ResetUserPassword` and login on/off guarded by
+  `accountManageableBy`), documents (`ReviewDocument`), supervision, activities (`RecordActivity`), letters
+  and incoming letters (`ManageLetters`, `LetterTemplate::fill` for drafts), teaching documents
+  (`ManageTeachingDocuments`), grade unlock (`ManageGrades`), bimbingan groups and LPPPK
+  (`ManageDiscussions`, `ModerateLpppk`), feedback (`ManageFeedback`) and evaluation (`ManageEvaluations`).
+- Moved out of pages so web and API share them: `ManageReferenceData` (study programs, subjects, rooms,
+  removing a class) and `MonitorReport` (the monitor dashboard's figures).
+- Web only: imports, previous-year data, grade scale editing; finance comes with Step 10.

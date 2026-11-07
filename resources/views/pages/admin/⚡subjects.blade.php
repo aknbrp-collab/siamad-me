@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Academic\ManageReferenceData;
 use App\Models\StudyProgram;
 use App\Models\Subject;
 use Flux\Flux;
@@ -96,7 +97,7 @@ new #[Title('Subjects')] class extends Component {
             'isActive' => ['boolean'],
         ]);
 
-        Subject::query()->updateOrCreate(['id' => $this->editingId], [
+        app(ManageReferenceData::class)->saveSubject($this->editingId ? Subject::query()->findOrFail($this->editingId) : null, [
             'study_program_id' => $data['studyProgramId'],
             'code' => $data['code'],
             'name' => $data['name'],

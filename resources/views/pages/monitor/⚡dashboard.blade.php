@@ -1,10 +1,8 @@
 <?php
 
-use App\Actions\Teaching\AcademicRecord;
+use App\Support\MonitorReport;
 use App\Actions\Teaching\ManageGrades;
 use App\Enums\Role;
-use App\Models\Assignment;
-use App\Models\CourseEnrollment;
 use App\Models\CourseOffering;
 use App\Models\Semester;
 use App\Models\Setting;
@@ -50,17 +48,21 @@ new #[Title('Academic monitor')] class extends Component {
     }
 
     /**
+     * The semester's figures (shared with the API).
+     */
+    #[Computed]
+    public function report(): MonitorReport
+    {
+        return new MonitorReport($this->semesterId);
+    }
+
+    /**
      * @return Collection<int, CourseOffering>
      */
     #[Computed]
     public function offerings(): Collection
     {
-        return CourseOffering::query()
-            ->with(['semester', 'classGroup', 'teacher.user', 'enrollments.student.user'])
-            ->withCount(['sessions as meetings_count' => fn ($query) => $query->whereNotNull('attendance_taken_at'), 'components'])
-            ->where('semester_id', $this->semesterId)
-            ->orderBy('class_group_id')->orderBy('subject_code')
-            ->get();
+        return $this->report->offerings;
     }
 
     /**
@@ -69,92 +71,43 @@ new #[Title('Academic monitor')] class extends Component {
     #[Computed]
     public function attendance(): array
     {
-        return app(AcademicRecord::class)->attendance(
-            $this->offerings->flatMap(fn (CourseOffering $offering) => $offering->enrollments->modelKeys())->values()->all(),
-        );
+        return $this->report->attendance;
     }
 
     /**
-     * Per offering: average attendance and how many are below the minimum.
-     *
      * @return array<int, array{average: int|null, below: int}>
      */
     #[Computed]
     public function offeringStats(): array
     {
-        $stats = [];
-
-        foreach ($this->offerings as $offering) {
-            $percents = $offering->enrollments
-                ->map(fn (CourseEnrollment $enrollment) => $this->attendance[$enrollment->id]['percent'] ?? null)
-                ->filter(fn ($percent) => $percent !== null);
-
-            $stats[$offering->id] = [
-                'average' => $percents->isEmpty() ? null : (int) round($percents->avg()),
-                'below' => $percents->filter(fn (int $percent) => $percent < $this->minimum)->count(),
-            ];
-        }
-
-        return $stats;
+        return $this->report->offeringStats();
     }
 
     /**
-     * Submissions still missing for assignments past their due date, per offering.
-     *
      * @return array<int, int>
      */
     #[Computed]
     public function missingWork(): array
     {
-        $missing = [];
-
-        $assignments = Assignment::query()
-            ->whereIn('course_offering_id', $this->offerings->modelKeys())
-            ->where('due_at', '<', now())
-            ->withCount('submissions')
-            ->get();
-
-        foreach ($assignments as $assignment) {
-            $enrolled = $this->offerings->firstWhere('id', $assignment->course_offering_id)?->enrollments->count() ?? 0;
-            $missing[$assignment->course_offering_id] = ($missing[$assignment->course_offering_id] ?? 0) + max(0, $enrolled - $assignment->submissions_count);
-        }
-
-        return $missing;
+        return $this->report->missingWork();
     }
 
     /**
-     * Mahasantri under the attendance minimum, lowest first.
-     *
      * @return \Illuminate\Support\Collection<int, array{name: string, nim: string, class: string, subject: string, percent: int}>
      */
     #[Computed]
     public function belowMinimum(): \Illuminate\Support\Collection
     {
-        return $this->offerings
-            ->flatMap(fn (CourseOffering $offering) => $offering->enrollments->map(fn (CourseEnrollment $enrollment) => [
-                'name' => $enrollment->student->user->name,
-                'nim' => $enrollment->student->nim,
-                'class' => $offering->class_name,
-                'subject' => $offering->subject_name,
-                'percent' => $this->attendance[$enrollment->id]['percent'] ?? null,
-            ]))
-            ->filter(fn (array $row) => $row['percent'] !== null && $row['percent'] < $this->minimum)
-            ->sortBy('percent')
-            ->values();
+        return $this->report->belowMinimum();
     }
 
     /**
-     * @return array<string, int> letter => count, over finalised grades this semester
+     * @return array<string, int>
      */
     #[Computed]
     public function distribution(): array
     {
-        return $this->offerings
-            ->flatMap(fn (CourseOffering $offering) => $offering->enrollments)
-            ->whereNotNull('final_letter')
-            ->countBy('final_letter')
-            ->sortKeys()
-            ->all();
+        return $this->report->distribution();
     }
 
     public function openUnlock(int $offeringId): void
@@ -175,7 +128,7 @@ new #[Title('Academic monitor')] class extends Component {
         $grades->unlock(CourseOffering::query()->where('semester_id', $this->semesterId)->findOrFail($this->unlockingId), $this->unlockReason);
 
         Flux::modal('unlock-grades')->close();
-        unset($this->offerings, $this->distribution);
+        unset($this->report, $this->offerings, $this->distribution);
         Flux::toast(variant: 'warning', text: __('Grades unlocked. The ustadz can correct and finalise them again.'));
     }
 }; ?>

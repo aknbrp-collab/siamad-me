@@ -75,6 +75,12 @@ website dan tautannya; **Kirim ulang** bila pengiriman gagal.
 diperiksa. Buka artikelnya, lalu **Setujui** atau **Minta perbaikan** dengan catatan. Artikel terbit
 setelah dua muhadhir berbeda menyetujuinya dalam satu putaran.
 
+## Evaluasi saya
+
+Menu **Evaluasi saya** menampilkan penilaian mahasantri atas kelas kuliah Anda, setelah periode evaluasi
+semester itu ditutup: rata-rata per pernyataan, sebaran skor 1–5, dan komentar. Jawaban mahasantri anonim,
+dan sebuah kelas baru menampilkan hasil bila sedikitnya 3 mahasantri menjawab.
+
 ## Pertemuan dan presensi
 
 1. **Tambah pertemuan**: tanggal, topik, dan mode: **Tatap muka** atau **Daring** dengan tautan

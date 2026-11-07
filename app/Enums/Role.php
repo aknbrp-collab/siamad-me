@@ -114,6 +114,7 @@ enum Role: string
         if ($this === self::Teacher) {
             $groups[0]['items'][] = $item(__('My timetable'), 'calendar', 'ustadz.timetable');
             $groups[0]['items'][] = $item(__('My supervisees'), 'user-group', 'ustadz.supervision', 'ustadz.supervision*');
+            $groups[0]['items'][] = $item(__('My evaluation'), 'star', 'ustadz.evaluations');
         }
 
         if (in_array($this, [self::Teacher, self::Student], true)) {
@@ -128,6 +129,7 @@ enum Role: string
             $groups[0]['items'][] = $item(__('Templates'), 'document-duplicate', 'templates');
             $groups[0]['items'][] = $item(__('Bimbingan groups'), 'pencil-square', 'bimbingan.groups');
             $groups[0]['items'][] = $item(__('LPPPK'), 'chat-bubble-left-right', 'lpppk', 'lpppk*');
+            $groups[0]['items'][] = $item(__('Teaching evaluation'), 'star', 'evaluations');
         }
 
         if ($this === self::Student) {
@@ -137,6 +139,7 @@ enum Role: string
             $groups[0]['items'][] = $item(__('My bills'), 'banknotes', 'mahasantri.bills');
             $groups[0]['items'][] = $item(__('Exam card'), 'ticket', 'mahasantri.exams');
             $groups[0]['items'][] = $item(__('My letters'), 'document-text', 'mahasantri.letters');
+            $groups[0]['items'][] = $item(__('Teaching evaluation'), 'star', 'mahasantri.evaluations', null, 'evaluation');
             $groups[0]['items'][] = $item(__('Academic supervisor'), 'user', 'mahasantri.supervision');
         }
 
@@ -171,6 +174,7 @@ enum Role: string
                 $item(__('Templates'), 'document-duplicate', 'templates'),
                 $item(__('Bimbingan groups'), 'pencil-square', 'bimbingan.groups'),
                 $item(__('LPPPK'), 'chat-bubble-left-right', 'lpppk', 'lpppk*'),
+                $item(__('Teaching evaluation'), 'star', 'evaluations'),
                 $item(__('Academic monitor'), 'chart-bar', 'monitor.dashboard'),
                 $item(__('Activity log'), 'clipboard-document-list', 'monitor.activities'),
             ]];

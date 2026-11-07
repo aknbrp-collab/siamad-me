@@ -80,6 +80,18 @@ artikel dari website. Di halaman artikel, kotak **Di website** menunjukkan statu
 Di **LPPPK → Tanya Hukum** Anda dapat membaca pertanyaan dari website dan ikut berdiskusi di ruang
 **Diskusi** setiap pertanyaan. Jawabannya ditulis dan disetujui para muhadhir.
 
+## Evaluasi muhadhir
+
+Di akhir semester, selama periode evaluasi dibuka, dasbor mengingatkan Anda dan menu **Evaluasi muhadhir**
+menunjukkan jumlah kelas yang belum dievaluasi. Klik **Evaluasi** pada setiap kelas kuliah, beri skor 1–5
+untuk setiap pernyataan (1 = sangat tidak setuju, 5 = sangat setuju), tulis saran bila mau, lalu **Kirim
+evaluasi**. Setiap kelas hanya dievaluasi sekali.
+
+Jawaban Anda **anonim**: SIAKAD hanya menyimpan jumlah skor per kelas, bukan jawaban per orang, dan
+komentar disimpan tanpa nama. Muhadhir dan Admin hanya melihat rata-rata, dan baru bila sedikitnya 3
+mahasantri menjawab. Bila bagian akademik mewajibkannya, KHS semester itu baru terbuka setelah semua kelas
+Anda dievaluasi.
+
 ## KHS dan transkrip
 
 - **KHS**: pilih semester untuk melihat SKS, nilai, nilai huruf, dan IPS. Hanya nilai yang sudah final

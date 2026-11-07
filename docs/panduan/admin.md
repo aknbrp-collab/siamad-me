@@ -238,6 +238,24 @@ tertahan:
 Bagian **Siapa yang memegang** merangkum per orang atau kelompok: jumlah, total, dan berapa hari yang
 terlama sudah menunggu. **Ingatkan** mengirim notifikasi kepada mereka (paling banyak sekali sehari).
 
+## Evaluasi muhadhir
+
+Menu **Evaluasi muhadhir** → pilih semester.
+
+1. **Pernyataan & periode**: klik **Salin dari semester sebelumnya** (semester pertama mendapat pernyataan
+   bawaan: penguasaan materi, kedisiplinan, interaksi, penilaian). Tambah, ubah urutan, atau nonaktifkan
+   pernyataan. Pernyataan yang sudah dijawab tidak dapat diubah kalimatnya; nonaktifkan lalu buat yang
+   baru.
+2. Atur **Periode** (tanggal buka dan tutup), **Pertanyaan terbuka penutup**, dan bila perlu **Wajib sebelum
+   KHS** (selama periode dibuka, mahasantri baru dapat membuka KHS semester itu setelah mengevaluasi semua
+   kelasnya).
+3. **Hasil**: rata-rata per muhadhir dan per kelas kuliah. Klik kelas untuk melihat rata-rata per
+   pernyataan, sebaran skor, dan komentar. Kelas dengan kurang dari 3 jawaban tidak menampilkan hasil.
+   **Export** mengunduh semuanya ke Excel.
+
+Jawaban mahasantri anonim: yang tersimpan hanya jumlah skor dan komentar tanpa nama. Muhadhir melihat hasil
+kelasnya sendiri setelah periode ditutup.
+
 ## Kritik & saran
 
 Menu **Kritik & saran** (angka di menu = pesan baru) memuat kritik dan saran dari semua pengguna. Saring per

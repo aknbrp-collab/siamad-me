@@ -43,6 +43,9 @@ Route::middleware('portal')->group(function () {
 
     Route::livewire('notifications', 'pages::notifications')->name('notifications');
 
+    // Muhadhir evaluation (v6 D35): set up by Admin and Superadmin; results also for the academic monitor.
+    Route::livewire('evaluations', 'pages::evaluations.index')->middleware('role:admin,superadmin,academic_monitor')->name('evaluations');
+
     // Kritik & saran (v6 D34): anyone sends; Admin and Superadmin handle them.
     Route::livewire('feedback', 'pages::feedback.mine')->name('feedback');
     Route::livewire('feedback/inbox', 'pages::feedback.inbox')->middleware('role:admin,superadmin')->name('feedback.inbox');
@@ -172,6 +175,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('supervision', 'pages::ustadz.supervision.index')->name('supervision');
         Route::livewire('supervision/forum', 'pages::ustadz.supervision.forum')->name('supervision.forum');
         Route::livewire('supervision/{student}', 'pages::ustadz.supervision.student')->name('supervision.student');
+        Route::livewire('evaluations', 'pages::ustadz.evaluations')->name('evaluations');
     });
 
     Route::prefix('mahasantri')->name('mahasantri.')->middleware('role:student')->group(function () {
@@ -185,6 +189,7 @@ Route::middleware('portal')->group(function () {
         Route::livewire('supervision', 'pages::mahasantri.supervision')->name('supervision');
         Route::livewire('exams', 'pages::mahasantri.exams')->name('exams');
         Route::livewire('letters', 'pages::mahasantri.letters')->name('letters');
+        Route::livewire('evaluations', 'pages::mahasantri.evaluations')->name('evaluations');
     });
 
     Route::prefix('wali')->name('wali.')->middleware('role:guardian')->group(function () {

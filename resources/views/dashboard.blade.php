@@ -24,6 +24,7 @@
         <flux:text>{{ $role->description() }}</flux:text>
 
         @include('partials.documents-reminder', ['role' => $role])
+        @include('partials.evaluation-reminder', ['role' => $role])
 
         <div>
             <flux:heading size="lg" level="2">{{ __('Quick links') }}</flux:heading>

@@ -83,6 +83,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 ## Pemantau Akademik
 - [ ] Dashboard shows the right attendance percentages and the below-minimum list
 - [ ] Record pesantren activities; the wali sees them, the KHS does not
+- [ ] Evaluasi muhadhir: see the results and comments of a class with 3+ answers, and nothing for a class with fewer; export to Excel; no setup tab
 
 ## Mahasantri (on a phone)
 - [ ] First login, password change, document upload (also a 3–9 MB scan; a file over 10 MB is refused with a clear message); the ijazah asks for level, school and graduation year
@@ -92,11 +93,18 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Request a Surat Keterangan Aktif Kuliah; after the Admin issues it, download it from Surat saya
 - [ ] Request a letter choosing the first letter type in the list (it must not say no letter was chosen)
 - [ ] Artikel: write an article with a list and a quote, check the preview, send it for review; after a muhadhir asks for changes, revise and send again; after two approvals it shows Published
+- [ ] Evaluasi muhadhir (period open): the dashboard reminds you; evaluate one class (every statement needs a score); it shows Done and cannot be answered again. With "Wajib sebelum KHS", the KHS waits until all classes are evaluated
 - [ ] Bimbingan: open your group from the menu (unread count shown), read the muhadhir's message, answer with a file; a message from someone else appears within seconds
 
 ## Wali santri (on a phone)
 - [ ] Sees only their own children; switches child and semester
 - [ ] Grades, attendance, activities, bills and receipts are correct and read-only
+
+## Evaluasi muhadhir
+- [ ] As Admin, copy the statements from the previous semester (or get the defaults), add one, turn one off, reorder; set the period from today for a week
+- [ ] After three mahasantri answer a class, the results show averages, the 1–5 spread and comments; with two answers nothing shows
+- [ ] Try to reword a statement that has answers: refused; turn it off instead
+- [ ] After the period closes, the muhadhir sees their own classes only under Evaluasi saya
 
 ## Kritik & saran
 - [ ] As a mahasantri, a wali and a muhadhir, each send a message (one anonymous); each sees it under "Pesan saya" as Baru

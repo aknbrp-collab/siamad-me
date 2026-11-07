@@ -41,6 +41,8 @@ function measuredPages(): array
         ['finance.handovers', [], 'keuangan', Role::AdminPayment],
         ['finance.scholarships', [], 'keuangan', Role::AdminPayment],
         ['monitor.dashboard', [], 'monitor', Role::AcademicMonitor],
+        ['evaluations', [], 'admin', Role::Admin],
+        ['mahasantri.evaluations', [], '2026110001', Role::Student],
         ['monitor.activities', [], 'monitor', Role::AcademicMonitor],
         ['superadmin.users.index', [], 'superadmin', Role::Superadmin],
         ['superadmin.audit-logs', [], 'superadmin', Role::Superadmin],

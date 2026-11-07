@@ -26,6 +26,7 @@
                         'bimbingan' => array_sum(app(\App\Actions\Discussions\ManageDiscussions::class)->unread(auth()->user(), \App\Enums\DiscussionKind::Bimbingan)),
                         'lpppk' => array_sum(app(\App\Actions\Discussions\ManageDiscussions::class)->unreadLpppk(auth()->user())),
                         'feedback' => \App\Actions\Feedback\ManageFeedback::newCount(),
+                        'evaluation' => auth()->user()->student ? app(\App\Actions\Evaluations\ManageEvaluations::class)->pendingCount(auth()->user()->student) : 0,
                         default => 0,
                     })
                     @foreach ($activeRole->navigation() as $group)

@@ -1142,3 +1142,20 @@ v6 Step 2 (2026-11-07) — Kritik & saran (D34, with the note "record sender nam
 - Pages **Kritik & saran** (`feedback`, every role but Admin/Superadmin: form and own messages with replies)
   and the inbox (`feedback.inbox`, Admin/Superadmin: status tabs with counts, filters, detail with reply and
   status, Excel). The sidebar badge counts new messages.
+
+v6 Step 3 (2026-11-07) — Muhadhir evaluation (D35):
+- `evaluation_periods` (one per semester: dates, closing question, `required_for_khs`) and
+  `evaluation_questions` (group, statement, position, active) are audited. `prepareQuestions` copies the
+  active statements of the latest earlier semester, or the defaults.
+- Anonymity by storage: `evaluation_scores` keeps only a count per (class, statement, score),
+  `evaluation_comments` has no author or time and is read in random order, and `evaluation_submissions`
+  (student × class) has no id or time; none of them is audited. A statement with answers cannot be
+  reworded (deactivate it and add another).
+- `ManageEvaluations::submit` checks the period is open, the student follows the class, and every active
+  statement has 1–5; the primary key stops a second answer. `results()` uses five queries per semester
+  and hides averages, spread and comments below `MIN_RESPONSES` (3).
+- Pages: **Evaluasi muhadhir** (`evaluations`; Admin/Superadmin setup and results, the academic monitor
+  results only; Excel), the mahasantri form (`mahasantri.evaluations`, menu badge with the classes left,
+  dashboard reminder) and **Evaluasi saya** (`ustadz.evaluations`, own classes once the period closed).
+- `required_for_khs`: while open, the mahasantri's own KHS page and PDF for that semester wait until every
+  class is evaluated; staff and wali are not affected.

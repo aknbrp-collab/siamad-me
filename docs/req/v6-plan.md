@@ -104,11 +104,12 @@ are recorded as decisions D33–D41.
 - The Admin and Superadmin list: filters, reply, status, Excel export.
 - Notifications both ways.
 
-### Step 3 — Muhadhir evaluation (medium–large)
+### Step 3 — Muhadhir evaluation (medium–large) — done 2026-11-07
 
-- Tables: `evaluation_questions` (per semester, copied from the previous one), `evaluation_periods`,
-  `evaluation_responses` (offering, question, score, no student), `evaluation_comments` and
-  `evaluation_done` (student × offering).
+- Tables: `evaluation_questions` (per semester, copied from the previous one), `evaluation_periods`
+  (dates, closing question, "required for the KHS"), `evaluation_scores` (only a count per class,
+  question and score, so single answers are not stored at all), `evaluation_comments` (no author, no time)
+  and `evaluation_submissions` (student × class, no id or time).
 - **Mahasantri form:** one page per class, all questions, then submit, with a dashboard reminder.
 - **Results:** for Admin and the monitor, per muhadhir and per class, with averages, distribution,
   comments and Excel. Each muhadhir sees their own results after the period closes; at least 3 answers

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Evaluations\ManageEvaluations;
 use App\Actions\Teaching\AcademicRecord;
 use App\Enums\PrintDocument;
 use App\Enums\Role;
@@ -19,9 +20,15 @@ use Illuminate\Http\Response;
  */
 class AcademicRecordPdfController extends Controller
 {
-    public function khs(Request $request, Student $student, Semester $semester, AcademicRecord $record): Response
+    public function khs(Request $request, Student $student, Semester $semester, AcademicRecord $record, ManageEvaluations $evaluations): Response
     {
         $this->authorizeView($request, $student);
+
+        abort_if(
+            $student->user_id === $request->user()->id && $evaluations->blocksKhs($student, $semester->id),
+            403,
+            __('The KHS of this semester opens once you have evaluated all your classes kuliah.'),
+        );
 
         return Pdf::loadView('records.khs', [
             'student' => $student,

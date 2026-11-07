@@ -36,6 +36,12 @@ Menu **LPPPK** (Admin, Superadmin, Pemantau akademik):
   baginya). Isi alasan; orang itu mendapat notifikasi. Daftar di bawahnya menunjukkan siapa yang sedang
   dibisukan atau tanpa akses; **Cabut** untuk memulihkan. Bimbingan tidak terpengaruh.
 
+## Evaluasi muhadhir
+
+Menu **Evaluasi muhadhir** menampilkan hasil evaluasi setiap semester (per muhadhir dan per kelas kuliah,
+dengan komentar) seperti yang dilihat Admin, beserta **Export** ke Excel. Pengaturan pernyataan dan periode
+dilakukan Admin.
+
 ## Catatan kegiatan
 
 Menu **Catatan kegiatan** untuk kegiatan pesantren: halaqah, tahfidz (setoran hafalan), kajian, ibadah,

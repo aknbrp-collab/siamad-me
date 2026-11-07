@@ -238,6 +238,17 @@ tertahan:
 Bagian **Siapa yang memegang** merangkum per orang atau kelompok: jumlah, total, dan berapa hari yang
 terlama sudah menunggu. **Ingatkan** mengirim notifikasi kepada mereka (paling banyak sekali sehari).
 
+## Kritik & saran
+
+Menu **Kritik & saran** (angka di menu = pesan baru) memuat kritik dan saran dari semua pengguna. Saring per
+status, kategori, peran pengirim, atau cari topik/pesan. Klik pesan untuk membacanya:
+
+- **Simpan status** memindahkannya ke *Diproses* atau *Selesai*; pengirim mendapat notifikasi.
+- Tulis **Balasan** lalu **Kirim balasan**; status ikut berubah (bawaan *Selesai*), dan pengirim melihat
+  balasannya di halaman Kritik & saran miliknya. Balasan dapat diubah; perubahan tercatat di log audit.
+- Pesan anonim tampil sebagai **Anonim**. Nama pengirim hanya dapat dilihat Superadmin.
+- **Export** mengunduh daftar yang sedang disaring ke Excel.
+
 ## Nilai dan pemantauan
 
 **Pemantauan akademik** menampilkan presensi dan status nilai setiap kelas kuliah. Jika muhadhir perlu

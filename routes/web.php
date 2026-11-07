@@ -42,6 +42,10 @@ Route::middleware('portal')->group(function () {
     Route::get('dashboard', fn () => redirect()->route(ActiveRole::get()->homeRoute()))->name('dashboard');
 
     Route::livewire('notifications', 'pages::notifications')->name('notifications');
+
+    // Kritik & saran (v6 D34): anyone sends; Admin and Superadmin handle them.
+    Route::livewire('feedback', 'pages::feedback.mine')->name('feedback');
+    Route::livewire('feedback/inbox', 'pages::feedback.inbox')->middleware('role:admin,superadmin')->name('feedback.inbox');
     Route::get('notifications/{id}', NotificationController::class)->whereUuid('id')->name('notifications.open');
     Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');

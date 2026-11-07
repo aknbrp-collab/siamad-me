@@ -35,6 +35,12 @@ diubah bagian akademik), ganti kata sandi,
 aktifkan autentikasi dua faktor atau passkey (**Keamanan**). Staf keuangan dan admin sangat dianjurkan
 mengaktifkan autentikasi dua faktor.
 
+**Kritik & saran.** Menu samping → **Kritik & saran**: pilih kategori (layanan akademik, keuangan,
+aplikasi SIAKAD, sarana, lainnya), tulis topik dan pesan, lalu **Kirim**. Centang **Kirim sebagai anonim**
+bila Admin tidak perlu tahu nama Anda; nama tetap tercatat dan hanya dapat dilihat Superadmin. Balasan
+Admin muncul di halaman yang sama (dan sebagai notifikasi), bersama statusnya: *Baru*, *Diproses*,
+*Selesai*. Paling banyak 10 pesan per hari.
+
 **Tampilan terang/gelap.** Tombol matahari / bulan / layar di bawah menu samping (di ponsel: di atas)
 memilih tampilan terang, gelap, atau mengikuti perangkat. Pilihan disimpan di peramban itu.
 

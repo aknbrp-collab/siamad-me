@@ -98,6 +98,12 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Sees only their own children; switches child and semester
 - [ ] Grades, attendance, activities, bills and receipts are correct and read-only
 
+## Kritik & saran
+- [ ] As a mahasantri, a wali and a muhadhir, each send a message (one anonymous); each sees it under "Pesan saya" as Baru
+- [ ] As Admin: the menu count shows the new messages; filter by sender role and category; the anonymous one shows "Anonim", and searching the sender's name does not find it
+- [ ] Set one to Diproses, reply to another; the senders are notified and see the status and reply; export to Excel
+- [ ] As Superadmin, open the anonymous message and see the sender's name
+
 ## Notifications (any role)
 - [ ] A new forum message, a new assignment and a confirmed transfer each show on the bell of the right people
 - [ ] Clicking a notification opens the right page; "Tandai semua dibaca" clears the bell

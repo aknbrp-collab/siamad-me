@@ -34,8 +34,9 @@ are recorded as decisions D33–D41.
   send a review or suggestion:
   - **What they send:** a category (layanan akademik, keuangan, aplikasi SIAKAD, sarana, lainnya), a
     subject and a message.
-  - **Anonymous messages** do not store the sender at all, so nobody can see who sent them, and they
-    cannot get a reply. */ record sender name */
+  - **Anonymous messages** (your note: record the sender name): the sender is always recorded. An
+    anonymous message hides the name from the Admin (list, detail, export, and the search does not look
+    at names); only Superadmin sees who sent it. The sender still gets the reply on their page.
   - **Handling:** Admin and Superadmin read the messages, reply (the sender is notified) and mark them
     *Baru → Diproses → Selesai*. The sender sees their own messages and the replies.
 - **D35 Muhadhir evaluation (answer: both, part 2).** An end-of-semester evaluation of each class kuliah
@@ -96,9 +97,9 @@ are recorded as decisions D33–D41.
 - Tests: columns follow the highest limit, ticks and clocks, arrears, links, the collector's scope, the
   query count.
 
-### Step 2 — Kritik & saran (small–medium)
+### Step 2 — Kritik & saran (small–medium) — done 2026-11-07
 
-- `feedback` table (sender nullable, role, category, subject, message, status, reply, replied_by/at).
+- `feedback` table (sender, role, category, subject, message, anonymous, status, reply, replied_by/at).
 - **Kritik & saran** for everyone: send, my messages with replies.
 - The Admin and Superadmin list: filters, reply, status, Excel export.
 - Notifications both ways.

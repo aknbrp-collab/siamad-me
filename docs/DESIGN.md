@@ -1129,3 +1129,16 @@ v6 Step 1 (2026-11-07) — Bills grid "Rekap angsuran" (D33):
   one gender) and the search. Open and pending cells link to the bill; arrears link to the list filtered on
   the NIM, all semesters, Belum lunas. Excel (`rekap-angsuran-{semester}.xlsx`: V / ? / -) and print
   (`print:` classes hide the controls). Covered by the N+1 check.
+
+v6 Step 2 (2026-11-07) — Kritik & saran (D34, with the note "record sender name"):
+- `feedback`: sender (`user_id`, always kept), the role they acted in, category (`FeedbackCategory`), subject,
+  message, `anonymous`, status (`FeedbackStatus`: new → in_progress → done), reply, `replied_by`, `replied_at`.
+- `ManageFeedback`: `send` (10 per person per 24 h; notifies Admin and Superadmin, grouped
+  `feedback:new`), `reply` (sets the status, default done; replacing a reply is kept in the audit log) and
+  `setStatus`, both notifying the sender; only Admin and Superadmin handle messages.
+- `Feedback::senderLabel()`: "Anonim" for anonymous messages unless the reader holds Superadmin. The inbox
+  search covers subject and message only, so it cannot reveal anonymous senders; the export uses the
+  same label.
+- Pages **Kritik & saran** (`feedback`, every role but Admin/Superadmin: form and own messages with replies)
+  and the inbox (`feedback.inbox`, Admin/Superadmin: status tabs with counts, filters, detail with reply and
+  status, Excel). The sidebar badge counts new messages.

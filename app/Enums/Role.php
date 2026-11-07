@@ -219,6 +219,11 @@ enum Role: string
             ]];
         }
 
+        // Kritik & saran (v6 D34): everyone sends; Admin and Superadmin read and answer.
+        $groups[0]['items'][] = in_array($this, [self::Admin, self::Superadmin], true)
+            ? $item(__('Reviews & suggestions'), 'chat-bubble-bottom-center-text', 'feedback.inbox', null, 'feedback')
+            : $item(__('Reviews & suggestions'), 'chat-bubble-bottom-center-text', 'feedback');
+
         if ($this === self::Superadmin) {
             $groups[] = ['heading' => __('System'), 'items' => [
                 $item(__('Users & roles'), 'user-plus', 'superadmin.users.index', 'superadmin.users.*'),

@@ -126,6 +126,11 @@ lihat docs/OPERATIONS.md). **Uji koneksi** memastikan alamat, rahasia, dan jam s
 **Panggilan** mencatat setiap panggilan ke dan dari CMS (waktu, alamat, artikel/pertanyaan, jawaban),
 untuk ditelusuri bila ada masalah.
 
+## Kritik & saran
+
+Superadmin menangani **Kritik & saran** seperti Admin (lihat panduan Admin). Bedanya, untuk pesan anonim
+Superadmin melihat nama pengirim (ditandai *anonim*), misalnya bila ada pesan yang menyalahgunakan fitur ini.
+
 ## Log audit
 
 **Sistem → Log audit** mencatat setiap perubahan data: siapa, data apa, nilai lama → baru, kapan, dan

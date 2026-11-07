@@ -25,6 +25,7 @@
                     @php($badge = fn (string $name) => match ($name) {
                         'bimbingan' => array_sum(app(\App\Actions\Discussions\ManageDiscussions::class)->unread(auth()->user(), \App\Enums\DiscussionKind::Bimbingan)),
                         'lpppk' => array_sum(app(\App\Actions\Discussions\ManageDiscussions::class)->unreadLpppk(auth()->user())),
+                        'feedback' => \App\Actions\Feedback\ManageFeedback::newCount(),
                         default => 0,
                     })
                     @foreach ($activeRole->navigation() as $group)

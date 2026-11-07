@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Enums\Role;
-use App\Http\Controllers\Api\V1\PdfController;
+use App\Http\Controllers\Api\V1\DownloadController;
 use App\Http\Controllers\PrivateFileController;
 use App\Models\User;
 use Illuminate\Support\Facades\URL;
@@ -29,15 +29,16 @@ final class ApiFiles
     }
 
     /**
-     * A PDF made on request (KHS, transcript, exam card, letter, receipt), see PdfController::DOCUMENTS.
+     * A file made on request (KHS, transcript, exam card, letter, receipt, muhadhir templates and journal),
+     * see DownloadController::DOCUMENTS.
      *
-     * @param  array<string, int>  $ids  e.g. ['student' => 5, 'semester' => 2]
+     * @param  array<string, int|string>  $parameters  e.g. ['student' => 5, 'semester' => 2]
      */
-    public static function pdf(User $user, ?Role $role, string $document, array $ids): string
+    public static function download(User $user, ?Role $role, string $document, array $parameters): string
     {
-        abort_unless(array_key_exists($document, PdfController::DOCUMENTS), 404);
+        abort_unless(array_key_exists($document, DownloadController::DOCUMENTS), 404);
 
-        return self::sign('api.v1.pdf', ['document' => $document, ...$ids], $user, $role);
+        return self::sign('api.v1.downloads', ['document' => $document, ...$parameters], $user, $role);
     }
 
     /**

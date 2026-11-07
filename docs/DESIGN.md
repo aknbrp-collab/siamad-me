@@ -1211,3 +1211,19 @@ v6 Step 6 (2026-11-07) — API for mahasantri and wali (D37, D41):
   `FileController`) and calls the web PDF controller, so access rules and the PDFs are the web ones.
 - Docs grouped with Scramble `#[Group]` (App, Auth, Account, Notifications, Feedback, Files, Documents,
   Records, Mahasantri, Wali santri). The class forum comes with the discussions in Step 8.
+
+v6 Step 7 (2026-11-07) — API for muhadhir (D37, D41):
+- `/teacher/classes` (with semesters, counts, finalised, joint) and `/teacher/supervisees` (class,
+  attendance, IPK). Per class, `/teacher/classes/{offering}/…` checks `OfferingAccess::teaches`: meetings
+  (`ManageMeetings`, journal fields, attendance sheet and summary), materials (`ManageMaterials`, multipart
+  POST to change), assignments (`ManageAssignments`: CRUD, submissions, grade, copy to grades), quizzes
+  (`ManageQuizzes`: settings, questions with correct options, publish, attempts and essay points, copy to
+  grades), grades (`ManageGrades`, `ImportScores` preview/apply, finalise) and teaching documents
+  (`ManageTeachingDocuments`).
+- Forums (`/forums/{class|supervision}/{id}/threads…`) wrap `ManageForum` with the `OfferingForum` /
+  `SupervisionForum` contexts for mahasantri and muhadhir; moderation stays with the action.
+- `StudentAccess` lets a pembimbing akademik read their supervisees' KHS, transcript and activities;
+  `canViewBills` keeps bills from them.
+- Signed downloads renamed from `api/v1/pdf` to `api/v1/downloads/{document}` (`ApiFiles::download`), now
+  also `score-template`, `teaching-template` (kind rps/journal) and `teaching-journal`; parameters can be
+  models or a fixed list of values.

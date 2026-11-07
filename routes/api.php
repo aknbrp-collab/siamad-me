@@ -5,11 +5,12 @@ use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\AppInfoController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DocumentController;
+use App\Http\Controllers\Api\V1\DownloadController;
 use App\Http\Controllers\Api\V1\FeedbackController;
 use App\Http\Controllers\Api\V1\FileController;
+use App\Http\Controllers\Api\V1\ForumController;
 use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\NotificationController;
-use App\Http\Controllers\Api\V1\PdfController;
 use App\Http\Controllers\Api\V1\Student\AssignmentController;
 use App\Http\Controllers\Api\V1\Student\ClassController;
 use App\Http\Controllers\Api\V1\Student\EvaluationController;
@@ -18,6 +19,13 @@ use App\Http\Controllers\Api\V1\Student\HomeController;
 use App\Http\Controllers\Api\V1\Student\LetterController;
 use App\Http\Controllers\Api\V1\Student\QuizController;
 use App\Http\Controllers\Api\V1\StudentRecordController;
+use App\Http\Controllers\Api\V1\Teacher\AssignmentController as TeacherAssignmentController;
+use App\Http\Controllers\Api\V1\Teacher\GradeController;
+use App\Http\Controllers\Api\V1\Teacher\HomeController as TeacherHomeController;
+use App\Http\Controllers\Api\V1\Teacher\MaterialController;
+use App\Http\Controllers\Api\V1\Teacher\MeetingController;
+use App\Http\Controllers\Api\V1\Teacher\QuizController as TeacherQuizController;
+use App\Http\Controllers\Api\V1\Teacher\TeachingDocumentController;
 use App\Http\Middleware\VerifyCmsRequest;
 use Illuminate\Support\Facades\Route;
 
@@ -40,7 +48,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // Signed links from other responses (photos, documents); they carry who asked and expire.
     Route::get('files/{kind}/{id}', FileController::class)->whereNumber('id')->middleware(['signed', 'throttle:api'])->name('files');
-    Route::get('pdf/{document}', PdfController::class)->middleware(['signed', 'throttle:api'])->name('pdf');
+    Route::get('downloads/{document}', DownloadController::class)->middleware(['signed', 'throttle:api'])->name('downloads');
 
     Route::middleware(['auth:sanctum', 'api.account', 'api.role', 'throttle:api'])->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('logout');
@@ -96,5 +104,67 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         // Wali santri (Step 6); the children's records are under students/{student}.
         Route::get('guardian/children', [GuardianController::class, 'children'])->middleware('role:guardian')->name('guardian.children');
+
+        // Forums of a class kuliah (scope "class") and of a pembimbing akademik (scope "supervision").
+        Route::prefix('forums/{scope}/{id}/threads')->whereIn('scope', ['class', 'supervision'])->whereNumber('id')
+            ->middleware('role:student,teacher')->name('forums.')->group(function () {
+                Route::get('/', [ForumController::class, 'threads'])->name('threads');
+                Route::post('/', [ForumController::class, 'store'])->name('store');
+                Route::get('{thread}', [ForumController::class, 'show'])->whereNumber('thread')->name('show');
+                Route::post('{thread}/posts', [ForumController::class, 'reply'])->whereNumber('thread')->name('reply');
+                Route::post('{thread}/pin', [ForumController::class, 'pin'])->whereNumber('thread')->name('pin');
+                Route::post('{thread}/lock', [ForumController::class, 'lock'])->whereNumber('thread')->name('lock');
+                Route::delete('{thread}', [ForumController::class, 'destroy'])->whereNumber('thread')->name('destroy');
+                Route::delete('posts/{post}', [ForumController::class, 'destroyPost'])->whereNumber('post')->name('posts.destroy');
+            });
+
+        // Muhadhir (Step 7). Each class route checks that the muhadhir teaches it.
+        Route::prefix('teacher')->name('teacher.')->middleware('role:teacher')->group(function () {
+            Route::get('classes', [TeacherHomeController::class, 'classes'])->name('classes');
+            Route::get('supervisees', [TeacherHomeController::class, 'supervisees'])->name('supervisees');
+
+            Route::prefix('classes/{offering}')->name('classes.')->group(function () {
+                Route::get('meetings', [MeetingController::class, 'index'])->name('meetings');
+                Route::post('meetings', [MeetingController::class, 'store'])->name('meetings.store');
+                Route::put('meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
+                Route::delete('meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
+                Route::get('meetings/{meeting}/attendance', [MeetingController::class, 'attendance'])->name('meetings.attendance');
+                Route::put('meetings/{meeting}/attendance', [MeetingController::class, 'saveAttendance'])->name('meetings.attendance.save');
+
+                Route::get('materials', [MaterialController::class, 'index'])->name('materials');
+                Route::post('materials', [MaterialController::class, 'store'])->name('materials.store');
+                Route::post('materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
+                Route::delete('materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
+
+                Route::get('assignments', [TeacherAssignmentController::class, 'index'])->name('assignments');
+                Route::post('assignments', [TeacherAssignmentController::class, 'store'])->name('assignments.store');
+                Route::put('assignments/{assignment}', [TeacherAssignmentController::class, 'update'])->name('assignments.update');
+                Route::delete('assignments/{assignment}', [TeacherAssignmentController::class, 'destroy'])->name('assignments.destroy');
+                Route::get('assignments/{assignment}/submissions', [TeacherAssignmentController::class, 'submissions'])->name('assignments.submissions');
+                Route::put('assignments/{assignment}/submissions/{submission}/grade', [TeacherAssignmentController::class, 'grade'])->name('assignments.grade');
+                Route::post('assignments/{assignment}/copy-to-grades', [TeacherAssignmentController::class, 'copyToGrades'])->name('assignments.copy');
+
+                Route::get('quizzes', [TeacherQuizController::class, 'index'])->name('quizzes');
+                Route::post('quizzes', [TeacherQuizController::class, 'store'])->name('quizzes.store');
+                Route::get('quizzes/{quiz}', [TeacherQuizController::class, 'show'])->name('quizzes.show');
+                Route::put('quizzes/{quiz}', [TeacherQuizController::class, 'update'])->name('quizzes.update');
+                Route::delete('quizzes/{quiz}', [TeacherQuizController::class, 'destroy'])->name('quizzes.destroy');
+                Route::post('quizzes/{quiz}/questions', [TeacherQuizController::class, 'storeQuestion'])->name('quizzes.questions.store');
+                Route::put('quizzes/{quiz}/questions/{question}', [TeacherQuizController::class, 'updateQuestion'])->name('quizzes.questions.update');
+                Route::delete('quizzes/{quiz}/questions/{question}', [TeacherQuizController::class, 'destroyQuestion'])->name('quizzes.questions.destroy');
+                Route::put('quizzes/{quiz}/publish', [TeacherQuizController::class, 'publish'])->name('quizzes.publish');
+                Route::put('quizzes/{quiz}/answers/{answer}/points', [TeacherQuizController::class, 'gradeEssay'])->name('quizzes.essay');
+                Route::post('quizzes/{quiz}/copy-to-grades', [TeacherQuizController::class, 'copyToGrades'])->name('quizzes.copy');
+
+                Route::get('grades', [GradeController::class, 'show'])->name('grades');
+                Route::put('grades/components', [GradeController::class, 'components'])->name('grades.components');
+                Route::put('grades/scores', [GradeController::class, 'scores'])->name('grades.scores');
+                Route::post('grades/import', [GradeController::class, 'import'])->name('grades.import');
+                Route::post('grades/finalize', [GradeController::class, 'finalize'])->name('grades.finalize');
+
+                Route::get('teaching-documents', [TeachingDocumentController::class, 'show'])->name('teaching-documents');
+                Route::post('teaching-documents', [TeachingDocumentController::class, 'upload'])->name('teaching-documents.upload');
+            });
+        });
     });
 });

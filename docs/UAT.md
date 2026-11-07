@@ -132,6 +132,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] `/docs/api` opens for Superadmin and is refused for others (unless `API_DOCS_PUBLIC=true`)
 - [ ] Mahasantri: dashboard, classes, one class with materials (open a file link), submit an assignment with a file, take a quiz (answers save one by one; it submits at the deadline), KHS and transcript with their PDFs, bills with a transfer confirmation and a receipt PDF, exam card, letter request, document upload, evaluation
 - [ ] Wali: children list, each child's KHS, transcript, activities and bills; another student's id is refused
+- [ ] Muhadhir: classes; add a meeting with the journal and take attendance; share a material with a file; create an assignment, grade a submission and copy it to the grades; build a quiz with an essay, publish it and grade the essay; set components, enter scores, finalise; upload the RPS and open the templates and journal PDF; answer in the class forum and pin the thread; supervisees and their KHS (not bills)
 
 ## Sign-off
 | Role | Tester | Date | Result |

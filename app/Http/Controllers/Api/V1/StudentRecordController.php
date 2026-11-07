@@ -63,7 +63,7 @@ class StudentRecordController extends Controller
             ])->values()->all(),
             'credits' => $khs['credits'] ?? 0,
             'ips' => $khs['ip'] ?? null,
-            'pdf_url' => $khs === null ? null : ApiFiles::pdf($request->user(), ActiveRole::get(), 'khs', ['student' => $student->id, 'semester' => $semester->id]),
+            'pdf_url' => $khs === null ? null : ApiFiles::download($request->user(), ActiveRole::get(), 'khs', ['student' => $student->id, 'semester' => $semester->id]),
         ]]);
     }
 
@@ -88,7 +88,7 @@ class StudentRecordController extends Controller
             ])->values()->all(),
             'credits' => $transcript['credits'],
             'ipk' => $transcript['ipk'],
-            'pdf_url' => ApiFiles::pdf($request->user(), ActiveRole::get(), 'transcript', ['student' => $student->id]),
+            'pdf_url' => ApiFiles::download($request->user(), ActiveRole::get(), 'transcript', ['student' => $student->id]),
         ]]);
     }
 
@@ -100,7 +100,7 @@ class StudentRecordController extends Controller
      */
     public function bills(Request $request, Student $student): JsonResponse
     {
-        $this->authorizeStudent($request, $student);
+        abort_unless(StudentAccess::canViewBills($request->user(), ActiveRole::get(), $student), 403);
 
         $bills = $student->bills()->with(['semester.academicYear', 'lines', 'payments'])->orderByDesc('semester_id')->orderByDesc('id')->get();
         $accounts = Setting::get('payment.bank_accounts');

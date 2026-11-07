@@ -51,7 +51,7 @@ class LetterController extends Controller
                     'type' => $letter->type->name,
                     'subject_line' => $letter->subject_line,
                     'issued_on' => $letter->issued_on->toDateString(),
-                    'pdf_url' => ApiFiles::pdf($user, $role, 'letter', ['letter' => $letter->id]),
+                    'pdf_url' => ApiFiles::download($user, $role, 'letter', ['letter' => $letter->id]),
                 ])->values()->all(),
         ]]);
     }

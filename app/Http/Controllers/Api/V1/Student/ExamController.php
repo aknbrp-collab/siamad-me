@@ -55,7 +55,7 @@ class ExamController extends Controller
                     'attendance_percent' => $subject['attendance'],
                     'ok' => $subject['ok'],
                 ], $status['subjects']),
-                'card_url' => $status['eligible'] ? ApiFiles::pdf($request->user(), ActiveRole::get(), 'exam-card', ['period' => $period->id, 'student' => $student->id]) : null,
+                'card_url' => $status['eligible'] ? ApiFiles::download($request->user(), ActiveRole::get(), 'exam-card', ['period' => $period->id, 'student' => $student->id]) : null,
             ];
         })->values()->all()]);
     }

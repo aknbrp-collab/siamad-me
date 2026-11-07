@@ -57,7 +57,8 @@ the password (other devices), when the Admin resets the password, or when the ac
 Photos and documents never come as paths. A response carries a **signed link** (`…_url`) that works
 without the token and expires after 10 minutes; open it in the app or the phone's browser. Access is
 checked again when it is opened, with the web rules. Ask for the item again for a fresh link. PDFs (KHS,
-transcript, receipts, exam card, letters) are downloaded the same way (D41).
+transcript, receipts, exam card, letters, teaching journal) and templates (score import, RPS / jurnal) are
+downloaded the same way (D41).
 
 ## Endpoints by screen
 
@@ -100,7 +101,9 @@ The mahasantri's own student id is in `GET /me` (`student.id`); records use it.
 | Pembimbing akademik | `GET /student/supervision` |
 | Evaluasi muhadhir | `GET /student/evaluations` (classes, statements, closing question), `POST /student/evaluations/{class}` (`scores`: {statement id: 1–5}, `comment`) |
 
-The class forum, bimbingan and LPPPK discussions, articles and Tanya Hukum come with Step 8.
+| Forum kelas | `GET/POST /forums/class/{class}/threads`, `GET /forums/class/{class}/threads/{id}`, `POST …/{id}/posts` |
+
+Bimbingan and LPPPK discussions, articles and Tanya Hukum come with Step 8.
 
 ### Wali santri (Step 6)
 
@@ -112,6 +115,23 @@ The class forum, bimbingan and LPPPK discussions, articles and Tanya Hukum come 
 
 A wali reaches only their own children; another student id gives 403.
 
+### Muhadhir (Step 7)
+
+Every class route starts with `/teacher/classes/{class}` and checks that the muhadhir teaches the class.
+
+| Screen | Endpoints |
+| --- | --- |
+| Kelas saya, jadwal | `GET /teacher/classes?semester=` (timetable order, counts, grades final, joint classes) |
+| Pertemuan dan presensi | `GET …/meetings` (meetings and the attendance summary per mahasantri), `POST …/meetings`, `PUT …/meetings/{id}` (with the journal: `material`, `method`, `journal_note`), `DELETE …/meetings/{id}` (only without attendance), `GET` / `PUT …/meetings/{id}/attendance` (`statuses`: {enrollment id: hadir/izin/sakit/alpa}, `notes`) |
+| Materi | `GET …/materials`, `POST …/materials` (multipart `title`, `body`, `url`, `file`), `POST …/materials/{id}` (change), `DELETE …/materials/{id}` |
+| Tugas | `GET …/assignments`, `POST`, `PUT …/assignments/{id}`, `DELETE`, `GET …/assignments/{id}/submissions`, `PUT …/assignments/{id}/submissions/{submission}/grade` (`score`, `feedback`), `POST …/assignments/{id}/copy-to-grades` |
+| Kuis | `GET …/quizzes`, `POST`, `GET …/quizzes/{id}` (questions with correct options, attempts with answers), `PUT`, `DELETE`, `POST …/quizzes/{id}/questions`, `PUT`/`DELETE …/questions/{q}`, `PUT …/quizzes/{id}/publish` (`published`), `PUT …/quizzes/{id}/answers/{answer}/points` (essays), `POST …/quizzes/{id}/copy-to-grades` |
+| Nilai | `GET …/grades` (components, scores, live final score and letter, `import_template_url`), `PUT …/grades/components` (weights add up to 100), `PUT …/grades/scores` ({enrollment id: {component id: score}}), `POST …/grades/import` (multipart `file`; `apply=1` to save), `POST …/grades/finalize` |
+| Dokumen mengajar | `GET …/teaching-documents` (versions and reviews per RPS / jurnal, `template_url`, `journal_pdf_url`), `POST …/teaching-documents` (multipart `kind`, `file`) |
+| Forum | `/forums/class/{class}/threads…` as above, plus `POST …/{id}/pin`, `POST …/{id}/lock`, `DELETE …/{id}`, `DELETE …/threads/posts/{post}` |
+| Mahasantri bimbingan | `GET /teacher/supervisees` (class, attendance, IPK); their `GET /students/{id}/khs`, `/transcript`, `/activities` (not bills); the group forum `/forums/supervision/{teacher id}/threads…` |
+| Dokumen saya | `GET /documents`, `POST /documents/{id}` (ijazah with `degree_title`) |
+
 ### Per role
 
 Added step by step (v6 plan):
@@ -119,7 +139,7 @@ Added step by step (v6 plan):
 | Role | Step | Screens |
 | --- | --- | --- |
 | Mahasantri, wali santri | 6 | Done: see above |
-| Muhadhir | 7 | Jadwal, kelas kuliah, pertemuan dan presensi, materi, tugas, kuis, forum, nilai, dokumen mengajar, mahasantri bimbingan |
+| Muhadhir | 7 | Done: see above |
 | Discussions | 8 | Bimbingan, LPPPK, artikel, Tanya Hukum |
 | Admin, pemantau | 9 | Data akademik, orang, dokumen, surat, pemantauan, kritik & saran, evaluasi |
 | Keuangan, petugas | 10 | Tagihan, pembayaran, setoran, transfer, buku kas, rekap angsuran |

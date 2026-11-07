@@ -1,0 +1,89 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\AcademicRecordPdfController;
+use App\Http\Controllers\Api\V1\Concerns\ActsForSignedUser;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\ExamCardController;
+use App\Http\Controllers\LetterPdfController;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ScoreTemplateController;
+use App\Http\Controllers\TeachingJournalController;
+use App\Http\Controllers\TemplateController;
+use App\Models\CourseOffering;
+use App\Models\ExamPeriod;
+use App\Models\Letter;
+use App\Models\Payment;
+use App\Models\Semester;
+use App\Models\Student;
+use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * Opens a signed download link made by ApiFiles::download() (v6 D41: the API
+ * does not print; PDFs and templates are the same files as on the web). The
+ * web controller makes the file and checks access, as the person and role in
+ * the link.
+ */
+#[Group('Files', weight: 6)]
+class DownloadController extends Controller
+{
+    use ActsForSignedUser;
+
+    /**
+     * Document => [controller, method, [parameter => model class, or a list of allowed values]].
+     *
+     * @var array<string, array{0: class-string, 1: string, 2: array<string, class-string<Model>|list<string>>}>
+     */
+    public const DOCUMENTS = [
+        'khs' => [AcademicRecordPdfController::class, 'khs', ['student' => Student::class, 'semester' => Semester::class]],
+        'transcript' => [AcademicRecordPdfController::class, 'transcript', ['student' => Student::class]],
+        'exam-card' => [ExamCardController::class, '__invoke', ['period' => ExamPeriod::class, 'student' => Student::class]],
+        'letter' => [LetterPdfController::class, '__invoke', ['letter' => Letter::class]],
+        'receipt' => [ReceiptController::class, '__invoke', ['payment' => Payment::class]],
+        // Muhadhir (Step 7): the score import template, the RPS / journal Word templates and the journal PDF.
+        'score-template' => [ScoreTemplateController::class, '__invoke', ['offering' => CourseOffering::class]],
+        'teaching-template' => [TemplateController::class, 'teaching', ['offering' => CourseOffering::class, 'kind' => ['rps', 'journal']]],
+        'teaching-journal' => [TeachingJournalController::class, '__invoke', ['offering' => CourseOffering::class]],
+    ];
+
+    /**
+     * Download a file made on request.
+     *
+     * KHS, transcript, exam card, letters, receipts, and for muhadhir the score template, RPS / journal
+     * templates and the journal PDF, through the signed links in other responses (`pdf_url`, `card_url`,
+     * `receipt_url`, `…_template_url`); they expire after a few minutes.
+     *
+     * @unauthenticated
+     */
+    public function __invoke(Request $request, string $document): Response
+    {
+        abort_unless(array_key_exists($document, self::DOCUMENTS), 404);
+        $this->actForSignedUser($request);
+
+        [$controller, $method, $arguments] = self::DOCUMENTS[$document];
+        $parameters = ['request' => $request];
+
+        foreach ($arguments as $name => $type) {
+            if (is_array($type)) {
+                $value = (string) $request->query($name);
+                abort_unless(in_array($value, $type, true), 404);
+                $parameters[$name] = $value;
+            } else {
+                $parameters[$name] = $type::query()->findOrFail($request->integer($name));
+            }
+        }
+
+        $action = [app($controller), $method];
+        abort_unless(is_callable($action), 500);
+
+        $response = app()->call($action, $parameters);
+        abort_unless($response instanceof Response, 500);
+
+        return $response;
+    }
+
+}

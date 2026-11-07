@@ -139,7 +139,7 @@ are recorded as decisions D33–D41.
   bimbingan akademik.
 - Wali: children, their progress and bills.
 
-### Step 7 — API: muhadhir (large)
+### Step 7 — API: muhadhir (large) — done 2026-11-07
 
 - Schedule, class kuliah, meetings (create, attendance), materials, assignments (create, grade),
   quizzes (build, results), forum, grades (components, scores, import template, finalise), teaching

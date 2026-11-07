@@ -60,7 +60,7 @@ class BillResource extends JsonResource
                 'status' => $payment->status->value,
                 'status_label' => $payment->status->label(),
                 'status_note' => $payment->status === PaymentStatus::Rejected ? $payment->status_note : null,
-                'receipt_url' => $payment->status === PaymentStatus::Verified ? ApiFiles::pdf($user, $role, 'receipt', ['payment' => $payment->id]) : null,
+                'receipt_url' => $payment->status === PaymentStatus::Verified ? ApiFiles::download($user, $role, 'receipt', ['payment' => $payment->id]) : null,
             ])->values()->all(),
             /** For "Konfirmasi transfer": null when nothing is left to pay. */
             'transfer' => in_array($bill->status, [BillStatus::Paid, BillStatus::Void], true) || $open === 0 ? null : [

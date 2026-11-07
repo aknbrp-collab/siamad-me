@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Superadmin\ManageSystem;
 use App\Enums\PrintDocument;
 use App\Models\Setting;
 use App\Livewire\BrandImagesPage;
@@ -72,13 +73,18 @@ new #[Title('Identity')] class extends BrandImagesPage {
             'head' => ['nullable', 'string', 'max:150'],
         ]);
 
-        foreach (self::FIELDS as $key => $property) {
-            $value = is_string($this->{$property}) ? (trim($this->{$property}) ?: null) : $this->{$property};
-
-            if (Setting::get($key) !== $value) {
-                Setting::set($key, $value);
-            }
-        }
+        app(ManageSystem::class)->save(ManageSystem::IDENTITY, [
+            'name' => $this->institutionName,
+            'short_name' => $this->shortName,
+            'foundation' => $this->foundation,
+            'address' => $this->address,
+            'city' => $this->city,
+            'phone' => $this->phone,
+            'email' => $this->email,
+            'website' => $this->website,
+            'licence' => $this->licence,
+            'head' => $this->head,
+        ]);
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }

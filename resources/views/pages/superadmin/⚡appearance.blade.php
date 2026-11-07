@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Superadmin\ManageSystem;
 use App\Livewire\BrandImagesPage;
 use App\Models\Setting;
 use App\Support\Branding;
@@ -57,13 +58,12 @@ new #[Title('App appearance')] class extends BrandImagesPage {
             'loginText' => ['nullable', 'string', 'max:300'],
         ]);
 
-        foreach (self::FIELDS as $key => $property) {
-            $value = is_string($this->{$property}) ? (trim($this->{$property}) ?: null) : null;
-
-            if (Setting::get($key) !== $value) {
-                Setting::set($key, $value);
-            }
-        }
+        app(ManageSystem::class)->save(ManageSystem::APPEARANCE, [
+            'app_name' => $this->appName,
+            'short_name' => $this->shortName,
+            'login_title' => $this->loginTitle,
+            'login_text' => $this->loginText,
+        ]);
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }

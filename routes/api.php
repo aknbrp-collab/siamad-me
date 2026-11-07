@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\V1\Student\HomeController;
 use App\Http\Controllers\Api\V1\Student\LetterController;
 use App\Http\Controllers\Api\V1\Student\QuizController;
 use App\Http\Controllers\Api\V1\StudentRecordController;
+use App\Http\Controllers\Api\V1\Superadmin\SystemController;
 use App\Http\Controllers\Api\V1\TanyaHukumController;
 use App\Http\Controllers\Api\V1\Teacher\AssignmentController as TeacherAssignmentController;
 use App\Http\Controllers\Api\V1\Teacher\GradeController;
@@ -337,6 +338,40 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
                 Route::post('cash/entries/{entry}/void', [CashBookController::class, 'void'])->name('cash.entries.void');
                 Route::post('cash/close', [CashBookController::class, 'close'])->name('cash.close');
             });
+        });
+
+        // Superadmin (Step 11). Maintenance mode, backups and the CMS page stay on the web (D41).
+        Route::prefix('superadmin')->name('superadmin.')->middleware('role:superadmin')->group(function () {
+            Route::get('users', [SystemController::class, 'users'])->name('users');
+            Route::post('users', [SystemController::class, 'storeUser'])->name('users.store');
+            Route::get('users/{user}', [SystemController::class, 'user'])->name('users.show');
+            Route::put('users/{user}', [SystemController::class, 'updateUser'])->name('users.update');
+            Route::put('users/{user}/roles', [SystemController::class, 'roles'])->name('users.roles');
+            Route::put('users/{user}/collector', [SystemController::class, 'collector'])->name('users.collector');
+
+            Route::get('settings', [SystemController::class, 'settings'])->name('settings');
+            Route::put('settings', [SystemController::class, 'saveSettings'])->name('settings.save');
+            Route::get('identity', [SystemController::class, 'identity'])->name('identity');
+            Route::put('identity', [SystemController::class, 'saveIdentity'])->name('identity.save');
+            Route::get('appearance', [SystemController::class, 'appearance'])->name('appearance');
+            Route::put('appearance', [SystemController::class, 'saveAppearance'])->name('appearance.save');
+            Route::post('images', [SystemController::class, 'uploadImage'])->name('images.upload');
+            Route::delete('images/{image}', [SystemController::class, 'removeImage'])->name('images.remove');
+
+            Route::get('signatures', [SystemController::class, 'signatures'])->name('signatures');
+            Route::post('signatories', [SystemController::class, 'saveSignatory'])->name('signatories.save');
+            Route::post('stamps', [SystemController::class, 'saveStamp'])->name('stamps.save');
+            Route::put('print-defaults', [SystemController::class, 'saveDefaults'])->name('print-defaults');
+
+            Route::get('letter-types', [SystemController::class, 'letterTypes'])->name('letter-types');
+            Route::post('letter-types', [SystemController::class, 'saveLetterType'])->name('letter-types.save');
+            Route::put('letter-numbering', [SystemController::class, 'numbering'])->name('letter-numbering');
+
+            Route::get('templates', [SystemController::class, 'templates'])->name('templates');
+            Route::post('templates/{key}', [SystemController::class, 'uploadTemplate'])->where('key', '[a-z]+\.[a-z0-9]+')->name('templates.upload');
+            Route::delete('templates/{key}', [SystemController::class, 'revertTemplate'])->where('key', '[a-z]+\.[a-z0-9]+')->name('templates.revert');
+
+            Route::get('audit-log', [SystemController::class, 'audit'])->name('audit');
         });
 
         // Muhadhir (Step 7). Each class route checks that the muhadhir teaches it.

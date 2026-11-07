@@ -1,11 +1,12 @@
 <?php
 
+use Illuminate\Validation\ValidationException;
+use App\Actions\Superadmin\ManageSystem;
 use App\Enums\PrintDocument;
 use App\Models\Setting;
 use App\Models\Signatory;
 use App\Models\Stamp;
 use App\Support\Branding;
-use App\Support\Upload;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -91,20 +92,15 @@ new #[Title('Signatures & stamps')] class extends Component {
 
     public function saveSignatory(): void
     {
-        $this->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'position' => ['required', 'string', 'max:150'],
-            'office' => ['nullable', 'string', 'max:150'],
-            'signature' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', Upload::max()],
+        $this->resetErrorBag();
+
+        app(ManageSystem::class)->saveSignatory($this->signatoryId ? Signatory::query()->findOrFail($this->signatoryId) : null, [
+            'name' => $this->name,
+            'position' => $this->position,
+            'office' => $this->office,
+            'is_active' => $this->signatoryActive,
+            'signature' => $this->signature,
         ]);
-
-        $attributes = ['name' => trim($this->name), 'position' => trim($this->position), 'office' => trim((string) $this->office) ?: null, 'is_active' => $this->signatoryActive];
-
-        if ($this->signature !== null) {
-            $attributes['signature_path'] = Branding::storeImage($this->signature, 'branding/signatures', 600);
-        }
-
-        Signatory::query()->updateOrCreate(['id' => $this->signatoryId], $attributes);
 
         Flux::modal('signatory-form')->close();
         unset($this->signatories);
@@ -132,18 +128,18 @@ new #[Title('Signatures & stamps')] class extends Component {
 
     public function saveStamp(): void
     {
-        $this->validate([
-            'stampName' => ['required', 'string', 'max:150'],
-            'stampImage' => [$this->stampId ? 'nullable' : 'required', 'image', 'mimes:png,jpg,jpeg,webp', Upload::max()],
-        ]);
+        $this->resetErrorBag();
 
-        $attributes = ['name' => trim($this->stampName), 'is_active' => $this->stampActive];
-
-        if ($this->stampImage !== null) {
-            $attributes['image_path'] = Branding::storeImage($this->stampImage, 'branding/stamps', 600);
+        try {
+            app(ManageSystem::class)->saveStamp($this->stampId ? Stamp::query()->findOrFail($this->stampId) : null, [
+                'name' => $this->stampName,
+                'is_active' => $this->stampActive,
+                'image' => $this->stampImage,
+            ]);
+        } catch (ValidationException $exception) {
+            // The form's fields are named stampName and stampImage.
+            throw ValidationException::withMessages(collect($exception->errors())->mapWithKeys(fn ($messages, $key) => [$key === 'image' ? 'stampImage' : 'stampName' => $messages])->all());
         }
-
-        Stamp::query()->updateOrCreate(['id' => $this->stampId], $attributes);
 
         Flux::modal('stamp-form')->close();
         unset($this->stamps);
@@ -152,21 +148,7 @@ new #[Title('Signatures & stamps')] class extends Component {
 
     public function saveDefaults(): void
     {
-        $signatories = Signatory::query()->pluck('id')->all();
-        $stamps = Stamp::query()->pluck('id')->all();
-
-        foreach (PrintDocument::withDefaults() as $document) {
-            $choice = $this->defaults[$document->value] ?? [];
-            $key = 'print.'.$document->value;
-            $signatory = in_array((int) ($choice['signatory'] ?? 0), $signatories, true) ? (int) $choice['signatory'] : null;
-            $stamp = in_array((int) ($choice['stamp'] ?? 0), $stamps, true) ? (int) $choice['stamp'] : null;
-
-            foreach (['signatory' => $signatory, 'stamp' => $stamp, 'images' => (bool) ($choice['images'] ?? true)] as $part => $value) {
-                if (Setting::get($key.'.'.$part, $part === 'images' ? true : null) !== $value) {
-                    Setting::set($key.'.'.$part, $value);
-                }
-            }
-        }
+        app(ManageSystem::class)->savePrintDefaults($this->defaults);
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }

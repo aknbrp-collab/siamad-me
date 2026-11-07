@@ -79,7 +79,9 @@ final class SpreadsheetDownload
      */
     public static function directory(): string
     {
-        return sys_get_temp_dir().DIRECTORY_SEPARATOR.'siakad-downloads';
+        $directory = config('siakad.downloads_dir');
+
+        return is_string($directory) && $directory !== '' ? $directory : sys_get_temp_dir().DIRECTORY_SEPARATOR.'siakad-downloads';
     }
 
     /**

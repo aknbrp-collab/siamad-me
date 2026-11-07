@@ -192,6 +192,22 @@ office recorded) and the unverified-payments tracker.
 
 Web only: importing previous-year finance data (maintenance mode) and printing slips from the page.
 
+### Superadmin (Step 11)
+
+Under `/superadmin`, for Superadmin only.
+
+| Screen | Endpoints |
+| --- | --- |
+| Pengguna & peran | `GET /superadmin/users` (`search`, `role`, `status`), `GET /superadmin/users/{id}` (roles, collector scope, profile), `POST /superadmin/users` (staff account; temporary `password` once), `PUT /superadmin/users/{id}`, `PUT …/roles` (staff roles), `PUT …/collector` (`scope` male/female/null); password reset and login on/off: `/admin/users/{id}/…` |
+| Pengaturan | `GET`/`PUT /superadmin/settings` (max instalments, minimum instalment, bank accounts, receipt footer, attendance minimum) |
+| Identitas lembaga, tampilan aplikasi | `GET`/`PUT /superadmin/identity`, `GET`/`PUT /superadmin/appearance` (with image previews), `POST /superadmin/images` (multipart `image`, `file`), `DELETE /superadmin/images/{image}` |
+| Tanda tangan & stempel | `GET /superadmin/signatures` (with previews and print defaults), `POST /superadmin/signatories`, `POST /superadmin/stamps` (multipart), `PUT /superadmin/print-defaults` |
+| Jenis surat | `GET`/`POST /superadmin/letter-types`, `PUT /superadmin/letter-numbering` |
+| Templat | `GET /superadmin/templates` (with `download_url`), `POST /superadmin/templates/{key}` (multipart `file`), `DELETE /superadmin/templates/{key}` (back to built-in) |
+| Log audit | `GET /superadmin/audit-log` (`event`, `search`) |
+
+Web only (D41): maintenance mode, backups and the CMS integration page.
+
 ### Per role
 
 Added step by step (v6 plan):
@@ -203,6 +219,6 @@ Added step by step (v6 plan):
 | Discussions | 8 | Done: see above |
 | Admin, pemantau | 9 | Done: see above |
 | Keuangan, petugas | 10 | Done: see above |
-| Superadmin | 11 | Pengguna, pengaturan, identitas dan tampilan, tanda tangan, jenis surat, log audit |
+| Superadmin | 11 | Done: see above |
 
 Not in the API (D41): maintenance mode, backups and the CMS page (web only).

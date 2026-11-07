@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Setting;
+use App\Actions\Superadmin\ManageSystem;
 use App\Support\Branding;
 use App\Support\Upload;
 use Flux\Flux;
@@ -39,14 +39,13 @@ abstract class BrandImagesPage extends Component
         abort_if($upload === null, 422);
 
         try {
-            $path = Branding::storeImage($upload, 'branding', $images[$image]['max'] ?? 1000);
+            app(ManageSystem::class)->storeImage($image, $upload);
         } catch (ValidationException $exception) {
             $this->addError("uploads.{$image}", $exception->getMessage());
 
             return;
         }
 
-        Setting::set(Branding::IMAGES[$image], $path);
         $this->uploads[$image] = null;
         Flux::toast(variant: 'success', text: __('Image saved.'));
     }
@@ -56,6 +55,6 @@ abstract class BrandImagesPage extends Component
         abort_unless(array_key_exists($image, $this->images()) && array_key_exists($image, Branding::IMAGES), 404);
 
         // The file stays on disk (old PDFs may be explained by it); the setting is cleared.
-        Setting::set(Branding::IMAGES[$image], null);
+        app(ManageSystem::class)->removeImage($image);
     }
 }

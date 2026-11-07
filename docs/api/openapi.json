@@ -61,6 +61,9 @@
         },
         {
             "name": "Keuangan"
+        },
+        {
+            "name": "Superadmin"
         }
     ],
     "security": [
@@ -26900,6 +26903,2479 @@
                     }
                 }
             }
+        },
+        "/superadmin/users": {
+            "get": {
+                "operationId": "v1.superadmin.users",
+                "description": "Every login account: `search` (login ID, name, email), `role`, `status` (active, inactive); paginated.",
+                "summary": "Users",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/Role"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "active",
+                                "inactive",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "username": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "email": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "active": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "roles": {
+                                                        "type": "array",
+                                                        "items": {}
+                                                    },
+                                                    "two_factor_enabled": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "username",
+                                                    "name",
+                                                    "email",
+                                                    "active",
+                                                    "roles",
+                                                    "two_factor_enabled"
+                                                ]
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.superadmin.users.store",
+                "description": "`username`, `name`, `email`, `roles` (staff roles). Returns the temporary password once.",
+                "summary": "Add a staff account",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "roles": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "minItems": 1
+                                    }
+                                },
+                                "required": [
+                                    "username",
+                                    "name",
+                                    "roles"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {},
+                                                "username": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "password": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "username",
+                                                "name",
+                                                "password"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/users/{user}": {
+            "get": {
+                "operationId": "v1.superadmin.users.show",
+                "description": "Roles, the Petugas Pembayaran scope, and the profile it belongs to (mahasantri, muhadhir, wali).",
+                "summary": "A user",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "username": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "active": {
+                                                    "type": "boolean"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "two_factor_enabled": {
+                                                    "type": "boolean"
+                                                },
+                                                "collector_scope": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "male",
+                                                        "female",
+                                                        null
+                                                    ]
+                                                },
+                                                "profile": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "student"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "teacher"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "guardian"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "null"
+                                                        }
+                                                    ]
+                                                },
+                                                "can_hold_staff_roles": {
+                                                    "type": "boolean",
+                                                    "description": "Mahasantri and wali accounts cannot hold staff roles."
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "username",
+                                                "name",
+                                                "email",
+                                                "active",
+                                                "roles",
+                                                "two_factor_enabled",
+                                                "collector_scope",
+                                                "profile",
+                                                "can_hold_staff_roles"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "v1.superadmin.users.update",
+                "summary": "Change a user's login ID, name or email",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "username",
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "username": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "active": {
+                                                    "type": "boolean"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "two_factor_enabled": {
+                                                    "type": "boolean"
+                                                },
+                                                "collector_scope": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "male",
+                                                        "female",
+                                                        null
+                                                    ]
+                                                },
+                                                "profile": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "student"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "teacher"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "guardian"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "null"
+                                                        }
+                                                    ]
+                                                },
+                                                "can_hold_staff_roles": {
+                                                    "type": "boolean",
+                                                    "description": "Mahasantri and wali accounts cannot hold staff roles."
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "username",
+                                                "name",
+                                                "email",
+                                                "active",
+                                                "roles",
+                                                "two_factor_enabled",
+                                                "collector_scope",
+                                                "profile",
+                                                "can_hold_staff_roles"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/users/{user}/roles": {
+            "put": {
+                "operationId": "v1.superadmin.users.roles",
+                "description": "`roles`: the staff roles the user should hold (admin, admin_payment, academic_monitor, superadmin); their\nmahasantri, muhadhir or wali role stays.",
+                "summary": "Set staff roles",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "roles": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "roles"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "username": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "active": {
+                                                    "type": "boolean"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "two_factor_enabled": {
+                                                    "type": "boolean"
+                                                },
+                                                "collector_scope": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "male",
+                                                        "female",
+                                                        null
+                                                    ]
+                                                },
+                                                "profile": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "student"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "teacher"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "guardian"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "null"
+                                                        }
+                                                    ]
+                                                },
+                                                "can_hold_staff_roles": {
+                                                    "type": "boolean",
+                                                    "description": "Mahasantri and wali accounts cannot hold staff roles."
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "username",
+                                                "name",
+                                                "email",
+                                                "active",
+                                                "roles",
+                                                "two_factor_enabled",
+                                                "collector_scope",
+                                                "profile",
+                                                "can_hold_staff_roles"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/users/{user}/collector": {
+            "put": {
+                "operationId": "v1.superadmin.users.collector",
+                "description": "`scope`: male (putra) or female (putri) bills, or null to remove the role.",
+                "summary": "Make a mahasantri or muhadhir a Petugas Pembayaran",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "scope": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/Gender"
+                                            },
+                                            {
+                                                "type": "null"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "username": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "active": {
+                                                    "type": "boolean"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "two_factor_enabled": {
+                                                    "type": "boolean"
+                                                },
+                                                "collector_scope": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "male",
+                                                        "female",
+                                                        null
+                                                    ]
+                                                },
+                                                "profile": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "student"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "teacher"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "kind": {
+                                                                    "type": "string",
+                                                                    "const": "guardian"
+                                                                },
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "kind",
+                                                                "id"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "null"
+                                                        }
+                                                    ]
+                                                },
+                                                "can_hold_staff_roles": {
+                                                    "type": "boolean",
+                                                    "description": "Mahasantri and wali accounts cannot hold staff roles."
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "username",
+                                                "name",
+                                                "email",
+                                                "active",
+                                                "roles",
+                                                "two_factor_enabled",
+                                                "collector_scope",
+                                                "profile",
+                                                "can_hold_staff_roles"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/settings": {
+            "get": {
+                "operationId": "v1.superadmin.settings",
+                "description": "Payment rules, bank accounts shown to payers, the receipt footer and the attendance minimum.",
+                "summary": "System settings",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "v1.superadmin.settings.save",
+                "description": "Send every field (as returned by GET).",
+                "summary": "Change system settings",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/identity": {
+            "get": {
+                "operationId": "v1.superadmin.identity",
+                "description": "The details printed on documents, with previews of the institution logo and the name in Arabic\ncalligraphy.",
+                "summary": "Institution identity",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "images": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "images"
+                                            ],
+                                            "additionalProperties": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "v1.superadmin.identity.save",
+                "summary": "Change the institution identity",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "images": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "images"
+                                            ],
+                                            "additionalProperties": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/appearance": {
+            "get": {
+                "operationId": "v1.superadmin.appearance",
+                "description": "App name, short name, login texts (empty = the default), and previews of the app logo, icon and login\nbackground.",
+                "summary": "App appearance",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "images": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "images"
+                                            ],
+                                            "additionalProperties": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "v1.superadmin.appearance.save",
+                "summary": "Change the app appearance",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "images": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "images"
+                                            ],
+                                            "additionalProperties": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/images": {
+            "post": {
+                "operationId": "v1.superadmin.images.upload",
+                "description": "`image`: institution_logo, arabic_name, app_logo, app_icon or login_background; multipart `file` (PNG,\nJPG, WebP; scaled down).",
+                "summary": "Upload a brand image",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image": {
+                                        "type": "string",
+                                        "enum": [
+                                            "app_logo",
+                                            "app_icon",
+                                            "login_background",
+                                            "institution_logo",
+                                            "arabic_name"
+                                        ]
+                                    },
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream"
+                                    }
+                                },
+                                "required": [
+                                    "image",
+                                    "file"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/images/{image}": {
+            "delete": {
+                "operationId": "v1.superadmin.images.remove",
+                "description": "The built-in one is used again (the app logo and icon) or nothing is printed.",
+                "summary": "Remove a brand image",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "image",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/signatures": {
+            "get": {
+                "operationId": "v1.superadmin.signatures",
+                "description": "Each with a preview of its image, and the default signatory, stamp and whether to print the images per\ndocument (transcript, KHS, receipt, \u2026).",
+                "summary": "Signatories, stamps and print defaults",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "signatories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "stamps": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "defaults": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "signatory": {},
+                                                            "stamp": {},
+                                                            "images": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "signatory",
+                                                            "stamp",
+                                                            "images"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "signatories",
+                                                "stamps",
+                                                "defaults"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/signatories": {
+            "post": {
+                "operationId": "v1.superadmin.signatories.save",
+                "description": "Multipart: `name`, `position`, `office`, `is_active`, `signature` (image).",
+                "summary": "Add or change a signatory",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/stamps": {
+            "post": {
+                "operationId": "v1.superadmin.stamps.save",
+                "description": "Multipart: `name`, `is_active`, `image` (required for a new stamp).",
+                "summary": "Add or change a stamp",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/print-defaults": {
+            "put": {
+                "operationId": "v1.superadmin.print-defaults",
+                "description": "`defaults`: {document: {signatory, stamp, images}}.",
+                "summary": "Set print defaults",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "defaults": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "minItems": 1
+                                    }
+                                },
+                                "required": [
+                                    "defaults"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/letter-types": {
+            "get": {
+                "operationId": "v1.superadmin.letter-types",
+                "description": "Every letter type with its template text, signatory and stamp, and the number format.",
+                "summary": "Letter types and numbering",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "numbering": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "format": {},
+                                                        "padding": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "format",
+                                                        "padding"
+                                                    ]
+                                                },
+                                                "types": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "numbering",
+                                                "types"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.superadmin.letter-types.save",
+                "description": "`name`, `code`, `subject` (none, student, teacher), `requestable` (mahasantri may ask for it), `template`,\n`signatory_id`, `stamp_id`, `print_marks`, `is_active`.",
+                "summary": "Add or change a letter type",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "code": {
+                                        "type": "string"
+                                    },
+                                    "subject": {
+                                        "type": "string"
+                                    },
+                                    "template": {
+                                        "type": "string"
+                                    },
+                                    "requestable": {
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "print_marks": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "code",
+                                    "subject",
+                                    "template"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/letter-numbering": {
+            "put": {
+                "operationId": "v1.superadmin.letter-numbering",
+                "description": "`format` (placeholders as on the web), `padding`, and the counter's `start_year` and `start_number`.",
+                "summary": "Change letter numbering",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "format": {
+                                        "type": "string"
+                                    },
+                                    "padding": {
+                                        "type": "integer"
+                                    },
+                                    "start_year": {
+                                        "type": "integer"
+                                    },
+                                    "start_number": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "format",
+                                    "padding",
+                                    "start_year",
+                                    "start_number"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/templates": {
+            "get": {
+                "operationId": "v1.superadmin.templates",
+                "description": "Every template people download (imports, teaching documents, letters): whether a replacement is in use,\nand a link to the current file.",
+                "summary": "Templates",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "key": {
+                                                        "type": "string"
+                                                    },
+                                                    "label": {
+                                                        "type": "string"
+                                                    },
+                                                    "group": {
+                                                        "type": "string"
+                                                    },
+                                                    "format": {
+                                                        "type": "string"
+                                                    },
+                                                    "replaced": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "version": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "uploaded_by": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "download_url": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "key",
+                                                    "label",
+                                                    "group",
+                                                    "format",
+                                                    "replaced",
+                                                    "version",
+                                                    "uploaded_by",
+                                                    "download_url"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/templates/{key}": {
+            "post": {
+                "operationId": "v1.superadmin.templates.upload",
+                "description": "Multipart `file` (xlsx or docx, as the slot); later downloads use it.",
+                "summary": "Replace a template",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream"
+                                    }
+                                },
+                                "required": [
+                                    "file"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1.superadmin.templates.revert",
+                "summary": "Go back to the built-in template",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/superadmin/audit-log": {
+            "get": {
+                "operationId": "v1.superadmin.audit",
+                "description": "Every change with who made it, the old and new values; `event` (created, updated, deleted), `search` (record\ntype or id, user name or login); newest first, paginated.",
+                "summary": "Audit log",
+                "tags": [
+                    "Superadmin"
+                ],
+                "parameters": [
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "event": {
+                                                        "type": "string"
+                                                    },
+                                                    "record": {
+                                                        "type": "string"
+                                                    },
+                                                    "record_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "old": {
+                                                        "type": [
+                                                            "object",
+                                                            "null"
+                                                        ],
+                                                        "additionalProperties": {}
+                                                    },
+                                                    "new": {
+                                                        "type": [
+                                                            "object",
+                                                            "null"
+                                                        ],
+                                                        "additionalProperties": {}
+                                                    },
+                                                    "user": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "ip_address": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "in_maintenance": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "event",
+                                                    "record",
+                                                    "record_id",
+                                                    "old",
+                                                    "new",
+                                                    "user",
+                                                    "ip_address",
+                                                    "in_maintenance",
+                                                    "created_at"
+                                                ]
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -27181,6 +29657,14 @@
                     "done"
                 ],
                 "title": "FeedbackStatus"
+            },
+            "Gender": {
+                "type": "string",
+                "enum": [
+                    "male",
+                    "female"
+                ],
+                "title": "Gender"
             },
             "LoginRequest": {
                 "type": "object",
@@ -27690,6 +30174,21 @@
                     "questions"
                 ],
                 "title": "QuizAttemptResource"
+            },
+            "Role": {
+                "type": "string",
+                "description": "| |\n|---|\n| `superadmin` <br/>  |\n| `admin` <br/>  |\n| `admin_payment` <br/>  |\n| `academic_monitor` <br/>  |\n| `teacher` <br/>  |\n| `student` <br/>  |\n| `guardian` <br/>  |\n| `payment_collector` <br/> Records payments for the bills of one gender only (v2); may be held by a mahasantri. |",
+                "enum": [
+                    "superadmin",
+                    "admin",
+                    "admin_payment",
+                    "academic_monitor",
+                    "teacher",
+                    "student",
+                    "guardian",
+                    "payment_collector"
+                ],
+                "title": "Role"
             },
             "TeachingDocumentKind": {
                 "type": "string",

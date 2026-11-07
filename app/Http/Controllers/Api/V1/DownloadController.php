@@ -18,6 +18,7 @@ use App\Models\Letter;
 use App\Models\Payment;
 use App\Models\Semester;
 use App\Models\Student;
+use App\Support\Templates;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -35,9 +36,10 @@ class DownloadController extends Controller
     use ActsForSignedUser;
 
     /**
-     * Document => [controller, method, [parameter => model class, a list of allowed values, or 'month' (YYYY-MM)]].
+     * Document => [controller, method, [parameter => model class, a list of allowed values, 'month' (YYYY-MM)
+     * or 'template' (a template slot key)]].
      *
-     * @var array<string, array{0: class-string, 1: string, 2: array<string, class-string<Model>|list<string>|'month'>}>
+     * @var array<string, array{0: class-string, 1: string, 2: array<string, class-string<Model>|list<string>|'month'|'template'>}>
      */
     public const DOCUMENTS = [
         'khs' => [AcademicRecordPdfController::class, 'khs', ['student' => Student::class, 'semester' => Semester::class]],
@@ -51,6 +53,8 @@ class DownloadController extends Controller
         'teaching-journal' => [TeachingJournalController::class, '__invoke', ['offering' => CourseOffering::class]],
         // Finance (Step 10): the cash report of a range of months.
         'cash-report' => [CashReportController::class, '__invoke', ['from' => 'month', 'to' => 'month']],
+        // Managed templates (Step 11): the current file of a slot (Excel or Word).
+        'template' => [TemplateController::class, 'show', ['key' => 'template']],
     ];
 
     /**
@@ -73,6 +77,14 @@ class DownloadController extends Controller
         foreach ($arguments as $name => $type) {
             if ($type === 'month') {
                 abort_unless(preg_match('/^\d{4}-\d{2}$/', (string) $request->query($name)) === 1, 404);
+
+                continue;
+            }
+
+            if ($type === 'template') {
+                $value = (string) $request->query($name);
+                abort_unless(array_key_exists($value, Templates::slots()), 404);
+                $parameters[$name] = $value;
 
                 continue;
             }

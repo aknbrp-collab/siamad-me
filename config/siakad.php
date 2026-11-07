@@ -12,6 +12,10 @@ return [
     |
     */
 
+    // Where generated downloads (Excel, Word) wait until they are sent; empty = the system temp folder.
+    // Tests give each process its own folder (tests/TestCase.php).
+    'downloads_dir' => env('SIAKAD_DOWNLOADS_DIR'),
+
     // API docs at /docs/api: Superadmin only, unless this is true (v6 D38).
     'api_docs_public' => (bool) env('API_DOCS_PUBLIC', false),
 

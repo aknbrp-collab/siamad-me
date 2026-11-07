@@ -162,7 +162,7 @@ are recorded as decisions D33–D41.
 - Fees and rates, scholarships, bills (generate, add a fee, void), payments (record, verify, reject,
   handovers, transfers), cash book and accounts, the bills grid, unverified payments, reports.
 
-### Step 11 — API: Superadmin (medium)
+### Step 11 — API: Superadmin (medium) — done 2026-11-08
 
 - Users and roles, settings, identity and appearance (read, change), signatures and stamps, letter types
   and templates, audit log (read).

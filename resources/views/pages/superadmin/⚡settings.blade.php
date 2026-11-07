@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Superadmin\ManageSystem;
 use App\Models\Setting;
 use Flux\Flux;
 use Livewire\Attributes\Title;
@@ -50,13 +51,13 @@ new #[Title('System settings')] class extends Component {
     {
         $this->validate();
 
-        foreach (self::FIELDS as $key => $property) {
-            $value = $this->{$property} === '' ? null : $this->{$property};
-
-            if (Setting::get($key) !== $value) {
-                Setting::set($key, $value);
-            }
-        }
+        app(ManageSystem::class)->save(ManageSystem::SETTINGS, [
+            'max_installments' => $this->maxInstallments,
+            'min_installment_amount' => $this->minInstallmentAmount,
+            'bank_accounts' => $this->bankAccounts,
+            'receipt_footer' => $this->receiptFooter,
+            'attendance_min_percent' => $this->attendanceMinimum,
+        ]);
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }

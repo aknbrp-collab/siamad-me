@@ -1271,3 +1271,15 @@ v6 Step 10 (2026-11-08) — API for finance (D37):
   `CashBook` ledger, summary, balances) and the finance overview.
 - `ManageFees` now holds the fee type, rate and scholarship saves the pages did inline.
 - Downloads add `cash-report` (`from`/`to` months; a new `month` parameter type in `DownloadController`).
+
+v6 Step 11 (2026-11-08) — API for Superadmin (D37, D41):
+- `/superadmin/*` (role superadmin): users (`ManageUserAccounts` create, update, staff roles, collector
+  scope), settings, identity and appearance with image previews and uploads, signatories, stamps and print
+  defaults, letter types and numbering (`ManageLetters`), managed templates (`Templates` upload/revert, a
+  `template` download in `DownloadController`), and the audit log.
+- `ManageSystem` now holds what the Pengaturan, Identitas, Tampilan aplikasi and Tanda tangan pages saved
+  inline: field maps with the setting key and rules per field (`SETTINGS`, `IDENTITY`, `APPEARANCE`), brand
+  image upload/removal (also behind `BrandImagesPage`), signatories, stamps and print defaults. The pages
+  keep their own form validation and save through it.
+- Maintenance mode, backups and the CMS page stay on the web. With this step the API covers every role
+  (Steps 5–11); Step 12 (Firebase push) waits for the keys.

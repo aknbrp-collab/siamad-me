@@ -125,13 +125,19 @@ test('page queries do not grow with the number of mahasantri (no N+1)', function
     expect($growing)->toBe([]);
 });
 
-test('every foreign key is indexed on PostgreSQL', function () {
-    if (DB::getDriverName() !== 'pgsql') {
-        $this->markTestSkipped('PostgreSQL only: SQLite has no catalog to inspect this way.');
-    }
+test('every foreign key is indexed', function () {
+    // Single-column foreign keys that lead no (non-partial) index, as table.column.
+    $unindexed = DB::getDriverName() === 'pgsql' ? unindexedForeignKeysOnPostgres() : unindexedForeignKeysOnSqlite();
 
-    // Single-column foreign keys that lead no (non-partial) index.
-    $unindexed = collect(DB::select(<<<'SQL'
+    expect($unindexed)->toBe([]);
+});
+
+/**
+ * @return list<string>
+ */
+function unindexedForeignKeysOnPostgres(): array
+{
+    return collect(DB::select(<<<'SQL'
         select c.conrelid::regclass::text || '.' || a.attname as fk
         from pg_constraint c
         join pg_attribute a on a.attrelid = c.conrelid and a.attnum = c.conkey[1]
@@ -141,7 +147,40 @@ test('every foreign key is indexed on PostgreSQL', function () {
               select 1 from pg_index i
               where i.indrelid = c.conrelid and i.indkey[0] = c.conkey[1] and i.indpred is null
           )
-        SQL))->pluck('fk')->all();
+        SQL))->pluck('fk')->values()->all();
+}
 
-    expect($unindexed)->toBe([]);
-});
+/**
+ * The same check through SQLite's PRAGMAs: each table's foreign keys and the
+ * first column of each full index (primary keys included).
+ *
+ * @return list<string>
+ */
+function unindexedForeignKeysOnSqlite(): array
+{
+    $unindexed = [];
+    $tables = collect(DB::select("select name from sqlite_master where type = 'table' and name not like 'sqlite_%'"))->pluck('name');
+
+    foreach ($tables as $table) {
+        $keys = collect(DB::select("pragma foreign_key_list('{$table}')"))->groupBy('id')->filter(fn ($columns) => $columns->count() === 1);
+
+        if ($keys->isEmpty()) {
+            continue;
+        }
+
+        $leading = collect(DB::select("pragma index_list('{$table}')"))
+            ->filter(fn ($index) => (int) $index->partial === 0)
+            ->map(fn ($index) => collect(DB::select("pragma index_info('{$index->name}')"))->firstWhere('seqno', 0)?->name)
+            ->filter()->all();
+
+        foreach ($keys as $columns) {
+            if (! in_array($columns->first()->from, $leading, true)) {
+                $unindexed[] = $table.'.'.$columns->first()->from;
+            }
+        }
+    }
+
+    sort($unindexed);
+
+    return $unindexed;
+}

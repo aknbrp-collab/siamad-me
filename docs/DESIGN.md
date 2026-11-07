@@ -1227,3 +1227,18 @@ v6 Step 7 (2026-11-07) — API for muhadhir (D37, D41):
 - Signed downloads renamed from `api/v1/pdf` to `api/v1/downloads/{document}` (`ApiFiles::download`), now
   also `score-template`, `teaching-template` (kind rps/journal) and `teaching-journal`; parameters can be
   models or a fixed list of values.
+
+v6 Step 8 (2026-11-07) — API for discussions, articles and Tanya Hukum (D37):
+- `/discussions` (bimbingan: own groups, or all for overseers; lpppk: channels) with `unread` from
+  `ManageDiscussions::unread` / `unreadLpppk` and the latest message; per room (`DiscussionAccess`):
+  details with members, `moderator`, `cannot_post`; messages oldest first with `after_id` (polling, D27) or
+  `before_id`, read marker moved to the newest returned; send (`post`, multipart files), hide, files
+  (signed `discussion-file` links), notes (errors mapped from `noteTitle`/`noteBody` to `title`/`body`),
+  mute/unmute, lock.
+- `/articles` wraps `ManageArticles` (mine, review queue, show with `body_html`, reviews, CMS status for the
+  author and overseers, and a `can` block mirroring the page's buttons; save, submit, publish, review,
+  withdraw, discard, CMS resend/check jobs).
+- `/tanya-hukum` (`TanyaHukumController`, named apart from the CMS webhook's `Api\LegalQuestionController`)
+  wraps `ManageLegalQuestions`: list by state, detail with the open version, approvals and sent versions,
+  draft, submit, approve, reopen, correction, resend.
+- Room, channel and sanction management stays for Step 9 (staff).

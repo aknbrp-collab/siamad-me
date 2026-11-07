@@ -3,7 +3,9 @@
 use App\Http\Controllers\Api\LegalQuestionController;
 use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\AppInfoController;
+use App\Http\Controllers\Api\V1\ArticleController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DiscussionController;
 use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\DownloadController;
 use App\Http\Controllers\Api\V1\FeedbackController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\Api\V1\Student\HomeController;
 use App\Http\Controllers\Api\V1\Student\LetterController;
 use App\Http\Controllers\Api\V1\Student\QuizController;
 use App\Http\Controllers\Api\V1\StudentRecordController;
+use App\Http\Controllers\Api\V1\TanyaHukumController;
 use App\Http\Controllers\Api\V1\Teacher\AssignmentController as TeacherAssignmentController;
 use App\Http\Controllers\Api\V1\Teacher\GradeController;
 use App\Http\Controllers\Api\V1\Teacher\HomeController as TeacherHomeController;
@@ -117,6 +120,51 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
                 Route::delete('{thread}', [ForumController::class, 'destroy'])->whereNumber('thread')->name('destroy');
                 Route::delete('posts/{post}', [ForumController::class, 'destroyPost'])->whereNumber('post')->name('posts.destroy');
             });
+
+        // Discussions (Step 8): bimbingan groups, LPPPK channels, Tanya Hukum rooms; access per room (DiscussionAccess).
+        Route::get('discussions', [DiscussionController::class, 'index'])->name('discussions');
+        Route::prefix('discussions/{discussion}')->name('discussions.')->group(function () {
+            Route::get('/', [DiscussionController::class, 'show'])->name('show');
+            Route::get('messages', [DiscussionController::class, 'messages'])->name('messages');
+            Route::post('messages', [DiscussionController::class, 'send'])->name('send');
+            Route::delete('messages/{message}', [DiscussionController::class, 'hide'])->name('messages.hide');
+            Route::get('files', [DiscussionController::class, 'files'])->name('files');
+            Route::get('notes', [DiscussionController::class, 'notes'])->name('notes');
+            Route::post('notes', [DiscussionController::class, 'storeNote'])->name('notes.store');
+            Route::put('notes/{note}', [DiscussionController::class, 'updateNote'])->name('notes.update');
+            Route::delete('notes/{note}', [DiscussionController::class, 'hideNote'])->name('notes.hide');
+            Route::post('members/{member}/mute', [DiscussionController::class, 'mute'])->name('members.mute');
+            Route::delete('members/{member}/mute', [DiscussionController::class, 'unmute'])->name('members.unmute');
+            Route::put('lock', [DiscussionController::class, 'lock'])->name('lock');
+        });
+
+        // Articles (Step 8): mahasantri and muhadhir write; staff who oversee read and withdraw.
+        Route::get('articles/mine', [ArticleController::class, 'mine'])->name('articles.mine');
+        Route::get('articles/review', [ArticleController::class, 'reviewQueue'])->name('articles.review');
+        Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
+        Route::prefix('articles/{article}')->name('articles.')->group(function () {
+            Route::get('/', [ArticleController::class, 'show'])->name('show');
+            Route::put('/', [ArticleController::class, 'update'])->name('update');
+            Route::delete('/', [ArticleController::class, 'discard'])->name('discard');
+            Route::post('submit', [ArticleController::class, 'submit'])->name('submit');
+            Route::post('publish', [ArticleController::class, 'publish'])->name('publish');
+            Route::post('review', [ArticleController::class, 'review'])->name('review');
+            Route::post('withdraw', [ArticleController::class, 'withdraw'])->name('withdraw');
+            Route::post('website/resend', [ArticleController::class, 'resend'])->name('website.resend');
+            Route::post('website/check', [ArticleController::class, 'check'])->name('website.check');
+        });
+
+        // Tanya Hukum (Step 8): everyone who uses LPPPK reads; muhadhir draft and approve.
+        Route::get('tanya-hukum', [TanyaHukumController::class, 'index'])->name('tanya-hukum');
+        Route::prefix('tanya-hukum/{question}')->name('tanya-hukum.')->group(function () {
+            Route::get('/', [TanyaHukumController::class, 'show'])->name('show');
+            Route::put('draft', [TanyaHukumController::class, 'draft'])->name('draft');
+            Route::post('submit', [TanyaHukumController::class, 'submit'])->name('submit');
+            Route::post('approve', [TanyaHukumController::class, 'approve'])->name('approve');
+            Route::post('reopen', [TanyaHukumController::class, 'reopen'])->name('reopen');
+            Route::post('correction', [TanyaHukumController::class, 'correction'])->name('correction');
+            Route::post('resend', [TanyaHukumController::class, 'resend'])->name('resend');
+        });
 
         // Muhadhir (Step 7). Each class route checks that the muhadhir teaches it.
         Route::prefix('teacher')->name('teacher.')->middleware('role:teacher')->group(function () {

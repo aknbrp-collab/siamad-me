@@ -145,7 +145,7 @@ are recorded as decisions D33–D41.
   quizzes (build, results), forum, grades (components, scores, import template, finalise), teaching
   documents (templates, upload), supervisees.
 
-### Step 8 — API: discussions, articles, Tanya Hukum (medium)
+### Step 8 — API: discussions, articles, Tanya Hukum (medium) — done 2026-11-07
 
 - Bimbingan and LPPPK rooms (messages with polling `after_id`, files, notes, moderation), articles (write,
   send, review, publish, withdraw, website status) and Tanya Hukum (questions, drafts, approvals).

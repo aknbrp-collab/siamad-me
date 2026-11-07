@@ -103,7 +103,7 @@ The mahasantri's own student id is in `GET /me` (`student.id`); records use it.
 
 | Forum kelas | `GET/POST /forums/class/{class}/threads`, `GET /forums/class/{class}/threads/{id}`, `POST …/{id}/posts` |
 
-Bimbingan and LPPPK discussions, articles and Tanya Hukum come with Step 8.
+Bimbingan, LPPPK, articles and Tanya Hukum: see "Discussions, articles, Tanya Hukum" below.
 
 ### Wali santri (Step 6)
 
@@ -132,6 +132,23 @@ Every class route starts with `/teacher/classes/{class}` and checks that the muh
 | Mahasantri bimbingan | `GET /teacher/supervisees` (class, attendance, IPK); their `GET /students/{id}/khs`, `/transcript`, `/activities` (not bills); the group forum `/forums/supervision/{teacher id}/threads…` |
 | Dokumen saya | `GET /documents`, `POST /documents/{id}` (ijazah with `degree_title`) |
 
+### Discussions, articles, Tanya Hukum (Step 8)
+
+For mahasantri and muhadhir (and the staff who oversee). Access is checked per room and per article, as on
+the web.
+
+| Screen | Endpoints |
+| --- | --- |
+| Bimbingan, LPPPK | `GET /discussions?kind=bimbingan` or `lpppk` (rooms with `unread` and the latest message) |
+| Ruang diskusi | `GET /discussions/{id}` (members, `moderator`, `cannot_post` with the reason), `GET /discussions/{id}/messages` (`after_id` to poll every few seconds while open, `before_id` to scroll back; reading marks the room read), `POST /discussions/{id}/messages` (multipart `body`, up to five `files[]`, `reply_to_id`), `DELETE …/messages/{m}`, `GET …/files`, `GET`/`POST …/notes`, `PUT`/`DELETE …/notes/{n}` |
+| Moderasi ruang | `POST`/`DELETE …/members/{member}/mute` (`until` or null), `PUT …/lock` (`locked`) |
+| Artikel saya | `GET /articles/mine`, `POST /articles` (`title`, `summary`, `body` in Markdown, `keywords` comma separated), `GET /articles/{id}` (`body_html`, reviews, `website` status, `can` = the actions allowed now), `PUT`, `DELETE` (a never-sent draft), `POST …/submit` (mahasantri), `POST …/publish` (muhadhir), `POST …/withdraw`, `POST …/website/resend`, `POST …/website/check` |
+| Tinjau artikel | `GET /articles/review` (muhadhir), `POST /articles/{id}/review` (`approve`, `note`) |
+| Tanya Hukum | `GET /tanya-hukum?show=open|approval|answered|all`, `GET /tanya-hukum/{id}` (open answer with approvals, sent versions, `can`), `PUT …/draft` (`answer`, `references`), `POST …/submit`, `POST …/approve`, `POST …/reopen`, `POST …/correction`, `POST …/resend`; the question's room is `discussion_id` |
+
+Room management (creating bimbingan groups, LPPPK channels, person-wide LPPPK sanctions) is staff work and
+comes with Step 9.
+
 ### Per role
 
 Added step by step (v6 plan):
@@ -140,7 +157,7 @@ Added step by step (v6 plan):
 | --- | --- | --- |
 | Mahasantri, wali santri | 6 | Done: see above |
 | Muhadhir | 7 | Done: see above |
-| Discussions | 8 | Bimbingan, LPPPK, artikel, Tanya Hukum |
+| Discussions | 8 | Done: see above |
 | Admin, pemantau | 9 | Data akademik, orang, dokumen, surat, pemantauan, kritik & saran, evaluasi |
 | Keuangan, petugas | 10 | Tagihan, pembayaran, setoran, transfer, buku kas, rekap angsuran |
 | Superadmin | 11 | Pengguna, pengaturan, identitas dan tampilan, tanda tangan, jenis surat, log audit |

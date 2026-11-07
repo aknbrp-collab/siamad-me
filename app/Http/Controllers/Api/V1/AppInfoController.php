@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\Branding;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
 /**
  * What the app shows before and after login: its name, logo and login page
  * (Tampilan aplikasi), and the institution (Identitas).
- *
- * @tags App
  */
+#[Group('App', weight: 1)]
 class AppInfoController extends Controller
 {
     /**

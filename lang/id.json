@@ -2232,5 +2232,6 @@
     "device name": "nama perangkat",
     "last used :when": "terakhir dipakai :when",
     "not used yet": "belum dipakai",
-    "The ID number or password is incorrect.": "Nomor induk atau kata sandi salah."
+    "The ID number or password is incorrect.": "Nomor induk atau kata sandi salah.",
+    "Choose a role first (X-Role).": "Pilih peran terlebih dahulu (X-Role)."
 }

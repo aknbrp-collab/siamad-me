@@ -12,6 +12,7 @@ use App\Http\Requests\Api\V1\ProfileRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Models\User;
 use App\Support\ActiveRole;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,9 +20,8 @@ use Illuminate\Support\Arr;
 
 /**
  * The signed-in user: who they are, their profile (Profil saya) and password.
- *
- * @tags Account
  */
+#[Group('Account', weight: 3)]
 class AccountController extends Controller
 {
     /**

@@ -131,7 +131,7 @@ are recorded as decisions D33–D41.
 - Common endpoints: me, roles, profile and photo, password change, notifications (list, read, read all,
   FCM token), and settings needed by the app (app name, logo, institution).
 
-### Step 6 — API: mahasantri and wali (large)
+### Step 6 — API: mahasantri and wali (large) — done 2026-11-07
 
 - Dashboard summary, schedule, classes with materials, assignments (submit with files), quizzes (start,
   answer, submit, results), meetings and attendance, KHS, transcript, exams and exam card, bills

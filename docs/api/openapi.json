@@ -10,12 +10,409 @@
             "url": "http://ready.test:8000/api/v1"
         }
     ],
+    "tags": [
+        {
+            "name": "App"
+        },
+        {
+            "name": "Auth"
+        },
+        {
+            "name": "Account"
+        },
+        {
+            "name": "Notifications"
+        },
+        {
+            "name": "Feedback"
+        },
+        {
+            "name": "Files"
+        },
+        {
+            "name": "Documents"
+        },
+        {
+            "name": "Records"
+        },
+        {
+            "name": "Mahasantri"
+        },
+        {
+            "name": "Wali santri"
+        }
+    ],
     "security": [
         {
             "http": []
         }
     ],
     "paths": {
+        "/app": {
+            "get": {
+                "operationId": "v1.app",
+                "description": "Public, so the login screen can use it. Image URLs are public and change when the image changes.",
+                "summary": "App appearance and institution",
+                "tags": [
+                    "App"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "api_version": {
+                                                    "type": "string",
+                                                    "const": "v1"
+                                                },
+                                                "app": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "short_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "logo_url": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "icon_url": {
+                                                            "type": "string"
+                                                        },
+                                                        "login_title": {
+                                                            "type": "string"
+                                                        },
+                                                        "login_text": {
+                                                            "type": "string"
+                                                        },
+                                                        "login_background_url": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "theme_color": {
+                                                            "type": "string",
+                                                            "const": "#66BB6A"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "name",
+                                                        "short_name",
+                                                        "logo_url",
+                                                        "icon_url",
+                                                        "login_title",
+                                                        "login_text",
+                                                        "login_background_url",
+                                                        "theme_color"
+                                                    ]
+                                                },
+                                                "institution": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "short_name": {},
+                                                        "address": {},
+                                                        "city": {},
+                                                        "phone": {},
+                                                        "email": {},
+                                                        "website": {}
+                                                    },
+                                                    "required": [
+                                                        "name",
+                                                        "short_name",
+                                                        "address",
+                                                        "city",
+                                                        "phone",
+                                                        "email",
+                                                        "website"
+                                                    ]
+                                                },
+                                                "push_enabled": {
+                                                    "type": "boolean",
+                                                    "description": "Whether the server sends push messages through Firebase yet (v6 D39)."
+                                                }
+                                            },
+                                            "required": [
+                                                "api_version",
+                                                "app",
+                                                "institution",
+                                                "push_enabled"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "operationId": "v1.login",
+                "description": "With the ID number (NIM, NIDM, guardian code or staff login) and password. Accounts with two-factor\nauthentication first get `422` with `code: \"two_factor_required\"`; send the login again with `code`\n(from the authenticator app) or a `recovery_code`. Send the returned token as `Authorization: Bearer \u2026`.",
+                "summary": "Log in",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "token",
+                                        "user"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "operationId": "v1.logout",
+                "summary": "Log out this device",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/auth/devices": {
+            "get": {
+                "operationId": "v1.devices",
+                "summary": "Devices signed in to the app",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `DeviceResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DeviceResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/auth/devices/{device}": {
+            "delete": {
+                "operationId": "v1.devices.destroy",
+                "summary": "Sign out a device",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "device",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/auth/push-token": {
+            "put": {
+                "operationId": "v1.push-token",
+                "description": "The Firebase Cloud Messaging token of the app on this device; `null` turns push off. Sending through FCM\nstarts once the server has its Firebase keys (v6 D39).",
+                "summary": "Set this device's push token",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "fcm_token": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 512
+                                    }
+                                },
+                                "required": [
+                                    "fcm_token"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/me": {
             "get": {
                 "operationId": "v1.me",
@@ -594,442 +991,13 @@
                 }
             }
         },
-        "/app": {
-            "get": {
-                "operationId": "v1.app",
-                "description": "Public, so the login screen can use it. Image URLs are public and change when the image changes.",
-                "summary": "App appearance and institution",
-                "tags": [
-                    "App",
-                    "AppInfo"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "api_version": {
-                                                    "type": "string",
-                                                    "const": "v1"
-                                                },
-                                                "app": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "short_name": {
-                                                            "type": "string"
-                                                        },
-                                                        "logo_url": {
-                                                            "type": [
-                                                                "string",
-                                                                "null"
-                                                            ]
-                                                        },
-                                                        "icon_url": {
-                                                            "type": "string"
-                                                        },
-                                                        "login_title": {
-                                                            "type": "string"
-                                                        },
-                                                        "login_text": {
-                                                            "type": "string"
-                                                        },
-                                                        "login_background_url": {
-                                                            "type": [
-                                                                "string",
-                                                                "null"
-                                                            ]
-                                                        },
-                                                        "theme_color": {
-                                                            "type": "string",
-                                                            "const": "#66BB6A"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "name",
-                                                        "short_name",
-                                                        "logo_url",
-                                                        "icon_url",
-                                                        "login_title",
-                                                        "login_text",
-                                                        "login_background_url",
-                                                        "theme_color"
-                                                    ]
-                                                },
-                                                "institution": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "short_name": {},
-                                                        "address": {},
-                                                        "city": {},
-                                                        "phone": {},
-                                                        "email": {},
-                                                        "website": {}
-                                                    },
-                                                    "required": [
-                                                        "name",
-                                                        "short_name",
-                                                        "address",
-                                                        "city",
-                                                        "phone",
-                                                        "email",
-                                                        "website"
-                                                    ]
-                                                },
-                                                "push_enabled": {
-                                                    "type": "boolean",
-                                                    "description": "Whether the server sends push messages through Firebase yet (v6 D39)."
-                                                }
-                                            },
-                                            "required": [
-                                                "api_version",
-                                                "app",
-                                                "institution",
-                                                "push_enabled"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": []
-            }
-        },
-        "/auth/login": {
-            "post": {
-                "operationId": "v1.login",
-                "description": "With the ID number (NIM, NIDM, guardian code or staff login) and password. Accounts with two-factor\nauthentication first get `422` with `code: \"two_factor_required\"`; send the login again with `code`\n(from the authenticator app) or a `recovery_code`. Send the returned token as `Authorization: Bearer \u2026`.",
-                "summary": "Log in",
-                "tags": [
-                    "Auth"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/LoginRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "token": {
-                                            "type": "string"
-                                        },
-                                        "user": {
-                                            "type": "array",
-                                            "items": {}
-                                        }
-                                    },
-                                    "required": [
-                                        "token",
-                                        "user"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    }
-                },
-                "security": []
-            }
-        },
-        "/auth/logout": {
-            "post": {
-                "operationId": "v1.logout",
-                "summary": "Log out this device",
-                "tags": [
-                    "Auth"
-                ],
-                "parameters": [
-                    {
-                        "name": "X-Role",
-                        "in": "header",
-                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "superadmin",
-                                "admin",
-                                "admin_payment",
-                                "academic_monitor",
-                                "teacher",
-                                "student",
-                                "guardian",
-                                "payment_collector"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No content"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/auth/devices": {
-            "get": {
-                "operationId": "v1.devices",
-                "summary": "Devices signed in to the app",
-                "tags": [
-                    "Auth"
-                ],
-                "parameters": [
-                    {
-                        "name": "X-Role",
-                        "in": "header",
-                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "superadmin",
-                                "admin",
-                                "admin_payment",
-                                "academic_monitor",
-                                "teacher",
-                                "student",
-                                "guardian",
-                                "payment_collector"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `DeviceResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/DeviceResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/auth/devices/{device}": {
-            "delete": {
-                "operationId": "v1.devices.destroy",
-                "summary": "Sign out a device",
-                "tags": [
-                    "Auth"
-                ],
-                "parameters": [
-                    {
-                        "name": "device",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "X-Role",
-                        "in": "header",
-                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "superadmin",
-                                "admin",
-                                "admin_payment",
-                                "academic_monitor",
-                                "teacher",
-                                "student",
-                                "guardian",
-                                "payment_collector"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No content"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/auth/push-token": {
-            "put": {
-                "operationId": "v1.push-token",
-                "description": "The Firebase Cloud Messaging token of the app on this device; `null` turns push off. Sending through FCM\nstarts once the server has its Firebase keys (v6 D39).",
-                "summary": "Set this device's push token",
-                "tags": [
-                    "Auth"
-                ],
-                "parameters": [
-                    {
-                        "name": "X-Role",
-                        "in": "header",
-                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "superadmin",
-                                "admin",
-                                "admin_payment",
-                                "academic_monitor",
-                                "teacher",
-                                "student",
-                                "guardian",
-                                "payment_collector"
-                            ]
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "fcm_token": {
-                                        "type": [
-                                            "string",
-                                            "null"
-                                        ],
-                                        "maxLength": 512
-                                    }
-                                },
-                                "required": [
-                                    "fcm_token"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "204": {
-                        "description": "No content"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/files/{kind}/{id}": {
-            "get": {
-                "operationId": "v1.files",
-                "description": "Only through the signed links in other responses (`\u2026_url`); they expire after a few minutes.",
-                "summary": "Download a file",
-                "tags": [
-                    "Files",
-                    "File"
-                ],
-                "parameters": [
-                    {
-                        "name": "kind",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "user",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "default": 0
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/octet-stream": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            }
-                        },
-                        "headers": {
-                            "Transfer-Encoding": {
-                                "required": true,
-                                "schema": {
-                                    "type": "string",
-                                    "enum": [
-                                        "chunked"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": []
-            }
-        },
         "/notifications": {
             "get": {
                 "operationId": "v1.notifications",
                 "description": "`meta.unread` is the number of unread notifications.",
                 "summary": "Notifications, newest first",
                 "tags": [
-                    "Notifications",
-                    "Notification"
+                    "Notifications"
                 ],
                 "parameters": [
                     {
@@ -1232,8 +1200,7 @@
                 "operationId": "v1.notifications.read-all",
                 "summary": "Mark all read",
                 "tags": [
-                    "Notifications",
-                    "Notification"
+                    "Notifications"
                 ],
                 "parameters": [
                     {
@@ -1270,8 +1237,7 @@
                 "operationId": "v1.notifications.read",
                 "summary": "Mark one read",
                 "tags": [
-                    "Notifications",
-                    "Notification"
+                    "Notifications"
                 ],
                 "parameters": [
                     {
@@ -1310,6 +1276,2622 @@
                     }
                 }
             }
+        },
+        "/feedback": {
+            "get": {
+                "operationId": "v1.feedback",
+                "description": "Messages I sent, newest first, with their status and the reply.",
+                "summary": "My feedback",
+                "tags": [
+                    "Feedback"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "category": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "academic",
+                                                            "finance",
+                                                            "app",
+                                                            "facilities",
+                                                            "other"
+                                                        ]
+                                                    },
+                                                    "category_label": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Layanan akademik",
+                                                            "Keuangan",
+                                                            "Aplikasi SIAKAD",
+                                                            "Sarana",
+                                                            "Lainnya"
+                                                        ]
+                                                    },
+                                                    "subject": {
+                                                        "type": "string"
+                                                    },
+                                                    "message": {
+                                                        "type": "string"
+                                                    },
+                                                    "anonymous": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "new",
+                                                            "in_progress",
+                                                            "done"
+                                                        ]
+                                                    },
+                                                    "status_label": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Baru",
+                                                            "Diproses",
+                                                            "Selesai"
+                                                        ]
+                                                    },
+                                                    "reply": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "replied_at": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "category",
+                                                    "category_label",
+                                                    "subject",
+                                                    "message",
+                                                    "anonymous",
+                                                    "status",
+                                                    "status_label",
+                                                    "reply",
+                                                    "replied_at",
+                                                    "created_at"
+                                                ]
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
+                                        },
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta",
+                                        "categories"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.feedback.store",
+                "description": "Anonymous messages hide the name from the Admin (Superadmin can see it); the reply still comes here.",
+                "summary": "Send feedback",
+                "tags": [
+                    "Feedback"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "category": {
+                                        "$ref": "#/components/schemas/FeedbackCategory"
+                                    },
+                                    "subject": {
+                                        "type": "string",
+                                        "maxLength": 150
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "maxLength": 5000
+                                    },
+                                    "anonymous": {
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "category",
+                                    "subject",
+                                    "message"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "category": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "academic",
+                                                        "finance",
+                                                        "app",
+                                                        "facilities",
+                                                        "other"
+                                                    ]
+                                                },
+                                                "category_label": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Layanan akademik",
+                                                        "Keuangan",
+                                                        "Aplikasi SIAKAD",
+                                                        "Sarana",
+                                                        "Lainnya"
+                                                    ]
+                                                },
+                                                "subject": {
+                                                    "type": "string"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "anonymous": {
+                                                    "type": "boolean"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "new",
+                                                        "in_progress",
+                                                        "done"
+                                                    ]
+                                                },
+                                                "status_label": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Baru",
+                                                        "Diproses",
+                                                        "Selesai"
+                                                    ]
+                                                },
+                                                "reply": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "replied_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "created_at": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "category",
+                                                "category_label",
+                                                "subject",
+                                                "message",
+                                                "anonymous",
+                                                "status",
+                                                "status_label",
+                                                "reply",
+                                                "replied_at",
+                                                "created_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                "Choose a role first (X-Role)."
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/files/{kind}/{id}": {
+            "get": {
+                "operationId": "v1.files",
+                "description": "Only through the signed links in other responses (`\u2026_url`); they expire after a few minutes.",
+                "summary": "Download a file",
+                "tags": [
+                    "Files"
+                ],
+                "parameters": [
+                    {
+                        "name": "kind",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/pdf/{document}": {
+            "get": {
+                "operationId": "v1.pdf",
+                "description": "KHS, transcript, exam card, letters and receipts, through the signed links in other responses\n(`pdf_url`, `card_url`, `receipt_url`); they expire after a few minutes.",
+                "summary": "Download a PDF",
+                "tags": [
+                    "Files"
+                ],
+                "parameters": [
+                    {
+                        "name": "document",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/documents": {
+            "get": {
+                "operationId": "v1.documents",
+                "description": "Each with its status (missing, uploaded, verified, rejected with a note) and a link to the file.",
+                "summary": "My documents",
+                "tags": [
+                    "Documents"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/documents/{document}": {
+            "post": {
+                "operationId": "v1.documents.upload",
+                "description": "Multipart `file` (PDF or image). Ijazah also needs `education_level`, `institution`, `graduation_year`\n(and `degree_title` for muhadhir). A verified document cannot be replaced.",
+                "summary": "Upload a document",
+                "tags": [
+                    "Documents"
+                ],
+                "parameters": [
+                    {
+                        "name": "document",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/UploadDocument"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "file": {
+                                                "type": "string",
+                                                "format": "binary",
+                                                "contentMediaType": "application/octet-stream",
+                                                "description": "Maximum file size: 10240 kilobytes."
+                                            }
+                                        },
+                                        "required": [
+                                            "file"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "ktp",
+                                                        "kk",
+                                                        "ijazah"
+                                                    ]
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "missing",
+                                                        "uploaded",
+                                                        "verified",
+                                                        "rejected"
+                                                    ]
+                                                },
+                                                "status_label": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Belum ada",
+                                                        "Menunggu verifikasi",
+                                                        "Terverifikasi",
+                                                        "Ditolak"
+                                                    ]
+                                                },
+                                                "rejection_note": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "education_level": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "ma",
+                                                        "pesantren",
+                                                        "s1",
+                                                        "s2",
+                                                        "s3",
+                                                        "other",
+                                                        null
+                                                    ]
+                                                },
+                                                "institution": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "graduation_year": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "degree_title": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "is_ijazah": {
+                                                    "type": "boolean"
+                                                },
+                                                "uploaded_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "file_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "title",
+                                                "status",
+                                                "status_label",
+                                                "rejection_note",
+                                                "education_level",
+                                                "institution",
+                                                "graduation_year",
+                                                "degree_title",
+                                                "is_ijazah",
+                                                "uploaded_at",
+                                                "file_url"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/students/{student}/khs": {
+            "get": {
+                "operationId": "v1.students.khs",
+                "description": "Grades of one semester (`?semester=`; default the active one, else the latest) with attendance per\nsubject, the IPS and the semesters to choose from. `waits_for_evaluation`: the mahasantri must first\nevaluate their muhadhir (v6 D35); the grades and PDF are then left out.",
+                "summary": "KHS",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "student",
+                        "in": "path",
+                        "required": true,
+                        "description": "The student ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "semester",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "student": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "nim": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "nim",
+                                                        "name"
+                                                    ]
+                                                },
+                                                "semesters": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "semester": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "label": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "label"
+                                                    ]
+                                                },
+                                                "waits_for_evaluation": {
+                                                    "type": "boolean"
+                                                },
+                                                "min_attendance_percent": {
+                                                    "type": "integer"
+                                                },
+                                                "subjects": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "string"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "code": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "credits": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "score": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    },
+                                                                    "letter": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    },
+                                                                    "point": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    },
+                                                                    "final": {
+                                                                        "type": "boolean",
+                                                                        "description": "Only final grades count toward the IPS / IPK."
+                                                                    },
+                                                                    "attendance": {
+                                                                        "type": [
+                                                                            "object",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "hadir, izin, sakit, alpa, total and percent of the meetings so far.",
+                                                                        "properties": {
+                                                                            "hadir": {
+                                                                                "type": "integer"
+                                                                            },
+                                                                            "izin": {
+                                                                                "type": "integer"
+                                                                            },
+                                                                            "sakit": {
+                                                                                "type": "integer"
+                                                                            },
+                                                                            "alpa": {
+                                                                                "type": "integer"
+                                                                            },
+                                                                            "total": {
+                                                                                "type": "integer"
+                                                                            },
+                                                                            "percent": {
+                                                                                "type": [
+                                                                                    "integer",
+                                                                                    "null"
+                                                                                ]
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "hadir",
+                                                                            "izin",
+                                                                            "sakit",
+                                                                            "alpa",
+                                                                            "total",
+                                                                            "percent"
+                                                                        ]
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "code",
+                                                                    "name",
+                                                                    "credits",
+                                                                    "score",
+                                                                    "letter",
+                                                                    "point",
+                                                                    "final",
+                                                                    "attendance"
+                                                                ]
+                                                            }
+                                                        }
+                                                    ]
+                                                },
+                                                "credits": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "string"
+                                                        },
+                                                        {
+                                                            "type": "integer",
+                                                            "enum": [
+                                                                0
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                "ips": {
+                                                    "type": [
+                                                        "string",
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "pdf_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "student",
+                                                "semesters",
+                                                "semester",
+                                                "waits_for_evaluation",
+                                                "min_attendance_percent",
+                                                "subjects",
+                                                "credits",
+                                                "ips",
+                                                "pdf_url"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/students/{student}/transcript": {
+            "get": {
+                "operationId": "v1.students.transcript",
+                "description": "Every final grade per semester, the IPK and total credits. A repeated subject counts once, with the\nbest grade.",
+                "summary": "Transcript",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "student",
+                        "in": "path",
+                        "required": true,
+                        "description": "The student ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "student": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "nim": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "nim",
+                                                        "name"
+                                                    ]
+                                                },
+                                                "semesters": {
+                                                    "type": "string"
+                                                },
+                                                "credits": {
+                                                    "type": "integer",
+                                                    "const": 0
+                                                },
+                                                "ipk": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "pdf_url": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "student",
+                                                "semesters",
+                                                "credits",
+                                                "ipk",
+                                                "pdf_url"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/students/{student}/bills": {
+            "get": {
+                "operationId": "v1.students.bills",
+                "description": "Every bill of every semester, newest first, with lines, payments (receipts as PDF links) and what a\ntransfer confirmation may be. `bank_accounts`: where to transfer to.",
+                "summary": "Bills",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "student",
+                        "in": "path",
+                        "required": true,
+                        "description": "The student ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "bank_accounts": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "outstanding": {
+                                                    "type": "integer"
+                                                },
+                                                "bills": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "bank_accounts",
+                                                "outstanding",
+                                                "bills"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/students/{student}/activities": {
+            "get": {
+                "operationId": "v1.students.activities",
+                "description": "Activities recorded by the academic office (latest 20), for monitoring.",
+                "summary": "Pesantren activities",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "student",
+                        "in": "path",
+                        "required": true,
+                        "description": "The student ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/bills/{bill}/transfers": {
+            "post": {
+                "operationId": "v1.bills.transfers",
+                "description": "The payer (the mahasantri or their wali) reports a bank transfer with a photo of the receipt\n(multipart `proof`); the finance office checks it against the bank statement.",
+                "summary": "Confirm a transfer",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "description": "The bill ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "paid_on": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "reference": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "proof": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "Photo or PDF of the transfer receipt."
+                                    }
+                                },
+                                "required": [
+                                    "amount",
+                                    "paid_on",
+                                    "reference"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`BillResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/BillResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/dashboard": {
+            "get": {
+                "operationId": "v1.student.dashboard",
+                "description": "What the home screen shows: today's classes, assignments due in the next 7 days that are not\nsubmitted, open quizzes not taken, the amount still owed, classes to evaluate, documents to upload and\nunread notifications.",
+                "summary": "Dashboard",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "semester": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "today": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "assignments_due": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "open_quizzes": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "outstanding": {
+                                                    "type": "integer"
+                                                },
+                                                "evaluations_pending": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "documents_to_upload": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "unread_notifications": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "semester",
+                                                "today",
+                                                "assignments_due",
+                                                "open_quizzes",
+                                                "outstanding",
+                                                "evaluations_pending",
+                                                "documents_to_upload",
+                                                "unread_notifications"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/supervision": {
+            "get": {
+                "operationId": "v1.student.supervision",
+                "description": "The mahasantri's pembimbing akademik (null when none is assigned).",
+                "summary": "Academic supervisor",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "properties": {
+                                                "teacher": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "title": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "phone": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "email": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "photo_url": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "name",
+                                                        "title",
+                                                        "phone",
+                                                        "email",
+                                                        "photo_url"
+                                                    ]
+                                                },
+                                                "since": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "teacher",
+                                                "since"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/classes": {
+            "get": {
+                "operationId": "v1.student.classes",
+                "description": "This semester's classes in timetable order (day 1 = Monday), with counts of materials, open\nassignments and open quizzes.",
+                "summary": "My classes and timetable",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `OfferingResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/OfferingResource"
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "teacher"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/classes/{offering}": {
+            "get": {
+                "operationId": "v1.student.classes.show",
+                "description": "The class with its meetings (and my attendance), materials, assignments (and my submission) and\npublished quizzes (and my attempts).",
+                "summary": "One class",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "offering",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offering ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "class": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "meetings": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "materials": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "assignments": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "quizzes": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "class",
+                                                "meetings",
+                                                "materials",
+                                                "assignments",
+                                                "quizzes"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/assignments/{assignment}/submission": {
+            "post": {
+                "operationId": "v1.student.assignments.submit",
+                "description": "Text and/or a file (multipart field `file`). Replaces an earlier submission until it is graded.",
+                "summary": "Submit an assignment",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "assignment",
+                        "in": "path",
+                        "required": true,
+                        "description": "The assignment ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "text": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "file": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "PDF, Word, image or archive, up to the upload limit."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssignmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AssignmentResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/quizzes/{quiz}/attempts": {
+            "post": {
+                "operationId": "v1.student.quizzes.start",
+                "description": "Starts an attempt, or returns the one already running.",
+                "summary": "Start a quiz",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "quiz",
+                        "in": "path",
+                        "required": true,
+                        "description": "The quiz ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`QuizAttemptResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/QuizAttemptResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/quiz-attempts/{attempt}": {
+            "get": {
+                "operationId": "v1.student.quiz-attempts.show",
+                "description": "Questions in my order, the answers saved so far, the deadline; after submitting, the score.",
+                "summary": "An attempt",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "attempt",
+                        "in": "path",
+                        "required": true,
+                        "description": "The attempt ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`QuizAttemptResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/QuizAttemptResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/quiz-attempts/{attempt}/answers/{question}": {
+            "put": {
+                "operationId": "v1.student.quiz-attempts.answer",
+                "description": "`answer`: an option id (single choice, true/false), a list of option ids (multiple choice) or text\n(essay). Saved at once; send it again to change it.",
+                "summary": "Save an answer",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "attempt",
+                        "in": "path",
+                        "required": true,
+                        "description": "The attempt ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "question",
+                        "in": "path",
+                        "required": true,
+                        "description": "The question ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "answer": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "answer"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`QuizAttemptResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/QuizAttemptResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/quiz-attempts/{attempt}/submit": {
+            "post": {
+                "operationId": "v1.student.quiz-attempts.submit",
+                "description": "Choice questions are scored at once; essays wait for the muhadhir.",
+                "summary": "Submit the quiz",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "attempt",
+                        "in": "path",
+                        "required": true,
+                        "description": "The attempt ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`QuizAttemptResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/QuizAttemptResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/exams": {
+            "get": {
+                "operationId": "v1.student.exams",
+                "description": "Published exam periods of this semester with the schedule, my seat, and whether I may sit them\n(bills paid or a dispensation, enough attendance per subject). `card_url` (PDF) only when eligible.",
+                "summary": "Exams and exam card",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/letters": {
+            "get": {
+                "operationId": "v1.student.letters",
+                "description": "Letter types I can ask for, my requests and the letters issued to me (PDF links).",
+                "summary": "My letters",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "requestable_types": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "requests": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "letters": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "requestable_types",
+                                                "requests",
+                                                "letters"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/letter-requests": {
+            "post": {
+                "operationId": "v1.student.letter-requests.store",
+                "description": "The academic office issues it; a notification follows when it is ready.",
+                "summary": "Request a letter",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "letter_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "purpose": {
+                                        "type": "string",
+                                        "description": "What the letter is for, e.g. \"Pengajuan beasiswa\".",
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "letter_type_id",
+                                    "purpose"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "pending",
+                                                        "approved",
+                                                        "rejected"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "status"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/evaluations": {
+            "get": {
+                "operationId": "v1.student.evaluations",
+                "description": "Classes in semesters whose evaluation is open, whether each is done, and the statements to score\n(1 = strongly disagree \u2026 5 = strongly agree) with the closing question.",
+                "summary": "Classes to evaluate",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "class_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "subject_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "teacher": {
+                                                        "type": "string"
+                                                    },
+                                                    "done": {
+                                                        "type": "string"
+                                                    },
+                                                    "closes_on": {
+                                                        "type": "string"
+                                                    },
+                                                    "comment_prompt": {
+                                                        "type": "string"
+                                                    },
+                                                    "statements": {
+                                                        "anyOf": [
+                                                            {
+                                                                "type": "string"
+                                                            },
+                                                            {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "group": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "statement": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "id",
+                                                                        "group",
+                                                                        "statement"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "class_id",
+                                                    "subject_name",
+                                                    "teacher",
+                                                    "done",
+                                                    "closes_on",
+                                                    "comment_prompt",
+                                                    "statements"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/evaluations/{offering}": {
+            "post": {
+                "operationId": "v1.student.evaluations.store",
+                "description": "`scores`: statement id => 1\u20135 for every statement; `comment` optional. Stored anonymously (only\ntotals are kept); a class can be evaluated once.",
+                "summary": "Evaluate a class",
+                "tags": [
+                    "Mahasantri"
+                ],
+                "parameters": [
+                    {
+                        "name": "offering",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offering ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "scores": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "minItems": 1
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 2000
+                                    }
+                                },
+                                "required": [
+                                    "scores"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/guardian/children": {
+            "get": {
+                "operationId": "v1.guardian.children",
+                "description": "The wali santri's children with their class this semester and what they still owe. Use each `id` with\n`/students/{id}/khs`, `/transcript`, `/bills` and `/activities`.",
+                "summary": "My children",
+                "tags": [
+                    "Wali santri"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1320,6 +3902,217 @@
             }
         },
         "schemas": {
+            "AssignmentResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "instructions": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "due_at": {
+                        "type": "string"
+                    },
+                    "allow_late": {
+                        "type": "boolean"
+                    },
+                    "max_score": {
+                        "type": "integer"
+                    },
+                    "open": {
+                        "type": "boolean",
+                        "description": "Whether a (new) submission is accepted now."
+                    },
+                    "my_submission": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "text": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "file_name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "file_url": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "submitted_at": {
+                                "type": "string"
+                            },
+                            "is_late": {
+                                "type": "boolean"
+                            },
+                            "score": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "Null until graded; a graded submission cannot be replaced."
+                            },
+                            "feedback": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "graded_at": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "text",
+                            "file_name",
+                            "file_url",
+                            "submitted_at",
+                            "is_late",
+                            "score",
+                            "feedback",
+                            "graded_at"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "instructions",
+                    "due_at",
+                    "allow_late",
+                    "max_score",
+                    "open",
+                    "my_submission"
+                ],
+                "title": "AssignmentResource"
+            },
+            "BillResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "number": {
+                        "type": "string"
+                    },
+                    "semester": {
+                        "type": "string"
+                    },
+                    "due_on": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "gross_amount": {
+                        "type": "integer"
+                    },
+                    "discount_amount": {
+                        "type": "integer"
+                    },
+                    "net_amount": {
+                        "type": "integer"
+                    },
+                    "paid_amount": {
+                        "type": "integer",
+                        "description": "Verified payments only."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "unpaid",
+                            "partial",
+                            "paid",
+                            "void"
+                        ]
+                    },
+                    "status_label": {
+                        "type": "string",
+                        "enum": [
+                            "Belum dibayar",
+                            "Dibayar sebagian",
+                            "Lunas",
+                            "Batal"
+                        ]
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "payments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "transfer": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "For \"Konfirmasi transfer\": null when nothing is left to pay.",
+                        "properties": {
+                            "open_amount": {},
+                            "instalments_used": {
+                                "type": "integer",
+                                "minimum": 0
+                            },
+                            "instalments_max": {
+                                "type": "integer"
+                            },
+                            "min_amount": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "open_amount",
+                            "instalments_used",
+                            "instalments_max",
+                            "min_amount"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "number",
+                    "semester",
+                    "due_on",
+                    "gross_amount",
+                    "discount_amount",
+                    "net_amount",
+                    "paid_amount",
+                    "status",
+                    "status_label",
+                    "lines",
+                    "payments",
+                    "transfer"
+                ],
+                "title": "BillResource"
+            },
             "DeviceResource": {
                 "type": "object",
                 "properties": {
@@ -1360,6 +4153,17 @@
                     "current"
                 ],
                 "title": "DeviceResource"
+            },
+            "FeedbackCategory": {
+                "type": "string",
+                "enum": [
+                    "academic",
+                    "finance",
+                    "app",
+                    "facilities",
+                    "other"
+                ],
+                "title": "FeedbackCategory"
             },
             "LoginRequest": {
                 "type": "object",
@@ -1463,6 +4267,75 @@
                     "created_at"
                 ],
                 "title": "NotificationResource"
+            },
+            "OfferingResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "subject_code": {
+                        "type": "string"
+                    },
+                    "subject_name": {
+                        "type": "string"
+                    },
+                    "credits": {
+                        "type": "integer"
+                    },
+                    "class_name": {
+                        "type": "string"
+                    },
+                    "teacher": {
+                        "type": "string"
+                    },
+                    "day_of_week": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "1 = Monday \u2026 7 = Sunday; null when not scheduled."
+                    },
+                    "starts_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "ends_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "room": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "materials_count": {
+                        "type": "integer"
+                    },
+                    "open_assignments_count": {
+                        "type": "integer"
+                    },
+                    "open_quizzes_count": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "subject_code",
+                    "subject_name",
+                    "credits",
+                    "class_name",
+                    "day_of_week",
+                    "starts_at",
+                    "ends_at",
+                    "room"
+                ],
+                "title": "OfferingResource"
             },
             "PasswordRequest": {
                 "type": "object",
@@ -1623,6 +4496,150 @@
                 },
                 "title": "ProfileRequest"
             },
+            "QuizAttemptResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "quiz": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "title"
+                        ]
+                    },
+                    "started_at": {
+                        "type": "string"
+                    },
+                    "deadline_at": {
+                        "type": "string",
+                        "description": "Answers are submitted automatically at this time."
+                    },
+                    "submitted_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "score": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "max_score": {
+                        "type": "integer"
+                    },
+                    "needs_manual_grading": {
+                        "type": "boolean"
+                    },
+                    "questions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "description": "single_choice | multiple_choice | true_false | essay",
+                                    "enum": [
+                                        "single_choice",
+                                        "multiple_choice",
+                                        "true_false",
+                                        "essay"
+                                    ]
+                                },
+                                "body": {
+                                    "type": "string"
+                                },
+                                "points": {
+                                    "type": "integer"
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "answer": {
+                                    "description": "Chosen option ids (choice questions) or the text (essay).",
+                                    "anyOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "minItems": 0,
+                                            "maxItems": 0
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "type",
+                                "body",
+                                "points",
+                                "options",
+                                "answer"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "quiz",
+                    "started_at",
+                    "deadline_at",
+                    "submitted_at",
+                    "score",
+                    "max_score",
+                    "needs_manual_grading",
+                    "questions"
+                ],
+                "title": "QuizAttemptResource"
+            },
+            "UploadDocument": {
+                "type": "object",
+                "properties": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "string",
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream"
+                    },
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "string",
+                        "maxLength": 10240
+                    }
+                ],
+                "required": [
+                    "0"
+                ],
+                "title": "UploadDocument"
+            },
             "UserResource": {
                 "type": "object",
                 "properties": {
@@ -1775,6 +4792,25 @@
                             "required": [
                                 "message",
                                 "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
                             ]
                         }
                     }

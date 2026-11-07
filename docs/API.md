@@ -76,13 +76,49 @@ transcript, receipts, exam card, letters) are downloaded the same way (D41).
 Notifications carry `link`, the SIAKAD page they are about (e.g. `/mahasantri/khs`); the app maps known
 paths to its own screens and opens others on the web.
 
+| Screen | Endpoints |
+| --- | --- |
+| Kritik & saran | `GET /feedback` (my messages, replies, categories), `POST /feedback` |
+
+### Mahasantri (Step 6)
+
+The mahasantri's own student id is in `GET /me` (`student.id`); records use it.
+
+| Screen | Endpoints |
+| --- | --- |
+| Beranda | `GET /student/dashboard`: today's classes, assignments due in 7 days, open quizzes, amount owed, classes to evaluate, documents to upload, unread notifications |
+| Jadwal, Kelas saya | `GET /student/classes` (timetable order; `day_of_week` 1 = Monday) |
+| Kelas | `GET /student/classes/{id}`: meetings with my attendance and the link of online meetings, materials (`file_url`), assignments with my submission, quizzes with my attempts |
+| Tugas | `POST /student/assignments/{id}/submission` (multipart `text`, `file`; replaceable until graded) |
+| Kuis | `POST /student/quizzes/{id}/attempts` (start or continue), `GET /student/quiz-attempts/{id}`, `PUT /student/quiz-attempts/{id}/answers/{question}` (`answer`: option id, list of ids, or text) for each answer, `POST /student/quiz-attempts/{id}/submit`. Answers save at once; at `deadline_at` the attempt is submitted automatically. Correct answers are never sent; after submitting only the score |
+| KHS | `GET /students/{id}/khs?semester=` (grades, attendance per subject, IPS, `pdf_url`; `waits_for_evaluation` when the evaluation must come first) |
+| Transkrip | `GET /students/{id}/transcript` (`pdf_url`) |
+| Tagihan | `GET /students/{id}/bills` (lines, payments, `receipt_url`, `transfer` limits, `bank_accounts`), `POST /bills/{id}/transfers` (multipart `amount`, `paid_on`, `reference`, `proof`) |
+| Kartu ujian | `GET /student/exams` (schedule, seat, eligibility per subject, `card_url` when eligible) |
+| Surat saya | `GET /student/letters`, `POST /student/letter-requests` (`letter_type_id`, `purpose`) |
+| Dokumen saya | `GET /documents`, `POST /documents/{id}` (multipart `file`; ijazah also `education_level`, `institution`, `graduation_year`) |
+| Pembimbing akademik | `GET /student/supervision` |
+| Evaluasi muhadhir | `GET /student/evaluations` (classes, statements, closing question), `POST /student/evaluations/{class}` (`scores`: {statement id: 1–5}, `comment`) |
+
+The class forum, bimbingan and LPPPK discussions, articles and Tanya Hukum come with Step 8.
+
+### Wali santri (Step 6)
+
+| Screen | Endpoints |
+| --- | --- |
+| Anak saya | `GET /guardian/children` (class, amount owed, photo) |
+| Perkembangan akademik | `GET /students/{id}/khs`, `GET /students/{id}/transcript`, `GET /students/{id}/activities` |
+| Tagihan | `GET /students/{id}/bills`, `POST /bills/{id}/transfers` |
+
+A wali reaches only their own children; another student id gives 403.
+
 ### Per role
 
 Added step by step (v6 plan):
 
 | Role | Step | Screens |
 | --- | --- | --- |
-| Mahasantri, wali santri | 6 | Dashboard, jadwal, kelas (materi, tugas, kuis, pertemuan), KHS, transkrip, ujian, tagihan, surat, dokumen, bimbingan akademik; wali: anak, perkembangan, tagihan |
+| Mahasantri, wali santri | 6 | Done: see above |
 | Muhadhir | 7 | Jadwal, kelas kuliah, pertemuan dan presensi, materi, tugas, kuis, forum, nilai, dokumen mengajar, mahasantri bimbingan |
 | Discussions | 8 | Bimbingan, LPPPK, artikel, Tanya Hukum |
 | Admin, pemantau | 9 | Data akademik, orang, dokumen, surat, pemantauan, kritik & saran, evaluasi |

@@ -130,6 +130,8 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Profile: change the phone number and photo; the photo link opens without the token and stops working after 10 minutes
 - [ ] Notifications list, mark one read, mark all read
 - [ ] `/docs/api` opens for Superadmin and is refused for others (unless `API_DOCS_PUBLIC=true`)
+- [ ] Mahasantri: dashboard, classes, one class with materials (open a file link), submit an assignment with a file, take a quiz (answers save one by one; it submits at the deadline), KHS and transcript with their PDFs, bills with a transfer confirmation and a receipt PDF, exam card, letter request, document upload, evaluation
+- [ ] Wali: children list, each child's KHS, transcript, activities and bills; another student's id is refused
 
 ## Sign-off
 | Role | Tester | Date | Result |

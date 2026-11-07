@@ -1195,3 +1195,19 @@ v6 Step 5 (2026-11-07) — API foundation (D37–D41):
   `ProfileRequest`) document the bodies; the Actions still validate in full.
 - `ApiDocs::configure()` adds the bearer scheme and the `X-Role` header to the spec. Web: Pengaturan →
   Perangkat aplikasi lists and signs out devices. Guide for app developers: `docs/API.md`.
+
+v6 Step 6 (2026-11-07) — API for mahasantri and wali (D37, D41):
+- `/student/*` (role student): dashboard, classes (timetable), class detail (meetings with own attendance,
+  materials, assignments with own submission, quizzes with own attempts), assignment submission
+  (`ManageAssignments::submit`), quizzes (start / show / answer one question / submit via
+  `ManageQuizzes`, expiry checked on every call, correct answers never sent), exams
+  (`ExamEligibility`), letters (`ManageLetters::request`), supervision, evaluation (`ManageEvaluations`).
+- `/students/{student}/khs|transcript|bills|activities` serve the mahasantri, their wali and academic
+  staff (`StudentAccess::canView`); the KHS keeps the evaluation rule for the mahasantri. Transfers:
+  `POST /bills/{bill}/transfers` through `ConfirmTransfer` (canPay). `/guardian/children` lists the wali's
+  children. `/documents` (student, teacher) uses `UploadDocument`. `/feedback` for every role.
+- PDFs (D41): `ApiFiles::pdf()` signs `api/v1/pdf/{document}` (khs, transcript, exam-card, letter,
+  receipt); `PdfController` acts as the signed user and role (`ActsForSignedUser`, shared with
+  `FileController`) and calls the web PDF controller, so access rules and the PDFs are the web ones.
+- Docs grouped with Scramble `#[Group]` (App, Auth, Account, Notifications, Feedback, Files, Documents,
+  Records, Mahasantri, Wali santri). The class forum comes with the discussions in Step 8.

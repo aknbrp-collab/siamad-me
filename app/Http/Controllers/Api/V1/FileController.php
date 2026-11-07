@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Enums\Role;
+use App\Http\Controllers\Api\V1\Concerns\ActsForSignedUser;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\PrivateFileController;
-use App\Models\User;
-use App\Support\ActiveRole;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Opens a signed download link made by ApiFiles (v6 D37). The person and role
- * in the link are checked again, with the same rules as on the web.
- *
- * @tags Files
+ * Opens a signed download link made by ApiFiles::url() (v6 D37). The person
+ * and role in the link are checked again, with the same rules as on the web.
  */
+#[Group('Files', weight: 6)]
 class FileController extends Controller
 {
+    use ActsForSignedUser;
+
     /**
      * Download a file.
      *
@@ -28,16 +27,7 @@ class FileController extends Controller
      */
     public function __invoke(Request $request, string $kind, int $id, PrivateFileController $files): StreamedResponse
     {
-        $user = User::query()->whereKey($request->integer('user'))->where('is_active', true)->firstOrFail();
-
-        Auth::setUser($user);
-        $request->setUserResolver(fn () => $user);
-
-        $role = Role::tryFrom((string) $request->query('role'));
-
-        if ($role !== null && $user->hasRole($role)) {
-            $request->attributes->set(ActiveRole::REQUEST_KEY, $role);
-        }
+        $this->actForSignedUser($request);
 
         return $files($request, $kind, $id);
     }

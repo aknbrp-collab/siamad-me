@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\LoginRequest;
 use App\Http\Resources\V1\DeviceResource;
 use App\Http\Resources\V1\UserResource;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -15,9 +16,8 @@ use Illuminate\Http\Response;
 
 /**
  * Signing in and out of the mobile app, and the devices signed in (v6 D37).
- *
- * @tags Auth
  */
+#[Group('Auth', weight: 2)]
 class AuthController extends Controller
 {
     /**

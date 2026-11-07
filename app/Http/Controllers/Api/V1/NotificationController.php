@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\NotificationResource;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -11,9 +12,8 @@ use Illuminate\Http\Response;
 /**
  * The bell (v6 D39). Until push through Firebase is switched on, the app
  * checks this when it opens and every few minutes.
- *
- * @tags Notifications
  */
+#[Group('Notifications', weight: 4)]
 class NotificationController extends Controller
 {
     /**

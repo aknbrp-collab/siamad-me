@@ -1,0 +1,1804 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "SIAKAD API",
+        "version": "1.0.0",
+        "description": "SIAKAD API for the mobile app. Log in with `POST /auth/login`, then send `Authorization: Bearer {token}` and, for users with several roles, `X-Role: {role}` (e.g. `student`, `teacher`, `guardian`). Errors are `{\"message\", \"errors\"}` (validation, 422) or `{\"message\", \"code\"}`. Lists are paginated (`data`, `links`, `meta`). See docs/API.md."
+    },
+    "servers": [
+        {
+            "url": "http://ready.test:8000/api/v1"
+        }
+    ],
+    "security": [
+        {
+            "http": []
+        }
+    ],
+    "paths": {
+        "/me": {
+            "get": {
+                "operationId": "v1.me",
+                "description": "Call it after login and at app start: roles, the role this request acts in, and whether the password\nmust be changed first.",
+                "summary": "The signed-in user",
+                "tags": [
+                    "Account"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`UserResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "operationId": "v1.profile",
+                "description": "Which profile depends on the role: mahasantri, muhadhir, wali santri, or staff (name and email).\n`editable` lists the fields `PATCH /profile` accepts.",
+                "summary": "Profile (Profil saya)",
+                "tags": [
+                    "Account"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "student",
+                                                        "teacher",
+                                                        "guardian",
+                                                        "staff"
+                                                    ]
+                                                },
+                                                "editable": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_place"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_date"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "phone"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "address"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "photo"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "father_name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "father_is_alive"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "mother_name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "mother_is_alive"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "guardian_name"
+                                                                }
+                                                            ],
+                                                            "minItems": 10,
+                                                            "maxItems": 10
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "nik"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "title"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "gender"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_place"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_date"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "phone"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "address"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "photo"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "expertise"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "scopus_id"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "google_scholar_url"
+                                                                }
+                                                            ],
+                                                            "minItems": 13,
+                                                            "maxItems": 13
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "relationship"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "phone"
+                                                                }
+                                                            ],
+                                                            "minItems": 4,
+                                                            "maxItems": 4
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                }
+                                                            ],
+                                                            "minItems": 1,
+                                                            "maxItems": 1
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                }
+                                                            ],
+                                                            "minItems": 2,
+                                                            "maxItems": 2
+                                                        }
+                                                    ]
+                                                },
+                                                "fields": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "kind",
+                                                "editable",
+                                                "fields"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "v1.profile.update",
+                "description": "Only the fields in `editable` of `GET /profile`; others are ignored. A new photo is sent as multipart\nfield `photo` (JPG/PNG).",
+                "summary": "Change the profile",
+                "tags": [
+                    "Account"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProfileRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "student",
+                                                        "teacher",
+                                                        "guardian",
+                                                        "staff"
+                                                    ]
+                                                },
+                                                "editable": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_place"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_date"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "phone"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "address"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "photo"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "father_name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "father_is_alive"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "mother_name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "mother_is_alive"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "guardian_name"
+                                                                }
+                                                            ],
+                                                            "minItems": 10,
+                                                            "maxItems": 10
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "nik"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "title"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "gender"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_place"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "birth_date"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "phone"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "address"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "photo"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "expertise"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "scopus_id"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "google_scholar_url"
+                                                                }
+                                                            ],
+                                                            "minItems": 13,
+                                                            "maxItems": 13
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "relationship"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "phone"
+                                                                }
+                                                            ],
+                                                            "minItems": 4,
+                                                            "maxItems": 4
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                }
+                                                            ],
+                                                            "minItems": 1,
+                                                            "maxItems": 1
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "name"
+                                                                },
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "email"
+                                                                }
+                                                            ],
+                                                            "minItems": 2,
+                                                            "maxItems": 2
+                                                        }
+                                                    ]
+                                                },
+                                                "fields": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "kind",
+                                                "editable",
+                                                "fields"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/password": {
+            "put": {
+                "operationId": "v1.password",
+                "description": "Also replaces a temporary password. Other devices are signed out; this one stays signed in.",
+                "summary": "Change the password",
+                "tags": [
+                    "Account"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/app": {
+            "get": {
+                "operationId": "v1.app",
+                "description": "Public, so the login screen can use it. Image URLs are public and change when the image changes.",
+                "summary": "App appearance and institution",
+                "tags": [
+                    "App",
+                    "AppInfo"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "api_version": {
+                                                    "type": "string",
+                                                    "const": "v1"
+                                                },
+                                                "app": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "short_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "logo_url": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "icon_url": {
+                                                            "type": "string"
+                                                        },
+                                                        "login_title": {
+                                                            "type": "string"
+                                                        },
+                                                        "login_text": {
+                                                            "type": "string"
+                                                        },
+                                                        "login_background_url": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "theme_color": {
+                                                            "type": "string",
+                                                            "const": "#66BB6A"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "name",
+                                                        "short_name",
+                                                        "logo_url",
+                                                        "icon_url",
+                                                        "login_title",
+                                                        "login_text",
+                                                        "login_background_url",
+                                                        "theme_color"
+                                                    ]
+                                                },
+                                                "institution": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "short_name": {},
+                                                        "address": {},
+                                                        "city": {},
+                                                        "phone": {},
+                                                        "email": {},
+                                                        "website": {}
+                                                    },
+                                                    "required": [
+                                                        "name",
+                                                        "short_name",
+                                                        "address",
+                                                        "city",
+                                                        "phone",
+                                                        "email",
+                                                        "website"
+                                                    ]
+                                                },
+                                                "push_enabled": {
+                                                    "type": "boolean",
+                                                    "description": "Whether the server sends push messages through Firebase yet (v6 D39)."
+                                                }
+                                            },
+                                            "required": [
+                                                "api_version",
+                                                "app",
+                                                "institution",
+                                                "push_enabled"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "operationId": "v1.login",
+                "description": "With the ID number (NIM, NIDM, guardian code or staff login) and password. Accounts with two-factor\nauthentication first get `422` with `code: \"two_factor_required\"`; send the login again with `code`\n(from the authenticator app) or a `recovery_code`. Send the returned token as `Authorization: Bearer \u2026`.",
+                "summary": "Log in",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "token",
+                                        "user"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "operationId": "v1.logout",
+                "summary": "Log out this device",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/auth/devices": {
+            "get": {
+                "operationId": "v1.devices",
+                "summary": "Devices signed in to the app",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `DeviceResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DeviceResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/auth/devices/{device}": {
+            "delete": {
+                "operationId": "v1.devices.destroy",
+                "summary": "Sign out a device",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "device",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/auth/push-token": {
+            "put": {
+                "operationId": "v1.push-token",
+                "description": "The Firebase Cloud Messaging token of the app on this device; `null` turns push off. Sending through FCM\nstarts once the server has its Firebase keys (v6 D39).",
+                "summary": "Set this device's push token",
+                "tags": [
+                    "Auth"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "fcm_token": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 512
+                                    }
+                                },
+                                "required": [
+                                    "fcm_token"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/files/{kind}/{id}": {
+            "get": {
+                "operationId": "v1.files",
+                "description": "Only through the signed links in other responses (`\u2026_url`); they expire after a few minutes.",
+                "summary": "Download a file",
+                "tags": [
+                    "Files",
+                    "File"
+                ],
+                "parameters": [
+                    {
+                        "name": "kind",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "user",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/notifications": {
+            "get": {
+                "operationId": "v1.notifications",
+                "description": "`meta.unread` is the number of unread notifications.",
+                "summary": "Notifications, newest first",
+                "tags": [
+                    "Notifications",
+                    "Notification"
+                ],
+                "parameters": [
+                    {
+                        "name": "unread",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `NotificationResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/NotificationResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                },
+                                                "unread": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total",
+                                                "unread"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/notifications/read-all": {
+            "post": {
+                "operationId": "v1.notifications.read-all",
+                "summary": "Mark all read",
+                "tags": [
+                    "Notifications",
+                    "Notification"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/notifications/{notification}/read": {
+            "post": {
+                "operationId": "v1.notifications.read",
+                "summary": "Mark one read",
+                "tags": [
+                    "Notifications",
+                    "Notification"
+                ],
+                "parameters": [
+                    {
+                        "name": "notification",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "http": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "DeviceResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "platform": {},
+                    "push_enabled": {
+                        "type": "boolean"
+                    },
+                    "last_used_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "current": {
+                        "type": "boolean",
+                        "description": "The device making this request."
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "platform",
+                    "push_enabled",
+                    "last_used_at",
+                    "created_at",
+                    "current"
+                ],
+                "title": "DeviceResource"
+            },
+            "LoginRequest": {
+                "type": "object",
+                "description": "The login body, documented from the rules IssueApiToken applies.",
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "NIM, NIDM, guardian code or staff login ID.",
+                        "maxLength": 100
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "device_name": {
+                        "type": "string",
+                        "description": "Shown in the list of devices, e.g. \"Samsung A54\".",
+                        "maxLength": 100
+                    },
+                    "platform": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "android",
+                            "ios",
+                            "web",
+                            "other",
+                            null
+                        ]
+                    },
+                    "code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The 6-digit code of the authenticator app, after `two_factor_required`.",
+                        "maxLength": 10
+                    },
+                    "recovery_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Instead of `code`: one of the recovery codes.",
+                        "maxLength": 100
+                    }
+                },
+                "required": [
+                    "username",
+                    "password",
+                    "device_name"
+                ],
+                "title": "LoginRequest"
+            },
+            "NotificationResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    },
+                    "link": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "type": "string"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "description": "Grouped notifications (e.g. new messages in one room) count how many they stand for."
+                    },
+                    "read": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "kind",
+                    "title",
+                    "body",
+                    "link",
+                    "icon",
+                    "count",
+                    "read",
+                    "created_at"
+                ],
+                "title": "NotificationResource"
+            },
+            "PasswordRequest": {
+                "type": "object",
+                "description": "The password change body. ChangeOwnPassword applies the full password policy.",
+                "properties": {
+                    "current_password": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "The password policy of the server applies (in production: 12+ characters, mixed case, numbers, symbols)."
+                    },
+                    "password_confirmation": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "current_password",
+                    "password",
+                    "password_confirmation"
+                ],
+                "title": "PasswordRequest"
+            },
+            "ProfileRequest": {
+                "type": "object",
+                "description": "Every field a profile may have. Which ones apply depends on the role\n(`editable` of GET /profile); UpdateOwnProfile validates them in full and\nignores the rest.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "email",
+                        "maxLength": 255
+                    },
+                    "birth_place": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 100
+                    },
+                    "birth_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 30
+                    },
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    },
+                    "photo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream",
+                        "description": "JPG or PNG, sent as multipart."
+                    },
+                    "father_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 255
+                    },
+                    "father_is_alive": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "mother_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 255
+                    },
+                    "mother_is_alive": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "guardian_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 255
+                    },
+                    "nik": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 20
+                    },
+                    "title": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 100
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "expertise": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 255
+                    },
+                    "scopus_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 50
+                    },
+                    "google_scholar_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 255
+                    },
+                    "relationship": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 50
+                    }
+                },
+                "title": "ProfileRequest"
+            },
+            "UserResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "NIM, NIDM, guardian code or staff login ID."
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "active_role": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The role this request acts in (X-Role, or the only role); null when the app must ask.",
+                        "enum": [
+                            "superadmin",
+                            "admin",
+                            "admin_payment",
+                            "academic_monitor",
+                            "teacher",
+                            "student",
+                            "guardian",
+                            "payment_collector",
+                            null
+                        ]
+                    },
+                    "must_change_password": {
+                        "type": "boolean"
+                    },
+                    "two_factor_enabled": {
+                        "type": "boolean"
+                    },
+                    "photo_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "A signed link valid for a few minutes."
+                    },
+                    "student": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nim": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "nim"
+                        ]
+                    },
+                    "teacher": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nidm": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "nidm"
+                        ]
+                    },
+                    "guardian": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "code": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "code"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "username",
+                    "name",
+                    "email",
+                    "roles",
+                    "active_role",
+                    "must_change_password",
+                    "two_factor_enabled",
+                    "photo_url",
+                    "student",
+                    "teacher",
+                    "guardian"
+                ],
+                "title": "UserResource"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "AuthenticationException": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

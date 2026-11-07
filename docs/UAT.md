@@ -121,6 +121,16 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Log out on a shared computer: the next notification for that person no longer pops up there
 - [ ] With the scheduler running, an assignment due tomorrow and a bill due in 7 days send one reminder each
 
+## Mobile app API (with a REST client or the app)
+- [ ] `GET /api/v1/app` shows the app name and institution without logging in
+- [ ] Log in as a mahasantri with a device name; `GET /me` with the token; log in again on a second "device"; both show under Pengaturan → Perangkat aplikasi; sign one out there and its token stops working
+- [ ] An account with 2FA gets `two_factor_required`, then logs in with the code
+- [ ] A new account with a temporary password can only change the password first; after the change other devices are signed out
+- [ ] A muhadhir who is also pemantau switches with `X-Role`; a role they do not hold gets 403
+- [ ] Profile: change the phone number and photo; the photo link opens without the token and stops working after 10 minutes
+- [ ] Notifications list, mark one read, mark all read
+- [ ] `/docs/api` opens for Superadmin and is refused for others (unless `API_DOCS_PUBLIC=true`)
+
 ## Sign-off
 | Role | Tester | Date | Result |
 | --- | --- | --- | --- |

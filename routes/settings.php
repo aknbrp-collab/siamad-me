@@ -9,6 +9,9 @@ Route::middleware('portal')->group(function () {
 
     Route::livewire('settings/appearance', 'pages::settings.appearance')->name('appearance.edit');
 
+    // Devices signed in to the mobile app (v6 D37).
+    Route::livewire('settings/devices', 'pages::settings.devices')->name('devices.edit');
+
     Route::livewire('settings/security', 'pages::settings.security')
         ->middleware([
             'password.confirm',

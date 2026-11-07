@@ -80,6 +80,13 @@ set `SIAKAD_DRIVER=http` and `SIAKAD_BASE_URL={APP_URL}/api/cms`. SIAKAD checks 
 (`SIAKAD_API_KEY`), the signature and the clock, accepts answers only for callbacks on the CMS host, and
 rate-limits the endpoint to 60 calls a minute.
 
+**Mobile app API (v6).** The API lives at `{APP_URL}/api/v1` and needs HTTPS. In `.env`:
+`SANCTUM_TOKEN_DAYS` (default 365: a device not used that long must log in again; expired tokens are removed
+daily by the scheduler) and `API_DOCS_PUBLIC` (default `false`: the API documentation at `/docs/api` is
+for Superadmin only; set `true` while a mobile developer builds the app). The documentation page loads its
+viewer from unpkg.com, so the browser opening it needs internet access. After changing the API, run
+`php artisan scramble:export` and commit `docs/api/openapi.json`; see [API.md](API.md).
+
 Notifications themselves need no queue worker: they are written to the database while the request runs,
 and Web Push pop-ups are sent right after the response (a slow push service never delays a page).
 Set `APP_URL` to the address people open; notification links are stored as paths, so a wrong

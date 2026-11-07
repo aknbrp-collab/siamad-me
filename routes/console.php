@@ -17,6 +17,9 @@ Schedule::command('siakad:backup')
 Schedule::command('siakad:send-reminders')->hourly()->withoutOverlapping();
 
 // v5: what the website editors decided about each article sent to the CMS.
+// Expired API tokens (devices not used for SANCTUM_TOKEN_DAYS).
+Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('03:30');
+
 Schedule::command('siakad:cms-check')->dailyAt('06:00')->withoutOverlapping();
 
 // v5 D32: the queue (CMS calls and their retries) is worked every minute, so no separate worker

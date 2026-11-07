@@ -1173,3 +1173,25 @@ v6 Step 4 (2026-11-07) — App appearance (D36):
   background photo with the form on a card. Documents keep `institution.*` and the institution logo.
 - Identity and Tampilan aplikasi share `BrandImagesPage` and `<x-brand-images>`; each page only
   accepts its own images. Push pop-ups keep the event title and use the app icon.
+
+v6 Step 5 (2026-11-07) — API foundation (D37–D41):
+- Packages: `laravel/sanctum` ^4.3 (token guard only: `sanctum.guard = []`, expiry `SANCTUM_TOKEN_DAYS`,
+  pruned daily) and `dedoc/scramble` ^0.13 (docs of `api/v1` at `/docs/api`, gate `viewApiDocs`:
+  Superadmin or `API_DOCS_PUBLIC`; export to `docs/api/openapi.json`). `personal_access_tokens` adds
+  `platform` and `fcm_token` (one row per device).
+- Middleware on `/api/v1`: `auth:sanctum`, `api.account` (inactive → token deleted, 401
+  `account_inactive`; temporary password → 403 `password_change_required` except me/password/logout/app),
+  `api.role` (`X-Role` header checked against the user's roles, or the only role; stored as a request
+  attribute that `ActiveRole::get()` reads before the session, so `role:` middleware and Actions work
+  unchanged), `throttle:api` (60/min per token) and `throttle:api-login` (5/min per ID and IP).
+- `IssueApiToken` (password, then 2FA code or recovery code via Fortify's provider; `two_factor_required`
+  as a 422), `ChangeOwnPassword` (also clears the temporary password and deletes the other tokens).
+  `ResetUserPassword` deletes the user's tokens.
+- Signed downloads: `ApiFiles::url()` signs `api/v1/files/{kind}/{id}` for 10 minutes with the user and
+  role; `FileController` sets them on the request and runs `PrivateFileController`, so the access rules
+  are the web ones.
+- Endpoints: app info, login/logout, devices, push token, me, profile (per role: `UpdateOwnProfile` or
+  `UpdateUserProfile`), password, notifications. Form requests (`LoginRequest`, `PasswordRequest`,
+  `ProfileRequest`) document the bodies; the Actions still validate in full.
+- `ApiDocs::configure()` adds the bearer scheme and the `X-Role` header to the spec. Web: Pengaturan →
+  Perangkat aplikasi lists and signs out devices. Guide for app developers: `docs/API.md`.

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\Api\EnsureApiAccount;
+use App\Http\Middleware\Api\ResolveApiRole;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureRoleIsSelected;
@@ -22,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.changed' => EnsurePasswordIsChanged::class,
             'role.selected' => EnsureRoleIsSelected::class,
             'role' => EnsureRole::class,
+            'api.account' => EnsureApiAccount::class,
+            'api.role' => ResolveApiRole::class,
         ]);
 
         // Everything behind login: active account, permanent password, a chosen role.

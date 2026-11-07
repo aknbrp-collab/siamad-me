@@ -41,6 +41,11 @@ bila Admin tidak perlu tahu nama Anda; nama tetap tercatat dan hanya dapat dilih
 Admin muncul di halaman yang sama (dan sebagai notifikasi), bersama statusnya: *Baru*, *Diproses*,
 *Selesai*. Paling banyak 10 pesan per hari.
 
+**Aplikasi di ponsel.** Bila lembaga memakai aplikasi SIAKAD di ponsel, masuk dengan nomor induk dan kata
+sandi yang sama. Menu nama Anda → **Pengaturan** → **Perangkat aplikasi** menampilkan ponsel/tablet yang
+sedang masuk; klik **Keluarkan** untuk perangkat yang hilang atau tidak dipakai lagi. Mengganti kata sandi
+juga mengeluarkan perangkat lain.
+
 **Tampilan terang/gelap.** Tombol matahari / bulan / layar di bawah menu samping (di ponsel: di atas)
 memilih tampilan terang, gelap, atau mengikuti perangkat. Pilihan disimpan di peramban itu.
 

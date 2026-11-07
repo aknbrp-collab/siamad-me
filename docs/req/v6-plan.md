@@ -123,7 +123,7 @@ are recorded as decisions D33–D41.
 - Used in the layout title, sidebar, login, manifest, notification titles and emails. PDFs keep using the
   institution.
 
-### Step 5 — API foundation (medium–large)
+### Step 5 — API foundation (medium–large) — done 2026-11-07
 
 - Sanctum, `routes/api.php` `/v1`, token login/logout (with 2FA), devices list, `X-Role`, error format,
   rate limits, signed file downloads.

@@ -12,6 +12,9 @@ return [
     |
     */
 
+    // API docs at /docs/api: Superadmin only, unless this is true (v6 D38).
+    'api_docs_public' => (bool) env('API_DOCS_PUBLIC', false),
+
     // The app name before Superadmin sets one on Tampilan aplikasi (v6 D36).
     'app_name' => env('APP_NAME', 'SIAKAD Mahad Aly'),
 

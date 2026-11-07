@@ -85,6 +85,19 @@ Tagihan yang belum memiliki pembayaran dapat dibatalkan (**Batalkan tagihan**, w
 ulang dengan **Buat tagihan**. Tagihan semester yang sudah ditutup tidak dapat dibatalkan, tetapi
 pembayaran tunggakannya tetap dapat dicatat.
 
+### Rekap angsuran
+
+Di **Tagihan**, pilih **Rekap angsuran** untuk melihat satu semester sebagai tabel: NIM, nama, kelas,
+satu kolom per angsuran (sebanyak batas cicilan tertinggi semester itu, biasanya 3; bisa sampai 5 bila ada
+yang diberi batas lebih), lalu **Semester sebelumnya** (sisa tagihan semester-semester lalu).
+
+- ✓ hijau: angsuran itu sudah terverifikasi. Jam kuning: sudah dibayar, menunggu verifikasi.
+- Kotak kosong: belum dibayar. Klik untuk membuka tagihannya dan **Catat pembayaran**.
+- Kotak abu-abu: di luar batas cicilan tagihan itu. Tanda – : tagihan sudah lunas. Baris lunas berwarna hijau.
+- Jumlah merah di **Semester sebelumnya** membuka daftar tunggakan mahasantri itu.
+
+Saring per kelas atau Putra/Putri, cari NIM/nama, lalu **Export** (Excel dengan tanda V) atau **Cetak**.
+
 ## 7. Ringkasan
 
 Menu **Ringkasan** (Superadmin) dan halaman tagihan menampilkan yang ditagihkan, terkumpul

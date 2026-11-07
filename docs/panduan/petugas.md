@@ -17,6 +17,10 @@ atau gunakan **Ganti peran** di menu nama Anda untuk berpindah.
 3. Cetak slip bertanda *BELUM TERVERIFIKASI* untuk pembayar bila perlu. Kuitansi resmi terbit setelah
    diverifikasi.
 
+**Rekap angsuran** di menu **Tagihan** menampilkan angsuran mahasantri yang Anda layani dalam satu tabel
+per semester: ✓ sudah terverifikasi, jam kuning menunggu verifikasi, kotak kosong belum dibayar (klik untuk
+mencatat pembayaran), dan sisa semester sebelumnya. Dapat dicetak dan diekspor ke Excel.
+
 ## Menyetor uang tunai
 
 Menu **Setoran tunai**: centang pembayaran tunai yang Anda terima, lalu **Setor …**. Serahkan uang

@@ -1116,3 +1116,16 @@ v5 Step 6 (2026-11-04) — Tanya Hukum (D30; spec §4.1, §3.4):
 - Pages **Tanya Hukum** (`tanya-hukum`, linked from LPPPK with the count not answered) and the question page
   (answer form, approvals, versions, link to its discussion).
 
+
+v6 Step 1 (2026-11-07) — Bills grid "Rekap angsuran" (D33):
+- `App\Support\InstallmentGrid::build(semester, user, role, class, search, gender)`: the semester's bills
+  (not void) within `BillAccess::scope`, with their verified and unverified payments in one eager load, the
+  class from `class_enrollments`, and arrears in one grouped query (net − paid of Unpaid/Partial bills in
+  semesters with a lower `Semester::ordinal()`). Columns = the highest `max_installments` of the semester.
+  Cells, by payment order: `paid` (verified), `pending` (unverified), `none` (beyond this bill's limit),
+  `done` (bill paid in fewer instalments), `open`.
+- Tagihan page: `view=grid` switches to the grid (per semester only, so "Semua semester" is hidden and
+  switching picks the active one), filters class and Putra/Putri (finance office; a collector already sees
+  one gender) and the search. Open and pending cells link to the bill; arrears link to the list filtered on
+  the NIM, all semesters, Belum lunas. Excel (`rekap-angsuran-{semester}.xlsx`: V / ? / -) and print
+  (`print:` classes hide the controls). Covered by the N+1 check.

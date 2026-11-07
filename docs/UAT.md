@@ -52,6 +52,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Unverified payments: cash not handed over, a handover and a transfer each show where they wait, with whom and for how many days; Remind notifies the holder once a day
 - [ ] Cash book: add Kas and the bank account with their opening balance and set the defaults; record a cash payment into Kas, verify it, and see it in the Kas ledger; record an expense with a receipt photo, an infaq, and a deposit from Kas to the bank; void one entry with a reason; check the balances against the real ones
 - [ ] Close the books through last month; an entry dated in it is refused (allowed only in maintenance mode); print the cash report for the semester with the Bendahara signature
+- [ ] Rekap angsuran: pick a semester; one column per instalment (raise one bill to 5 and see 5 columns); a verified payment is ticked, an unverified one shows a clock; click an empty cell to reach the bill; the arrears from last semester match; filter a class and Putri; export to Excel and print
 - [ ] In maintenance mode, import last year's bills & payments and income & expenses (Data tahun sebelumnya); the semester's bills show lunas/sisa and the cash report includes them
 
 ## Muhadhir
@@ -77,6 +78,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 ## Petugas Pembayaran (a putri mahasantri)
 - [ ] Switch to the role; only putri bills are listed; a putra bill cannot be opened
 - [ ] Record a cash and a transfer payment; hand the cash over; nothing can be verified from this role
+- [ ] Rekap angsuran lists only putri mahasantri, with no Putra/Putri filter
 
 ## Pemantau Akademik
 - [ ] Dashboard shows the right attendance percentages and the below-minimum list

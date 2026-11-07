@@ -37,6 +37,7 @@ function measuredPages(): array
         ['admin.students.record', ['student' => $faqih], 'admin', Role::Admin],
         ['finance.dashboard', [], 'superadmin', Role::Superadmin],
         ['finance.bills.index', [], 'keuangan', Role::AdminPayment],
+        ['finance.bills.index', ['view' => 'grid'], 'keuangan', Role::AdminPayment],
         ['finance.handovers', [], 'keuangan', Role::AdminPayment],
         ['finance.scholarships', [], 'keuangan', Role::AdminPayment],
         ['monitor.dashboard', [], 'monitor', Role::AcademicMonitor],

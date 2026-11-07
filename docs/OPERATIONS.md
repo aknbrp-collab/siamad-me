@@ -5,6 +5,8 @@ How to run SIAKAD on a server: the scheduler, backups and restoring them. For th
 
 ---
 
+Server sizes (demo and production, minimum / ideal / maximum): see [SERVER-REQUIREMENTS.md](SERVER-REQUIREMENTS.md).
+
 ## 1. First installation
 
 ```bash

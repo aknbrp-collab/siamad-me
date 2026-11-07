@@ -5,9 +5,11 @@ use App\Enums\BillStatus;
 use App\Enums\Gender;
 use App\Models\Bill;
 use App\Models\ClassEnrollment;
+use App\Models\ClassGroup;
 use App\Models\Semester;
 use App\Support\ActiveRole;
 use App\Support\BillAccess;
+use App\Support\InstallmentGrid;
 use App\Support\Money;
 use App\Support\SpreadsheetDownload;
 use Flux\Flux;
@@ -39,6 +41,18 @@ new #[Title('Bills')] class extends Component {
     #[Url(except: '')]
     public string $search = '';
 
+    /** list | grid ("Rekap angsuran", v6 D33) */
+    #[Url(except: 'list')]
+    public string $view = 'list';
+
+    /** Grid: only this class. */
+    #[Url(as: 'class')]
+    public ?int $classId = null;
+
+    /** Grid: male | female (finance office; a collector already sees one gender). */
+    #[Url(except: '')]
+    public string $gender = '';
+
     public ?string $dueOn = null;
 
     /** @var array{students: int, net: int, empty: int}|null */
@@ -53,6 +67,10 @@ new #[Title('Bills')] class extends Component {
     {
         if (in_array($property, ['semesterId', 'status', 'search'], true)) {
             $this->resetPage();
+        }
+
+        if ($property === 'semesterId') {
+            $this->classId = null;
         }
     }
 
@@ -171,6 +189,68 @@ new #[Title('Bills')] class extends Component {
         Flux::toast(variant: 'success', text: trans_choice(':count bill created.|:count bills created.', $created));
     }
 
+    /**
+     * @return array{columns: int, rows: \Illuminate\Support\Collection<int, array{bill: Bill, class: string, cells: list<string>, arrears: int}>}|null
+     */
+    #[Computed]
+    public function grid(): ?array
+    {
+        if ($this->view !== 'grid' || $this->semester === null) {
+            return null;
+        }
+
+        return InstallmentGrid::build($this->semester, auth()->user(), ActiveRole::get(), $this->classId, $this->search, Gender::tryFrom($this->gender));
+    }
+
+    /**
+     * Classes with mahasantri in the semester shown, for the grid filter.
+     *
+     * @return Collection<int, ClassGroup>
+     */
+    #[Computed]
+    public function classes(): Collection
+    {
+        $ids = ClassEnrollment::query()->where('semester_id', $this->semesterId)->distinct()->pluck('class_group_id');
+
+        return ClassGroup::withTrashed()->whereKey($ids)->get()->sortBy('name')->values();
+    }
+
+    public function updatedView(): void
+    {
+        $this->classId = null;
+
+        // The grid is per semester.
+        if ($this->view === 'grid' && $this->semesterId === self::ALL_SEMESTERS) {
+            $this->semesterId = Semester::active()?->id ?? $this->semesters->first()?->id;
+        }
+    }
+
+    public function exportGrid(): BinaryFileResponse
+    {
+        abort_if($this->grid === null, 404);
+        $mark = ['paid' => 'V', 'pending' => '?', 'done' => '-', 'none' => '', 'open' => ''];
+
+        $rows = $this->grid['rows']->map(function (array $row) use ($mark) {
+            $line = [
+                __('NIM') => $row['bill']->student->nim,
+                __('Name') => $row['bill']->student->user->name,
+                __('Class') => $row['class'],
+            ];
+
+            // Assigned one by one: spreading would renumber the numeric keys.
+            foreach ($row['cells'] as $index => $cell) {
+                $line[$index + 1] = $mark[$cell];
+            }
+
+            $line[__('Previous semesters')] = $row['arrears'];
+            $line[__('Status')] = $row['bill']->status->label();
+
+            return $line;
+        });
+
+        return SpreadsheetDownload::make('rekap-angsuran-'.$this->semesterId.'.xlsx', $rows);
+    }
+
     public function export(): BinaryFileResponse
     {
         $rows = $this->query()->lazy()->map(fn (Bill $bill) => [
@@ -192,7 +272,12 @@ new #[Title('Bills')] class extends Component {
 <section class="w-full">
     <x-page-header :title="__('Bills')" :subtitle="__('One bill per mahasantri per semester. Status counts verified payments only.')">
         <x-slot:actions>
-            <flux:button icon="arrow-down-tray" wire:click="export">{{ __('Export') }}</flux:button>
+            @if ($view === 'grid')
+                <flux:button icon="printer" x-on:click="window.print()" class="print:hidden">{{ __('Print') }}</flux:button>
+                <flux:button icon="arrow-down-tray" wire:click="exportGrid" class="print:hidden" data-test="export-grid">{{ __('Export') }}</flux:button>
+            @else
+                <flux:button icon="arrow-down-tray" wire:click="export">{{ __('Export') }}</flux:button>
+            @endif
             @if ($this->administers && $this->semester && ! $this->semester->isReadOnly())
                 <flux:button variant="primary" icon="sparkles" wire:click="openGenerate">{{ __('Generate bills') }}</flux:button>
             @endif
@@ -206,23 +291,115 @@ new #[Title('Bills')] class extends Component {
                 : __('No Putra/Putri scope is set for your account yet. Please contact the Superadmin.')" />
     @endunless
 
-    <div class="mb-4 flex flex-col gap-3 sm:flex-row">
+    <flux:radio.group wire:model.live="view" variant="segmented" class="mb-4 w-full sm:w-auto print:hidden">
+        <flux:radio value="list" icon="list-bullet" :label="__('Bill list')" />
+        <flux:radio value="grid" icon="table-cells" :label="__('Instalment grid')" />
+    </flux:radio.group>
+
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row print:hidden">
         <flux:select wire:model.live="semesterId" class="sm:max-w-60">
-            <flux:select.option :value="0">{{ __('All semesters') }}</flux:select.option>
+            @if ($view !== 'grid')
+                <flux:select.option :value="0">{{ __('All semesters') }}</flux:select.option>
+            @endif
             @foreach ($this->semesters as $semester)
                 <flux:select.option :value="$semester->id">{{ $semester->label() }}</flux:select.option>
             @endforeach
         </flux:select>
-        <flux:select wire:model.live="status" class="sm:max-w-44">
-            <flux:select.option value="">{{ __('All statuses') }}</flux:select.option>
-            <flux:select.option value="outstanding">{{ __('Not fully paid') }}</flux:select.option>
-            @foreach (BillStatus::cases() as $case)
-                <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
-            @endforeach
-        </flux:select>
+        @if ($view === 'grid')
+            <flux:select wire:model.live="classId" class="sm:max-w-56">
+                <flux:select.option value="">{{ __('All classes') }}</flux:select.option>
+                @foreach ($this->classes as $class)
+                    <flux:select.option :value="$class->id">{{ $class->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+            @if ($this->collectorGender === null)
+                <flux:select wire:model.live="gender" class="sm:max-w-40">
+                    <flux:select.option value="">{{ __('Putra & Putri') }}</flux:select.option>
+                    @foreach (Gender::cases() as $case)
+                        <flux:select.option :value="$case->value">{{ $case->classLabel() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
+        @else
+            <flux:select wire:model.live="status" class="sm:max-w-44">
+                <flux:select.option value="">{{ __('All statuses') }}</flux:select.option>
+                <flux:select.option value="outstanding">{{ __('Not fully paid') }}</flux:select.option>
+                @foreach (BillStatus::cases() as $case)
+                    <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        @endif
         <flux:input wire:model.live.debounce.400ms="search" icon="magnifying-glass" :placeholder="__('Bill number, NIM or name…')" class="sm:max-w-xs" />
     </div>
 
+    @if ($view === 'grid')
+        @php($grid = $this->grid)
+        <flux:heading class="mb-2 hidden print:block">{{ __('Instalment grid') }} · {{ $this->semester?->label() }}</flux:heading>
+        <div class="mb-2 flex flex-wrap gap-4 text-xs text-zinc-500 print:hidden">
+            <span><span class="font-semibold text-green-700 dark:text-green-400">✓</span> {{ __('verified') }}</span>
+            <span><flux:icon.clock variant="micro" class="inline text-amber-500" /> {{ __('waiting for verification') }}</span>
+            <span><span class="inline-block size-3 rounded border border-zinc-300 align-middle dark:border-zinc-600"></span> {{ __('not paid yet: click to open the bill') }}</span>
+        </div>
+        <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700" data-test="installment-grid">
+            <table class="min-w-full text-sm">
+                <thead class="bg-zinc-50 text-left dark:bg-zinc-800">
+                    <tr>
+                        <th class="px-3 py-2 font-medium">{{ __('NIM') }}</th>
+                        <th class="px-3 py-2 font-medium">{{ __('Name') }}</th>
+                        <th class="hidden px-3 py-2 font-medium md:table-cell print:table-cell">{{ __('Class') }}</th>
+                        @for ($slot = 1; $slot <= ($grid['columns'] ?? 0); $slot++)
+                            <th class="w-10 px-1 py-2 text-center font-medium">{{ $slot }}</th>
+                        @endfor
+                        <th class="px-3 py-2 text-end font-medium">{{ __('Previous semesters') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                    @forelse ($grid['rows'] ?? [] as $row)
+                        @php($bill = $row['bill'])
+                        <tr wire:key="grid-{{ $bill->id }}" @class(['bg-green-50/60 dark:bg-green-900/10' => $bill->status === BillStatus::Paid])>
+                            <td class="px-3 py-1.5 font-mono text-xs text-zinc-500">{{ $bill->student->nim }}</td>
+                            <td class="px-3 py-1.5">
+                                <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate class="font-medium hover:underline">{{ $bill->student->user->name }}</a>
+                            </td>
+                            <td class="hidden px-3 py-1.5 text-xs text-zinc-500 md:table-cell print:table-cell">{{ $row['class'] }}</td>
+                            @foreach ($row['cells'] as $index => $cell)
+                                <td class="px-1 py-1 text-center" data-cell="{{ $cell }}">
+                                    @switch ($cell)
+                                        @case ('paid')
+                                            <span class="font-semibold text-green-700 dark:text-green-400" title="{{ __('Instalment :n verified', ['n' => $index + 1]) }}">✓</span>
+                                            @break
+                                        @case ('pending')
+                                            <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate title="{{ __('Waiting for verification') }}"><flux:icon.clock variant="micro" class="inline text-amber-500" /></a>
+                                            @break
+                                        @case ('open')
+                                            <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate title="{{ __('Record instalment :n', ['n' => $index + 1]) }}"
+                                                class="inline-block size-4 rounded border border-zinc-300 align-middle hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 dark:border-zinc-600"></a>
+                                            @break
+                                        @case ('done')
+                                            <span class="text-zinc-300 dark:text-zinc-600">–</span>
+                                            @break
+                                        @default
+                                            <span class="inline-block size-4 rounded bg-zinc-100 align-middle dark:bg-zinc-800"></span>
+                                    @endswitch
+                                </td>
+                            @endforeach
+                            <td class="px-3 py-1.5 text-end tabular-nums">
+                                @if ($row['arrears'] > 0)
+                                    <a href="{{ route('finance.bills.index', ['semester' => 0, 'status' => 'outstanding', 'search' => $bill->student->nim]) }}" wire:navigate class="text-red-600 hover:underline">{{ Money::format($row['arrears']) }}</a>
+                                @else
+                                    <span class="text-zinc-400">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ 4 + ($grid['columns'] ?? 0) }}" class="px-3 py-6 text-center text-zinc-500">{{ __('No bills for this semester yet.') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    @else
     <div class="overflow-x-auto">
         <flux:table class="table-stack" :paginate="$this->bills">
             <flux:table.columns>
@@ -262,6 +439,7 @@ new #[Title('Bills')] class extends Component {
             </flux:table.rows>
         </flux:table>
     </div>
+    @endif
 
     @if ($this->administers)
     <flux:modal name="generate-bills" class="w-full max-w-md">

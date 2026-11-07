@@ -2088,5 +2088,15 @@
     "— none —": "— tidak ada —",
     "— not booked to an account —": "— tidak dibukukan ke rekening —",
     "— skip —": "— lewati —",
-    "→ :component": "→ :component"
+    "→ :component": "→ :component",
+    "Bill list": "Daftar tagihan",
+    "Instalment grid": "Rekap angsuran",
+    "Putra & Putri": "Putra & Putri",
+    "Previous semesters": "Semester sebelumnya",
+    "verified": "terverifikasi",
+    "waiting for verification": "menunggu verifikasi",
+    "Waiting for verification": "Menunggu verifikasi",
+    "not paid yet: click to open the bill": "belum dibayar: klik untuk membuka tagihan",
+    "Instalment :n verified": "Angsuran :n terverifikasi",
+    "Record instalment :n": "Catat angsuran :n"
 }

@@ -1283,3 +1283,14 @@ v6 Step 11 (2026-11-08) — API for Superadmin (D37, D41):
   keep their own form validation and save through it.
 - Maintenance mode, backups and the CMS page stay on the web. With this step the API covers every role
   (Steps 5–11); Step 12 (Firebase push) waits for the keys.
+
+v6 Step 12 (2026-11-08) — Push to the mobile app (D39):
+- `FirebasePush` (FCM HTTP v1, no extra package): the service-account key from `FIREBASE_CREDENTIALS`
+  signs an RS256 JWT exchanged for an access token (cached 50 minutes); one `messages:send` per device
+  token (`personal_access_tokens.fcm_token`) with the title, body and `data` {link, notification_id, tag},
+  Android `tag` / APNs collapse id so grouped notifications replace each other. A 404 or `UNREGISTERED` /
+  `INVALID_ARGUMENT` clears that device's token.
+- `Notify::push` dispatches `SendFirebasePush` after the response next to Web Push, only when the key is set
+  and the user has a device with a push token; failures are reported, never thrown. `GET /api/v1/app`
+  reports `push_enabled`.
+- Tests use a throwaway key in `tests/Fixtures/firebase-service-account.json` and fake Google's endpoints.

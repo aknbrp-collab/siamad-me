@@ -140,6 +140,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Keuangan: add a fee rate (a duplicate is refused), preview and generate bills, award a scholarship; record cash and hand it over (the Admin counts it, not Keuangan); verify one transfer and reject another with a reason; record an expense with a receipt and a deposit to the bank; the ledger and the cash report PDF; Rekap angsuran
 - [ ] Petugas Pembayaran: only putri bills; record cash and hand it over
 - [ ] Superadmin: add a staff account (password once) and give it a second role; make a putri mahasantri Petugas Pembayaran; change a setting (a wrong value is refused), the identity and the app name; upload and remove the app logo; add a signatory and a stamp and set the transcript defaults; add a letter type; download a template; find the changes in the audit log
+- [ ] Push (with FIREBASE_CREDENTIALS set and the app built for that project): sign in on a phone, allow notifications; a new assignment arrives as a push with SIAKAD closed and opens the right screen; sign the phone out under Perangkat aplikasi and the next notification no longer arrives there
 - [ ] Muhadhir: classes; add a meeting with the journal and take attendance; share a material with a file; create an assignment, grade a submission and copy it to the grades; build a quiz with an essay, publish it and grade the essay; set components, enter scores, finalise; upload the RPS and open the templates and journal PDF; answer in the class forum and pin the thread; supervisees and their KHS (not bills)
 
 ## Sign-off

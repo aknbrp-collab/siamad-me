@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Jobs\SendFirebasePush;
 use App\Jobs\SendWebPush;
 use App\Models\SentReminder;
 use App\Models\User;
@@ -46,12 +47,12 @@ final class Notify
             $bumped = $group !== null ? self::bumpUnread($user, $group, $title, $countedBody ?? $body, $link) : null;
 
             if ($bumped !== null) {
-                self::push($user, $bumped->id, $title, (string) $bumped->data['body'], $group);
+                self::push($user, $bumped->id, $title, (string) $bumped->data['body'], $link, $group);
 
                 continue;
             }
 
-            self::push($user, self::deliver($user, new SiakadNotice($kind, $title, $body, $link, $icon, $group)), $title, $body, $group);
+            self::push($user, self::deliver($user, new SiakadNotice($kind, $title, $body, $link, $icon, $group)), $title, $body, $link, $group);
         }
     }
 
@@ -65,7 +66,7 @@ final class Notify
         }
 
         SentReminder::create(['user_id' => $user->id, 'key' => $key, 'created_at' => now()]);
-        self::push($user, self::deliver($user, new SiakadNotice($kind, $title, $body, self::path($url), $icon)), $title, $body);
+        self::push($user, self::deliver($user, new SiakadNotice($kind, $title, $body, self::path($url), $icon)), $title, $body, self::path($url));
 
         return true;
     }
@@ -99,18 +100,29 @@ final class Notify
      * The pop-up opens the notification (marking it read) like a click on the bell.
      * One pop-up per group: a newer message replaces the older one on the device.
      */
-    private static function push(User $user, string $id, string $title, string $body, ?string $group = null): void
+    /**
+     * Pop-ups outside the app: Web Push to browsers, Firebase to the mobile app (v6 D39).
+     */
+    private static function push(User $user, string $id, string $title, string $body, string $link, ?string $group = null): void
     {
-        if (! WebPush::enabled() || ! $user->pushSubscriptions()->exists()) {
-            return;
+        if (WebPush::enabled() && $user->pushSubscriptions()->exists()) {
+            SendWebPush::dispatchAfterResponse($user->id, [
+                'title' => $title,
+                'body' => $body,
+                'url' => route('notifications.open', $id, false),
+                'tag' => $group ?? $id,
+            ]);
         }
 
-        SendWebPush::dispatchAfterResponse($user->id, [
-            'title' => $title,
-            'body' => $body,
-            'url' => route('notifications.open', $id, false),
-            'tag' => $group ?? $id,
-        ]);
+        if (FirebasePush::enabled() && $user->tokens()->whereNotNull('fcm_token')->exists()) {
+            SendFirebasePush::dispatchAfterResponse($user->id, [
+                'title' => $title,
+                'body' => $body,
+                'link' => $link,
+                'notification_id' => $id,
+                'tag' => $group ?? $id,
+            ]);
+        }
     }
 
     private static function bumpUnread(User $user, string $group, string $title, string $countedBody, string $url): ?DatabaseNotification

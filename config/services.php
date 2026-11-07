@@ -29,6 +29,12 @@ return [
     ],
 
     // SIAKAD ⇄ CMS integration (v5 D31, docs/req/siakad-api-spec.md). Off while the URL or secret is empty.
+    // Push to the mobile app through Firebase Cloud Messaging (v6 D39): the path to the Firebase project's
+    // service-account key file (JSON). Empty: no push to the app (it checks notifications itself).
+    'firebase' => [
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+    ],
+
     'cms' => [
         // e.g. https://admin.pondok.example/api/webhooks/siakad
         'url' => env('CMS_WEBHOOK_URL'),

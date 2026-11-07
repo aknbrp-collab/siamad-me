@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\Branding;
+use App\Support\FirebasePush;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
@@ -48,7 +49,7 @@ class AppInfoController extends Controller
                 'website' => Setting::get('institution.website'),
             ],
             /** Whether the server sends push messages through Firebase yet (v6 D39). */
-            'push_enabled' => false,
+            'push_enabled' => FirebasePush::enabled(),
         ]]);
     }
 }

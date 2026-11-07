@@ -91,6 +91,17 @@ the document takes more memory than a normal request, so after every update also
 `php -d memory_limit=1G artisan scramble:cache`: `/docs/api` then serves the prepared document instead of
 building it on each visit.
 
+**Push to the mobile app (v6 Step 12).** Off until a Firebase project is set up:
+1. In the Firebase console, create a project (or use the app developer's) and add the Android and iOS apps
+   there; the app developer builds the app with that project's files.
+2. Project settings → Service accounts → *Generate new private key*. Copy the JSON file to the server
+   **outside** `public/` and outside the git checkout (e.g. `/etc/siakad/firebase.json`), readable by the web
+   server user only.
+3. In `.env`: `FIREBASE_CREDENTIALS=/etc/siakad/firebase.json`, then `php artisan config:cache`.
+`GET /api/v1/app` then reports `push_enabled: true`, and every notification is also sent to each signed-in
+device that registered its push token. Devices Firebase no longer knows are forgotten automatically. Keep
+the key file secret like the `.env`; to revoke it, delete the key in the Firebase console and add a new one.
+
 Notifications themselves need no queue worker: they are written to the database while the request runs,
 and Web Push pop-ups are sent right after the response (a slow push service never delays a page).
 Set `APP_URL` to the address people open; notification links are stored as paths, so a wrong

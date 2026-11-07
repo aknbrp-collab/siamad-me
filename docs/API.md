@@ -49,8 +49,11 @@ the password (other devices), when the Admin resets the password, or when the ac
    and call `PUT /password` before anything else.
 5. `user.roles` has more than one role → let the user pick one (like "Pilih peran" on the web) and send it as
    `X-Role` from then on. `GET /me` with that header confirms `active_role`.
-6. `PUT /auth/push-token` with the Firebase token of the device (push messages start once the server has
-   its Firebase keys, D39; until then poll `GET /notifications` when the app opens and every few minutes).
+6. `PUT /auth/push-token` with the Firebase token of the device. `GET /app` says whether the server sends
+   push messages (`push_enabled`). When it does, every notification also arrives as a Firebase message with
+   `notification.title` / `body` and `data.link` (the page it is about), `data.notification_id` (mark it read
+   with `POST /notifications/{id}/read`) and `data.tag` (grouped notifications replace each other). When it
+   does not, poll `GET /notifications` when the app opens and every few minutes.
 
 ## Files
 

@@ -168,7 +168,7 @@ are recorded as decisions D33–D41.
   and templates, audit log (read).
 - Not included: maintenance mode, backups and the CMS page (D41).
 
-### Step 12 — Mobile push (small, when Firebase keys are given)
+### Step 12 — Mobile push (small, when Firebase keys are given) — built 2026-11-08, on once the key is in `.env`
 
 - Send notifications to the stored FCM tokens next to Web Push; remove invalid tokens.
 

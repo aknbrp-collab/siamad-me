@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\AcademicRecordPdfController;
 use App\Http\Controllers\Api\V1\Concerns\ActsForSignedUser;
+use App\Http\Controllers\CashReportController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\LetterPdfController;
@@ -34,9 +35,9 @@ class DownloadController extends Controller
     use ActsForSignedUser;
 
     /**
-     * Document => [controller, method, [parameter => model class, or a list of allowed values]].
+     * Document => [controller, method, [parameter => model class, a list of allowed values, or 'month' (YYYY-MM)]].
      *
-     * @var array<string, array{0: class-string, 1: string, 2: array<string, class-string<Model>|list<string>>}>
+     * @var array<string, array{0: class-string, 1: string, 2: array<string, class-string<Model>|list<string>|'month'>}>
      */
     public const DOCUMENTS = [
         'khs' => [AcademicRecordPdfController::class, 'khs', ['student' => Student::class, 'semester' => Semester::class]],
@@ -48,13 +49,15 @@ class DownloadController extends Controller
         'score-template' => [ScoreTemplateController::class, '__invoke', ['offering' => CourseOffering::class]],
         'teaching-template' => [TemplateController::class, 'teaching', ['offering' => CourseOffering::class, 'kind' => ['rps', 'journal']]],
         'teaching-journal' => [TeachingJournalController::class, '__invoke', ['offering' => CourseOffering::class]],
+        // Finance (Step 10): the cash report of a range of months.
+        'cash-report' => [CashReportController::class, '__invoke', ['from' => 'month', 'to' => 'month']],
     ];
 
     /**
      * Download a file made on request.
      *
-     * KHS, transcript, exam card, letters, receipts, and for muhadhir the score template, RPS / journal
-     * templates and the journal PDF, through the signed links in other responses (`pdf_url`, `card_url`,
+     * KHS, transcript, exam card, letters, receipts, the cash report, and for muhadhir the score template,
+     * RPS / journal templates and the journal PDF, through the signed links in other responses (`pdf_url`, `card_url`,
      * `receipt_url`, `…_template_url`); they expire after a few minutes.
      *
      * @unauthenticated
@@ -68,6 +71,12 @@ class DownloadController extends Controller
         $parameters = ['request' => $request];
 
         foreach ($arguments as $name => $type) {
+            if ($type === 'month') {
+                abort_unless(preg_match('/^\d{4}-\d{2}$/', (string) $request->query($name)) === 1, 404);
+
+                continue;
+            }
+
             if (is_array($type)) {
                 $value = (string) $request->query($name);
                 abort_unless(in_array($value, $type, true), 404);
@@ -85,5 +94,4 @@ class DownloadController extends Controller
 
         return $response;
     }
-
 }

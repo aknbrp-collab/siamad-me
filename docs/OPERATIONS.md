@@ -17,6 +17,7 @@ php artisan key:generate
 php artisan migrate --force
 php artisan siakad:superadmin    # the first login; everything else is created in the app
 php artisan config:cache && php artisan route:cache && php artisan view:cache
+php -d memory_limit=1G artisan scramble:cache
 ```
 
 Required `.env` values in production: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`,
@@ -85,7 +86,10 @@ rate-limits the endpoint to 60 calls a minute.
 daily by the scheduler) and `API_DOCS_PUBLIC` (default `false`: the API documentation at `/docs/api` is
 for Superadmin only; set `true` while a mobile developer builds the app). The documentation page loads its
 viewer from unpkg.com, so the browser opening it needs internet access. After changing the API, run
-`php artisan scramble:export` and commit `docs/api/openapi.json`; see [API.md](API.md).
+`php -d memory_limit=1G artisan scramble:export` and commit `docs/api/openapi.json`; see [API.md](API.md). Building
+the document takes more memory than a normal request, so after every update also run
+`php -d memory_limit=1G artisan scramble:cache`: `/docs/api` then serves the prepared document instead of
+building it on each visit.
 
 Notifications themselves need no queue worker: they are written to the database while the request runs,
 and Web Push pop-ups are sent right after the response (a slow push service never delays a page).
@@ -148,5 +152,6 @@ git pull
 composer install --no-dev --optimize-autoloader && npm ci && npm run build
 php artisan migrate --force
 php artisan config:cache && php artisan route:cache && php artisan view:cache
+php -d memory_limit=1G artisan scramble:cache
 php artisan up
 ```

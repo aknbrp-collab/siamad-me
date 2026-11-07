@@ -58,6 +58,9 @@
         },
         {
             "name": "Admin akademik"
+        },
+        {
+            "name": "Keuangan"
         }
     ],
     "security": [
@@ -1698,7 +1701,7 @@
         "/downloads/{document}": {
             "get": {
                 "operationId": "v1.downloads",
-                "description": "KHS, transcript, exam card, letters, receipts, and for muhadhir the score template, RPS / journal\ntemplates and the journal PDF, through the signed links in other responses (`pdf_url`, `card_url`,\n`receipt_url`, `\u2026_template_url`); they expire after a few minutes.",
+                "description": "KHS, transcript, exam card, letters, receipts, the cash report, and for muhadhir the score template,\nRPS / journal templates and the journal PDF, through the signed links in other responses (`pdf_url`, `card_url`,\n`receipt_url`, `\u2026_template_url`); they expire after a few minutes.",
                 "summary": "Download a file made on request",
                 "tags": [
                     "Files"
@@ -22970,6 +22973,3933 @@
                     }
                 }
             }
+        },
+        "/finance/bills": {
+            "get": {
+                "operationId": "v1.finance.bills",
+                "description": "Of a semester (`?semester=`, default the active one; `0` for every semester), `status` (unpaid, partial,\npaid, void, or `outstanding` for unpaid and partial), `search` on the bill number, NIM or name;\npaginated. A Petugas Pembayaran sees only the bills of their scope.",
+                "summary": "Bills",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "semester",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number": {
+                                                        "type": "string"
+                                                    },
+                                                    "student_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "nim": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "class_name": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "semester": {
+                                                        "type": "string"
+                                                    },
+                                                    "net_amount": {
+                                                        "type": "integer"
+                                                    },
+                                                    "paid_amount": {
+                                                        "type": "integer"
+                                                    },
+                                                    "outstanding": {
+                                                        "type": "integer"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "unpaid",
+                                                            "partial",
+                                                            "paid",
+                                                            "void"
+                                                        ]
+                                                    },
+                                                    "status_label": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Belum dibayar",
+                                                            "Dibayar sebagian",
+                                                            "Lunas",
+                                                            "Batal"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "number",
+                                                    "student_id",
+                                                    "nim",
+                                                    "name",
+                                                    "class_name",
+                                                    "semester",
+                                                    "net_amount",
+                                                    "paid_amount",
+                                                    "outstanding",
+                                                    "status",
+                                                    "status_label"
+                                                ]
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/bills/grid": {
+            "get": {
+                "operationId": "v1.finance.bills.grid",
+                "description": "One row per bill of a semester with a cell per instalment (paid, pending, open, done, none) up to the\nsemester's highest limit, and what is still owed from earlier semesters. Filters: `class`, `gender`\n(finance office), `search`.",
+                "summary": "Instalment grid (Rekap angsuran)",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "semester",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "class",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "gender",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "semester": {
+                                                    "type": "string"
+                                                },
+                                                "columns": {},
+                                                "rows": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "semester",
+                                                "columns",
+                                                "rows"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/bills/{bill}": {
+            "get": {
+                "operationId": "v1.finance.bills.show",
+                "description": "Lines and payments (with receipt links), what a new payment may be (`allowance`: open amount,\ninstalments used / allowed, minimum), and what this role may do.",
+                "summary": "A bill",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "description": "The bill ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "student": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "nim": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "nim",
+                                                        "name"
+                                                    ]
+                                                },
+                                                "max_installments": {
+                                                    "type": "integer"
+                                                },
+                                                "allowance": {
+                                                    "type": "string"
+                                                },
+                                                "default_cash_account_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "can": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "record_payment": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "void": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "change_installments": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "void_payment": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "record_payment",
+                                                        "void",
+                                                        "change_installments",
+                                                        "void_payment"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "student",
+                                                "max_installments",
+                                                "allowance",
+                                                "default_cash_account_id",
+                                                "can"
+                                            ],
+                                            "additionalProperties": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/bills/{bill}/payments": {
+            "post": {
+                "operationId": "v1.finance.bills.payments",
+                "description": "`amount`, `method` (cash or transfer), `paid_on`, `reference` (transfers), `proof` (multipart), and for the\nfinance office the `cash_account_id` it goes into. It waits for verification: cash is handed over, a\ntransfer is checked against the bank statement.",
+                "summary": "Record a payment",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "description": "The bill ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "method": {
+                                        "type": "string"
+                                    },
+                                    "paid_on": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "reference": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "proof": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream"
+                                    },
+                                    "cash_account_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "amount",
+                                    "method",
+                                    "paid_on"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "payment_id": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "unverified",
+                                                        "verified",
+                                                        "rejected",
+                                                        "void"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "payment_id",
+                                                "status"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/my-cash": {
+            "get": {
+                "operationId": "v1.finance.my-cash",
+                "description": "Cash payments I recorded that are not handed over yet, and my handovers (latest 15) with their status.",
+                "summary": "My cash to hand over",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "cash": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "handovers": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "cash",
+                                                "handovers"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/handovers": {
+            "post": {
+                "operationId": "v1.finance.handovers.store",
+                "description": "`payment_ids` (my unverified cash), `note`. The receiver is notified; a provisional slip prints on the web.",
+                "summary": "Hand cash over",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "payment_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "minItems": 1
+                                    },
+                                    "note": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "payment_ids"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "number": {
+                                                    "type": "string"
+                                                },
+                                                "total_amount": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "submitted",
+                                                        "verified",
+                                                        "partially_rejected",
+                                                        "rejected"
+                                                    ]
+                                                },
+                                                "status_label": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Menunggu Admin",
+                                                        "Terverifikasi",
+                                                        "Ditolak sebagian",
+                                                        "Ditolak"
+                                                    ]
+                                                },
+                                                "note": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "submitted_at": {
+                                                    "type": "string"
+                                                },
+                                                "reviewed_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "number",
+                                                "total_amount",
+                                                "status",
+                                                "status_label",
+                                                "note",
+                                                "submitted_at",
+                                                "reviewed_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/to-verify": {
+            "get": {
+                "operationId": "v1.finance.to-verify",
+                "description": "Handovers waiting to be counted and transfers waiting to be checked that this role verifies (the finance\noffice: from mahasantri, wali and the Petugas Pembayaran; Admin: from the finance office).",
+                "summary": "To verify",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "handovers": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "transfers": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "handovers",
+                                                "transfers"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/handovers/{handover}/complete": {
+            "post": {
+                "operationId": "v1.finance.handovers.complete",
+                "description": "Every payment is verified except those in `rejections` {payment id: reason} (money not received);\naccepted cash goes into `cash_account_id` (default: the cash account set as default).",
+                "summary": "Count a handover",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "handover",
+                        "in": "path",
+                        "required": true,
+                        "description": "The handover ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "rejections": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "cash_account_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/payments/{payment}/review": {
+            "post": {
+                "operationId": "v1.finance.payments.review",
+                "description": "`verify: true` (into `cash_account_id`, default the bank account set as default), or `false` with a\n`reason` the payer sees.",
+                "summary": "Verify or reject a transfer",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "payment",
+                        "in": "path",
+                        "required": true,
+                        "description": "The payment ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "verify": {
+                                        "type": "boolean"
+                                    },
+                                    "reason": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 500
+                                    },
+                                    "cash_account_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "verify"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/unverified": {
+            "get": {
+                "operationId": "v1.finance.unverified",
+                "description": "Every payment not verified yet, at which stage it waits (cash held, handover waiting, transfer waiting),\nwith whom and for how many days, and a summary per holder. `stage` filters.",
+                "summary": "Unverified payments",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "stage",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "cash_held",
+                                "handover_waiting",
+                                "transfer_waiting",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "summary": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string"
+                                                            },
+                                                            "stage": {
+                                                                "type": "string"
+                                                            },
+                                                            "holder": {
+                                                                "type": "string"
+                                                            },
+                                                            "count": {
+                                                                "type": "integer"
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer"
+                                                            },
+                                                            "days": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "key",
+                                                            "stage",
+                                                            "holder",
+                                                            "count",
+                                                            "amount",
+                                                            "days"
+                                                        ]
+                                                    }
+                                                },
+                                                "payments": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "summary",
+                                                "payments"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/unverified/remind": {
+            "post": {
+                "operationId": "v1.finance.unverified.remind",
+                "description": "`holder_key` from the summary; at most once a day per holder. Returns how many people were reminded.",
+                "summary": "Remind a holder",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "holder_key": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "holder_key"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "reminded": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "reminded"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/overview": {
+            "get": {
+                "operationId": "v1.finance.overview",
+                "description": "For a semester (`?semester=`, default the active one): billed, collected (verified), waiting for\nverification and still owed, per class, the ten largest arrears, and what waits to be verified.",
+                "summary": "Finance overview",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "semester",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "semester_id": {},
+                                                "billed": {
+                                                    "type": "integer"
+                                                },
+                                                "collected": {
+                                                    "type": "integer"
+                                                },
+                                                "pending": {
+                                                    "type": "integer"
+                                                },
+                                                "outstanding": {
+                                                    "type": "integer"
+                                                },
+                                                "counts": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "by_class": {
+                                                    "type": "string"
+                                                },
+                                                "largest_arrears": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "waiting": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "handovers": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "cash_not_handed_over": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "transfers": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "handovers",
+                                                        "cash_not_handed_over",
+                                                        "transfers"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "semester_id",
+                                                "billed",
+                                                "collected",
+                                                "pending",
+                                                "outstanding",
+                                                "counts",
+                                                "by_class",
+                                                "largest_arrears",
+                                                "waiting"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/semesters/{semester}/bills": {
+            "post": {
+                "operationId": "v1.finance.bills.generate",
+                "description": "Without `apply: true` a preview: how many mahasantri are billed, the total, and how many have no fee. With\nit, one bill per placed mahasantri (`due_on` optional); existing bills are kept.",
+                "summary": "Generate the semester's bills",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "semester",
+                        "in": "path",
+                        "required": true,
+                        "description": "The semester ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "apply": {
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
+                                    },
+                                    "due_on": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "created": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "created"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "students": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "net": {
+                                                            "type": "integer"
+                                                        },
+                                                        "net_label": {
+                                                            "type": "string"
+                                                        },
+                                                        "empty": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "students",
+                                                        "net",
+                                                        "net_label",
+                                                        "empty"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "data"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/bills/{bill}/void": {
+            "post": {
+                "operationId": "v1.finance.bills.void",
+                "description": "Only a bill without payments, with a `reason`; generate it again afterwards.",
+                "summary": "Void a bill (finance office)",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "description": "The bill ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/bills/{bill}/installments": {
+            "put": {
+                "operationId": "v1.finance.bills.installments",
+                "description": "`max_installments` (up to 5) with a `reason`.",
+                "summary": "Change the instalment limit (Superadmin)",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "description": "The bill ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "max_installments": {
+                                        "type": "integer"
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "max_installments",
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/payments/{payment}/void": {
+            "post": {
+                "operationId": "v1.finance.payments.void",
+                "description": "With a `reason`; the bill's paid amount and the cash book follow.",
+                "summary": "Void a payment (Superadmin)",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "payment",
+                        "in": "path",
+                        "required": true,
+                        "description": "The payment ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/fees": {
+            "get": {
+                "operationId": "v1.finance.fees",
+                "description": "All fee types, and the rates of an academic year (`?year=`, default the latest) with their class or entry\nyear when they apply to only some mahasantri.",
+                "summary": "Fee types and rates",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "academic_year_id": {},
+                                                "fee_types": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "rates": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "academic_year_id",
+                                                "fee_types",
+                                                "rates"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/fee-types": {
+            "post": {
+                "operationId": "v1.finance.fee-types.save",
+                "description": "`name`, `frequency` (per_semester, monthly, once), `is_active`. Bills already made keep their amounts.",
+                "summary": "Add or change a fee type",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "frequency": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "frequency"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/fee-rates": {
+            "post": {
+                "operationId": "v1.finance.fee-rates.save",
+                "description": "`academic_year_id`, `fee_type_id`, `amount`, and optionally `class_group_id` or `entry_year` for a rate\nthat applies to only those mahasantri. It applies to bills made from now on.",
+                "summary": "Add or change a rate",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "academic_year_id": {
+                                        "type": "integer"
+                                    },
+                                    "fee_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "class_group_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "entry_year": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "academic_year_id",
+                                    "fee_type_id",
+                                    "amount"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/fee-rates/{rate}": {
+            "delete": {
+                "operationId": "v1.finance.fee-rates.delete",
+                "summary": "Remove a rate",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "rate",
+                        "in": "path",
+                        "required": true,
+                        "description": "The rate ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/fee-rates/copy": {
+            "post": {
+                "operationId": "v1.finance.fee-rates.copy",
+                "description": "From `from_year_id` to `to_year_id`; rates that already exist there are kept.",
+                "summary": "Copy rates to the next year",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "from_year_id": {
+                                        "type": "integer"
+                                    },
+                                    "to_year_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "from_year_id",
+                                    "to_year_id"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "copied": {
+                                                    "type": "integer"
+                                                },
+                                                "skipped": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "copied",
+                                                "skipped"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/fees/add-to-bills": {
+            "post": {
+                "operationId": "v1.finance.fees.add-to-bills",
+                "description": "For a fee added after the bills of `semester_id` were made. Without `apply: true` it only previews what\neach bill would get; with it, the bills get the line (mahasantri and wali are notified).",
+                "summary": "Add a fee to existing bills",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "fee_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "semester_id": {
+                                        "type": "integer"
+                                    },
+                                    "apply": {
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "fee_type_id",
+                                    "semester_id"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "changed": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "changed"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "preview": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "entries": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "skipped": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "has_fee": {
+                                                                            "type": "integer",
+                                                                            "const": 0
+                                                                        },
+                                                                        "no_rate": {
+                                                                            "type": "integer",
+                                                                            "const": 0
+                                                                        },
+                                                                        "once": {
+                                                                            "type": "integer",
+                                                                            "const": 0
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "has_fee",
+                                                                        "no_rate",
+                                                                        "once"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "entries",
+                                                                "skipped"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "preview"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "data"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/scholarships": {
+            "get": {
+                "operationId": "v1.finance.scholarships",
+                "description": "The programmes of an academic year (`?year=`), each with how many receive it; `?scholarship=` also\nlists its recipients.",
+                "summary": "Scholarships",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "scholarship",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "academic_year_id": {},
+                                                "scholarships": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "awards": {
+                                                    "type": [
+                                                        "array",
+                                                        "null"
+                                                    ],
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "academic_year_id",
+                                                "scholarships",
+                                                "awards"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.finance.scholarships.save",
+                "description": "`academic_year_id`, `name`, `funding_source`, `type` (full, percent, fixed), `value`, `quota`.",
+                "summary": "Add or change a scholarship",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "academic_year_id": {
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "funding_source": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "quota": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_active": {
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "academic_year_id",
+                                    "name",
+                                    "funding_source",
+                                    "type"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/scholarships/candidates": {
+            "get": {
+                "operationId": "v1.finance.scholarships.candidates",
+                "description": "Active mahasantri matching `search` (NIM or name, 2+ characters).",
+                "summary": "Mahasantri to award",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/scholarships/{scholarship}/awards": {
+            "post": {
+                "operationId": "v1.finance.scholarships.award",
+                "description": "To `student_id` for `semester_id`; their bill of that semester gets the discount (or the next bill made).",
+                "summary": "Award a scholarship",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "scholarship",
+                        "in": "path",
+                        "required": true,
+                        "description": "The scholarship ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "student_id": {
+                                        "type": "integer"
+                                    },
+                                    "semester_id": {
+                                        "type": "integer"
+                                    },
+                                    "note": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "student_id",
+                                    "semester_id"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/scholarship-awards/{award}": {
+            "delete": {
+                "operationId": "v1.finance.scholarships.revoke",
+                "description": "Only while its bill has no payments.",
+                "summary": "Revoke an award",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "award",
+                        "in": "path",
+                        "required": true,
+                        "description": "The award ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/accounts": {
+            "get": {
+                "operationId": "v1.finance.cash.accounts",
+                "description": "Accounts with their balance today, the default cash and bank accounts, income and expense categories, the\nmonth the books are closed through, and verified payments not booked to an account yet.",
+                "summary": "Accounts and categories",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "accounts": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "default_cash_account_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "default_bank_account_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "categories": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "closed_through": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "unbooked": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "accounts",
+                                                "default_cash_account_id",
+                                                "default_bank_account_id",
+                                                "categories",
+                                                "closed_through",
+                                                "unbooked"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.finance.cash.accounts.save",
+                "description": "`name`, `type` (cash or bank), `account_number`, `opening_balance`, `opening_date`, `is_active`.",
+                "summary": "Add or change an account",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "account_number": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "opening_balance": {
+                                        "type": "integer"
+                                    },
+                                    "opening_date": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "is_active": {
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "type",
+                                    "opening_balance",
+                                    "opening_date"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/defaults": {
+            "put": {
+                "operationId": "v1.finance.cash.defaults",
+                "description": "Where verified cash and transfers go when no account is chosen.",
+                "summary": "Set the default accounts",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "cash_account_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "bank_account_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/categories": {
+            "post": {
+                "operationId": "v1.finance.cash.categories.save",
+                "description": "`kind` (income or expense), `name`, `is_active`.",
+                "summary": "Add or change a category",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "kind": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense"
+                                        ]
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "kind",
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/assign-unbooked": {
+            "post": {
+                "operationId": "v1.finance.cash.assign",
+                "description": "Verified payments of `method` (cash or transfer) without an account go into `cash_account_id`.",
+                "summary": "Book verified payments to an account",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "method": {
+                                        "$ref": "#/components/schemas/PaymentMethod"
+                                    },
+                                    "cash_account_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "method",
+                                    "cash_account_id"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "booked": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "booked"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/accounts/{account}/ledger": {
+            "get": {
+                "operationId": "v1.finance.cash.ledger",
+                "description": "One account's entries in a `month` (YYYY-MM, default this month): opening and closing balance, money in\nand out, and each row with its running balance.",
+                "summary": "Ledger",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "required": true,
+                        "description": "The account ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "start": {
+                                                    "type": "integer"
+                                                },
+                                                "end": {
+                                                    "type": "integer"
+                                                },
+                                                "in": {
+                                                    "type": "integer"
+                                                },
+                                                "out": {
+                                                    "type": "integer"
+                                                },
+                                                "rows": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "start",
+                                                "end",
+                                                "in",
+                                                "out",
+                                                "rows"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/summary": {
+            "get": {
+                "operationId": "v1.finance.cash.summary",
+                "description": "From `from` to `to` (YYYY-MM): tuition, other income and expenses per category, and a link to the cash\nreport PDF (with the Bendahara's signature).",
+                "summary": "Income and expense summary",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "tuition": {
+                                                    "type": "integer"
+                                                },
+                                                "income": {
+                                                    "type": "string"
+                                                },
+                                                "expense": {
+                                                    "type": "string"
+                                                },
+                                                "total_in": {
+                                                    "type": "integer"
+                                                },
+                                                "total_out": {
+                                                    "type": "integer"
+                                                },
+                                                "unassigned": {
+                                                    "type": "integer",
+                                                    "description": "Verified tuition not booked to any account yet (paid before the cash book)."
+                                                },
+                                                "report_url": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "tuition",
+                                                "income",
+                                                "expense",
+                                                "total_in",
+                                                "total_out",
+                                                "unassigned",
+                                                "report_url"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/entries": {
+            "post": {
+                "operationId": "v1.finance.cash.entries.store",
+                "description": "Multipart: `type` (income or expense), `cash_account_id`, `entry_date`, `amount`, `cash_category_id`,\n`party`, `description`, `proof` (receipt photo). Numbered automatically; not in a closed month.",
+                "summary": "Record income or an expense",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "cash_account_id": {
+                                        "type": "integer"
+                                    },
+                                    "entry_date": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "cash_category_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "party": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "proof": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream"
+                                    }
+                                },
+                                "required": [
+                                    "type",
+                                    "cash_account_id",
+                                    "entry_date",
+                                    "amount",
+                                    "description"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "number": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "number"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/transfers": {
+            "post": {
+                "operationId": "v1.finance.cash.transfers",
+                "description": "`from_account_id`, `to_account_id`, `entry_date`, `amount`, `description` (e.g. depositing cash in the bank).",
+                "summary": "Move money between accounts",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "from_account_id": {
+                                        "type": "integer"
+                                    },
+                                    "to_account_id": {
+                                        "type": "integer"
+                                    },
+                                    "entry_date": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "from_account_id",
+                                    "to_account_id",
+                                    "entry_date",
+                                    "amount",
+                                    "description"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "entry_ids": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "entry_ids"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/entries/{entry}/void": {
+            "post": {
+                "operationId": "v1.finance.cash.entries.void",
+                "description": "With a `reason`; it stays in the ledger, struck through. Not in a closed month.",
+                "summary": "Void an entry",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "entry",
+                        "in": "path",
+                        "required": true,
+                        "description": "The entry ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/finance/cash/close": {
+            "post": {
+                "operationId": "v1.finance.cash.close",
+                "description": "Through `month` (YYYY-MM): entries dated in it or before can no longer be added or voided.",
+                "summary": "Close the books",
+                "tags": [
+                    "Keuangan"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "month": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "month"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "closed_through": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "closed_through"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -23495,6 +27425,14 @@
                     "password_confirmation"
                 ],
                 "title": "PasswordRequest"
+            },
+            "PaymentMethod": {
+                "type": "string",
+                "enum": [
+                    "cash",
+                    "transfer"
+                ],
+                "title": "PaymentMethod"
             },
             "ProfileRequest": {
                 "type": "object",

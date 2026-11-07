@@ -137,6 +137,8 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Tanya Hukum: draft, ask for approval, two other muhadhir approve (the drafter cannot); the answer is sent to the CMS
 - [ ] Admin: add an academic year; add a class kuliah that clashes with another class of the same muhadhir and answer it as a joint class; place a mahasantri; schedule an exam, set rooms, seat and publish; add a mahasantri (temporary password shown once); return a document with a note; assign a supervisor; answer a letter request with a letter and open its PDF; record an incoming letter with a scan
 - [ ] Pemantau: monitoring dashboard and teaching documents read; unlocking grades refused; record an activity; manage a bimbingan group
+- [ ] Keuangan: add a fee rate (a duplicate is refused), preview and generate bills, award a scholarship; record cash and hand it over (the Admin counts it, not Keuangan); verify one transfer and reject another with a reason; record an expense with a receipt and a deposit to the bank; the ledger and the cash report PDF; Rekap angsuran
+- [ ] Petugas Pembayaran: only putri bills; record cash and hand it over
 - [ ] Muhadhir: classes; add a meeting with the journal and take attendance; share a material with a file; create an assignment, grade a submission and copy it to the grades; build a quiz with an essay, publish it and grade the essay; set components, enter scores, finalise; upload the RPS and open the templates and journal PDF; answer in the class forum and pin the thread; supervisees and their KHS (not bills)
 
 ## Sign-off

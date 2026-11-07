@@ -3,7 +3,7 @@
 The API lets a mobile app do what each role does on the web. It is generated from the code: the full list
 of endpoints, fields and errors is at **`/docs/api`** on the server (Superadmin, or anyone when
 `API_DOCS_PUBLIC=true`) and in [`docs/api/openapi.json`](api/openapi.json) (OpenAPI 3.1, exported with
-`php artisan scramble:export` after every API change). This file explains how the pieces fit together and
+`php -d memory_limit=1G artisan scramble:export` after every API change). This file explains how the pieces fit together and
 which screens of the app use which endpoints.
 
 Decisions: v6 D37–D41 in [req/v6-plan.md](req/v6-plan.md).
@@ -170,8 +170,27 @@ Admin answer 403). Staff also read any mahasantri's records under `/students/{id
 | Kritik & saran | `GET /admin/feedback`, `PUT /admin/feedback/{id}` (`reply`, `status`) |
 | Evaluasi muhadhir | `GET /admin/evaluations?semester=` (results), `GET`/`PUT /admin/semesters/{id}/evaluation`, `POST …/evaluation/prepare`, `POST …/evaluation/statements` |
 
-Web only: Excel imports, previous-year data (maintenance mode) and changing the grade scale; payment
-verification comes with finance (Step 10).
+Web only: Excel imports, previous-year data (maintenance mode) and changing the grade scale.
+
+### Keuangan and Petugas Pembayaran (Step 10)
+
+Under `/finance`. The finance office (Admin Keuangan) and Superadmin reach everything; the Petugas
+Pembayaran the bills of their gender and their own cash; Admin the verification queue (for what the finance
+office recorded) and the unverified-payments tracker.
+
+| Screen | Endpoints |
+| --- | --- |
+| Ringkasan | `GET /finance/overview?semester=` (billed, collected, pending, owed, per class, largest arrears, waiting) |
+| Tagihan | `GET /finance/bills` (`semester`, 0 = all; `status`, `outstanding`; `search`), `GET /finance/bills/grid` (Rekap angsuran: `class`, `gender`, `search`), `GET /finance/bills/{id}` (lines, payments, `allowance`, `can`), `POST /finance/bills/{id}/payments` (multipart `amount`, `method`, `paid_on`, `reference`, `proof`, `cash_account_id`) |
+| Buat tagihan, koreksi | `POST /finance/semesters/{id}/bills` (preview; `apply: true` makes them), `POST /finance/bills/{id}/void`, `PUT /finance/bills/{id}/installments` (Superadmin), `POST /finance/payments/{id}/void` (Superadmin) |
+| Setoran | `GET /finance/my-cash` (my cash not handed over, my handovers), `POST /finance/handovers` (`payment_ids`, `note`) |
+| Verifikasi | `GET /finance/to-verify` (handovers and transfers this role checks), `POST /finance/handovers/{id}/complete` (`rejections` {payment id: reason}, `cash_account_id`), `POST /finance/payments/{id}/review` (`verify`, `reason`, `cash_account_id`) |
+| Belum diverifikasi | `GET /finance/unverified?stage=`, `POST /finance/unverified/remind` (`holder_key`) |
+| Biaya | `GET /finance/fees?year=`, `POST /finance/fee-types`, `POST /finance/fee-rates`, `DELETE /finance/fee-rates/{id}`, `POST /finance/fee-rates/copy`, `POST /finance/fees/add-to-bills` (preview; `apply: true`) |
+| Beasiswa | `GET /finance/scholarships?year=&scholarship=`, `POST /finance/scholarships`, `GET /finance/scholarships/candidates?search=`, `POST /finance/scholarships/{id}/awards`, `DELETE /finance/scholarship-awards/{id}` |
+| Buku kas | `GET`/`POST /finance/cash/accounts`, `PUT /finance/cash/defaults`, `POST /finance/cash/categories`, `POST /finance/cash/assign-unbooked`, `GET /finance/cash/accounts/{id}/ledger?month=`, `GET /finance/cash/summary?from=&to=` (with `report_url`, the cash report PDF), `POST /finance/cash/entries` (multipart, receipt `proof`), `POST /finance/cash/transfers`, `POST /finance/cash/entries/{id}/void`, `POST /finance/cash/close` (`month`) |
+
+Web only: importing previous-year finance data (maintenance mode) and printing slips from the page.
 
 ### Per role
 
@@ -183,7 +202,7 @@ Added step by step (v6 plan):
 | Muhadhir | 7 | Done: see above |
 | Discussions | 8 | Done: see above |
 | Admin, pemantau | 9 | Done: see above |
-| Keuangan, petugas | 10 | Tagihan, pembayaran, setoran, transfer, buku kas, rekap angsuran |
+| Keuangan, petugas | 10 | Done: see above |
 | Superadmin | 11 | Pengguna, pengaturan, identitas dan tampilan, tanda tangan, jenis surat, log audit |
 
 Not in the API (D41): maintenance mode, backups and the CMS page (web only).

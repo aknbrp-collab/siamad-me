@@ -157,7 +157,7 @@ are recorded as decisions D33–D41.
   teaching documents review, monitor dashboard, activity log, bimbingan groups, LPPPK moderation,
   feedback and evaluation results.
 
-### Step 10 — API: finance and payment collector (large)
+### Step 10 — API: finance and payment collector (large) — done 2026-11-08
 
 - Fees and rates, scholarships, bills (generate, add a fee, void), payments (record, verify, reject,
   handovers, transfers), cash book and accounts, the bills grid, unverified payments, reports.

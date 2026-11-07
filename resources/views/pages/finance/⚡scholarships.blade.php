@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Finance\ManageFees;
 use App\Actions\Finance\ManageScholarshipAwards;
 use App\Enums\ScholarshipType;
 use App\Enums\StudentStatus;

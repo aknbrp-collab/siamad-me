@@ -18,6 +18,10 @@ use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\DownloadController;
 use App\Http\Controllers\Api\V1\FeedbackController;
 use App\Http\Controllers\Api\V1\FileController;
+use App\Http\Controllers\Api\V1\Finance\BillController as FinanceBillController;
+use App\Http\Controllers\Api\V1\Finance\CashBookController;
+use App\Http\Controllers\Api\V1\Finance\FeeController;
+use App\Http\Controllers\Api\V1\Finance\PaymentController;
 use App\Http\Controllers\Api\V1\ForumController;
 use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\NotificationController;
@@ -279,6 +283,59 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
                 Route::put('semesters/{semester}/evaluation', [CommunityController::class, 'saveEvaluationPeriod'])->name('evaluations.period');
                 Route::post('semesters/{semester}/evaluation/prepare', [CommunityController::class, 'prepareStatements'])->name('evaluations.prepare');
                 Route::post('semesters/{semester}/evaluation/statements', [CommunityController::class, 'saveStatement'])->name('evaluations.statements');
+            });
+        });
+
+        // Finance (Step 10): the finance office and Superadmin; the Petugas Pembayaran on bills and their own
+        // cash; Admin on verifying what the finance office recorded.
+        Route::prefix('finance')->name('finance.')->group(function () {
+            Route::middleware('role:admin_payment,superadmin,payment_collector')->group(function () {
+                Route::get('bills', [FinanceBillController::class, 'index'])->name('bills');
+                Route::get('bills/grid', [FinanceBillController::class, 'grid'])->name('bills.grid');
+                Route::get('bills/{bill}', [FinanceBillController::class, 'show'])->name('bills.show');
+                Route::post('bills/{bill}/payments', [FinanceBillController::class, 'recordPayment'])->name('bills.payments');
+                Route::get('my-cash', [PaymentController::class, 'myCash'])->name('my-cash');
+                Route::post('handovers', [PaymentController::class, 'handOver'])->name('handovers.store');
+            });
+
+            Route::middleware('role:admin_payment,admin,superadmin')->group(function () {
+                Route::get('to-verify', [PaymentController::class, 'queue'])->name('to-verify');
+                Route::post('handovers/{handover}/complete', [PaymentController::class, 'completeHandover'])->name('handovers.complete');
+                Route::post('payments/{payment}/review', [PaymentController::class, 'reviewTransfer'])->name('payments.review');
+                Route::get('unverified', [PaymentController::class, 'pending'])->name('unverified');
+                Route::post('unverified/remind', [PaymentController::class, 'remind'])->name('unverified.remind');
+            });
+
+            Route::middleware('role:admin_payment,superadmin')->group(function () {
+                Route::get('overview', [CashBookController::class, 'overview'])->name('overview');
+                Route::post('semesters/{semester}/bills', [FinanceBillController::class, 'generate'])->name('bills.generate');
+                Route::post('bills/{bill}/void', [FinanceBillController::class, 'void'])->name('bills.void');
+                Route::put('bills/{bill}/installments', [FinanceBillController::class, 'installments'])->name('bills.installments');
+                Route::post('payments/{payment}/void', [FinanceBillController::class, 'voidPayment'])->name('payments.void');
+
+                Route::get('fees', [FeeController::class, 'index'])->name('fees');
+                Route::post('fee-types', [FeeController::class, 'saveFeeType'])->name('fee-types.save');
+                Route::post('fee-rates', [FeeController::class, 'saveRate'])->name('fee-rates.save');
+                Route::delete('fee-rates/{rate}', [FeeController::class, 'deleteRate'])->name('fee-rates.delete');
+                Route::post('fee-rates/copy', [FeeController::class, 'copyRates'])->name('fee-rates.copy');
+                Route::post('fees/add-to-bills', [FeeController::class, 'addToBills'])->name('fees.add-to-bills');
+                Route::get('scholarships', [FeeController::class, 'scholarships'])->name('scholarships');
+                Route::post('scholarships', [FeeController::class, 'saveScholarship'])->name('scholarships.save');
+                Route::get('scholarships/candidates', [FeeController::class, 'candidates'])->name('scholarships.candidates');
+                Route::post('scholarships/{scholarship}/awards', [FeeController::class, 'award'])->name('scholarships.award');
+                Route::delete('scholarship-awards/{award}', [FeeController::class, 'revoke'])->name('scholarships.revoke');
+
+                Route::get('cash/accounts', [CashBookController::class, 'accounts'])->name('cash.accounts');
+                Route::post('cash/accounts', [CashBookController::class, 'saveAccount'])->name('cash.accounts.save');
+                Route::put('cash/defaults', [CashBookController::class, 'defaults'])->name('cash.defaults');
+                Route::post('cash/categories', [CashBookController::class, 'saveCategory'])->name('cash.categories.save');
+                Route::post('cash/assign-unbooked', [CashBookController::class, 'assignUnbooked'])->name('cash.assign');
+                Route::get('cash/accounts/{account}/ledger', [CashBookController::class, 'ledger'])->name('cash.ledger');
+                Route::get('cash/summary', [CashBookController::class, 'summary'])->name('cash.summary');
+                Route::post('cash/entries', [CashBookController::class, 'record'])->name('cash.entries.store');
+                Route::post('cash/transfers', [CashBookController::class, 'transfer'])->name('cash.transfers');
+                Route::post('cash/entries/{entry}/void', [CashBookController::class, 'void'])->name('cash.entries.void');
+                Route::post('cash/close', [CashBookController::class, 'close'])->name('cash.close');
             });
         });
 

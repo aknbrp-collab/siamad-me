@@ -1258,3 +1258,16 @@ v6 Step 9 (2026-11-08) — API for academic staff (D37):
 - Moved out of pages so web and API share them: `ManageReferenceData` (study programs, subjects, rooms,
   removing a class) and `MonitorReport` (the monitor dashboard's figures).
 - Web only: imports, previous-year data, grade scale editing; finance comes with Step 10.
+
+v6 Step 10 (2026-11-08) — API for finance (D37):
+- `/finance/*`: bills (list within `BillAccess::scope`, the `InstallmentGrid`, one bill with the
+  `RecordPayment::allowance` and a `can` block), recording payments (source from the role), generating
+  (`GenerateBills` preview/handle), voiding (`AdjustBill`, finance office), instalment limits and voiding
+  payments (Superadmin); my cash and handovers (`ReviewPayments::handOver`); a verification queue filtered
+  by the active role (the finance office: payer and collector sources; Admin: staff source; Superadmin:
+  all) with `completeHandover`, `verifyTransfer`, `rejectTransfer` still checking `mayReceive` /
+  `mayReviewTransfer`; the unverified tracker and reminders (`PendingPayments`); fees, rates, adding a
+  fee to bills (`AddFeeToBills`), copying rates, scholarships and awards; the cash book (`ManageCashBook`,
+  `CashBook` ledger, summary, balances) and the finance overview.
+- `ManageFees` now holds the fee type, rate and scholarship saves the pages did inline.
+- Downloads add `cash-report` (`from`/`to` months; a new `month` parameter type in `DownloadController`).

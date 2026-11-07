@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Validation\ValidationException;
+use App\Actions\Finance\ManageFees;
 use App\Actions\Finance\AddFeeToBills;
 use App\Actions\Finance\CopyFeeRates;
 use App\Enums\FeeFrequency;
@@ -171,7 +173,7 @@ new #[Title('Fees')] class extends Component {
             'feeActive' => ['boolean'],
         ]);
 
-        FeeType::query()->updateOrCreate(['id' => $this->feeTypeId], [
+        app(ManageFees::class)->saveFeeType($this->feeTypeId ? FeeType::query()->findOrFail($this->feeTypeId) : null, [
             'name' => $data['feeName'],
             'frequency' => $data['frequency'],
             'is_active' => $data['feeActive'],
@@ -213,27 +215,19 @@ new #[Title('Fees')] class extends Component {
             'rateAmount' => ['required', 'integer', 'min:0', 'max:1000000000'],
         ]);
 
-        $duplicate = FeeRate::query()
-            ->where('academic_year_id', $data['academicYearId'])
-            ->where('fee_type_id', $data['rateFeeTypeId'])
-            ->where('class_group_id', $data['rateClassGroupId'])
-            ->where('entry_year', $data['rateEntryYear'])
-            ->when($this->rateId, fn ($query) => $query->whereKeyNot($this->rateId))
-            ->exists();
-
-        if ($duplicate) {
-            $this->addError('rateAmount', __('A rate for this fee, class and entry year already exists in this academic year.'));
+        try {
+            app(ManageFees::class)->saveRate($this->rateId ? FeeRate::query()->findOrFail($this->rateId) : null, [
+                'academic_year_id' => $data['academicYearId'],
+                'fee_type_id' => $data['rateFeeTypeId'],
+                'class_group_id' => $data['rateClassGroupId'],
+                'entry_year' => $data['rateEntryYear'],
+                'amount' => $data['rateAmount'],
+            ]);
+        } catch (ValidationException $exception) {
+            $this->addError('rateAmount', (string) collect($exception->errors())->flatten()->first());
 
             return;
         }
-
-        FeeRate::query()->updateOrCreate(['id' => $this->rateId], [
-            'academic_year_id' => $data['academicYearId'],
-            'fee_type_id' => $data['rateFeeTypeId'],
-            'class_group_id' => $data['rateClassGroupId'],
-            'entry_year' => $data['rateEntryYear'],
-            'amount' => $data['rateAmount'],
-        ]);
 
         Flux::modal('rate-form')->close();
         unset($this->rates);
@@ -242,7 +236,7 @@ new #[Title('Fees')] class extends Component {
 
     public function deleteRate(int $id): void
     {
-        FeeRate::query()->findOrFail($id)->delete();
+        app(ManageFees::class)->deleteRate(FeeRate::query()->findOrFail($id));
 
         unset($this->rates);
         Flux::toast(variant: 'success', text: __('Rate removed. Existing bills keep their amounts.'));

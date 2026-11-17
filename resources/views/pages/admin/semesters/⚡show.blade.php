@@ -3,8 +3,8 @@
 use App\Actions\Enrollment\ManageClassEnrollments;
 use App\Actions\Enrollment\ManageCourseOfferings;
 use App\Enums\SemesterTerm;
-use App\Enums\StudentStatus;
 use App\Enums\TeacherStatus;
+use App\Livewire\PageWithStudentPicker;
 use App\Models\ClassEnrollment;
 use App\Models\ClassGroup;
 use App\Models\CourseOffering;
@@ -19,9 +19,8 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 
-new #[Title('Semester')] class extends Component {
+new #[Title('Semester')] class extends PageWithStudentPicker {
     public Semester $semester;
 
     #[Url]
@@ -30,7 +29,6 @@ new #[Title('Semester')] class extends Component {
     #[Url(as: 'class')]
     public ?int $selectedClassId = null;
 
-    public string $studentSearch = '';
 
     public ?int $copyFromId = null;
 
@@ -109,30 +107,27 @@ new #[Title('Semester')] class extends Component {
     }
 
     /**
-     * Active students matching the search, with their class this semester (if any).
+     * Active students to place, all of them until filtered (v7 D43), with their class this semester (if any).
      *
      * @return Collection<int, Student>
      */
     #[Computed]
     public function candidates(): Collection
     {
-        if (mb_strlen(trim($this->studentSearch)) < 2) {
-            return new Collection;
-        }
+        return $this->pickStudents();
+    }
 
-        $term = '%'.mb_strtolower(trim($this->studentSearch)).'%';
+    protected function pickerSemester(): ?Semester
+    {
+        return $this->semester;
+    }
 
-        return Student::query()
-            ->with(['user', 'classEnrollments' => fn ($query) => $query->where('semester_id', $this->semester->id)])
-            ->where('status', StudentStatus::Active)
-            // Putra classes only list putra, putri classes only putri.
-            ->when($this->selectedClass?->gender, fn (Builder $query, $gender) => $query->where('gender', $gender))
-            ->where(fn (Builder $query) => $query
-                ->whereRaw('lower(nim) like ?', [$term])
-                ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
-            ->orderBy('nim')
-            ->limit(15)
-            ->get();
+    /**
+     * Putra classes only list putra, putri classes only putri.
+     */
+    protected function pickerFixedGender(): ?string
+    {
+        return $this->selectedClass?->gender?->value;
     }
 
     /**
@@ -218,7 +213,8 @@ new #[Title('Semester')] class extends Component {
     public function selectClass(int $classGroupId): void
     {
         $this->selectedClassId = $classGroupId;
-        $this->studentSearch = '';
+        $this->resetStudentPicker();
+        unset($this->pickerClasses);
     }
 
     public function enroll(int $studentId, ManageClassEnrollments $manage): void
@@ -488,14 +484,10 @@ new #[Title('Semester')] class extends Component {
                     @endif
 
                     @if (! $this->locked && $this->selectedClass->gender !== null)
-                        <flux:input
-                            wire:model.live.debounce.300ms="studentSearch"
-                            icon="magnifying-glass"
-                            :placeholder="__('Add mahasantri: type a NIM or name…')"
-                            class="mb-2"
-                        />
+                        <flux:heading class="mb-2">{{ __('Add mahasantri') }}</flux:heading>
+                        <x-student-picker.filters :classes="$this->pickerClasses" :gender="false" no-class class="mb-2" />
                         @if ($this->candidates->isNotEmpty())
-                            <div class="mb-6 divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700">
+                            <div class="mb-1 max-h-96 divide-y divide-zinc-200 overflow-y-auto rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700" data-test="candidates">
                                 @foreach ($this->candidates as $candidate)
                                     @php($current = $candidate->classEnrollments->first())
                                     <div wire:key="candidate-{{ $candidate->id }}" class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
@@ -519,9 +511,8 @@ new #[Title('Semester')] class extends Component {
                                     </div>
                                 @endforeach
                             </div>
-                        @elseif (mb_strlen(trim($studentSearch)) >= 2)
-                            <flux:text class="mb-6 text-sm">{{ __('No active mahasantri found.') }}</flux:text>
                         @endif
+                        <x-student-picker.more :shown="$this->candidates->count()" :total="$this->pickerTotal" class="mb-6" />
                     @endif
 
                     <div class="overflow-x-auto">

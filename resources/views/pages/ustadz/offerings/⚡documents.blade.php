@@ -54,7 +54,7 @@ new #[Title('Teaching documents')] class extends Component {
             ->all();
     }
 
-    public function upload(string $kind, ManageTeachingDocuments $documents): void
+    public function uploadFile(string $kind, ManageTeachingDocuments $documents): void
     {
         $this->resetErrorBag();
         $type = TeachingDocumentKind::from($kind);
@@ -122,7 +122,7 @@ new #[Title('Teaching documents')] class extends Component {
                     <div class="space-y-2">
                         <input type="file" wire:model="files.{{ $kind->value }}" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="block w-full text-sm" data-test="file-{{ $kind->value }}">
                         <flux:error name="files.{{ $kind->value }}" />
-                        <flux:button size="sm" variant="primary" icon="arrow-up-tray" wire:click="upload('{{ $kind->value }}')" :disabled="! ($files[$kind->value] ?? null)" data-test="upload-{{ $kind->value }}">
+                        <flux:button size="sm" variant="primary" icon="arrow-up-tray" wire:click="uploadFile('{{ $kind->value }}')" :disabled="! ($files[$kind->value] ?? null)" data-test="upload-{{ $kind->value }}">
                             {{ $latest ? __('Upload a new version') : __('Upload') }}
                         </flux:button>
                     </div>

@@ -3,14 +3,15 @@
 const meta = document.querySelector('meta[name="upload-max-kb"]');
 
 if (meta) {
-    const maxBytes = Number(meta.content) * 1024;
-
     window.addEventListener('change', (event) => {
         const input = event.target;
 
         if (!(input instanceof HTMLInputElement) || input.type !== 'file') {
             return;
         }
+
+        // data-max-kb on the input: a larger limit for that field only (a backup to restore).
+        const maxBytes = Number(input.dataset.maxKb || meta.content) * 1024;
 
         if (!Array.from(input.files ?? []).some((file) => file.size > maxBytes)) {
             return;
@@ -26,4 +27,14 @@ if (meta) {
             window.alert(meta.dataset.message);
         }
     }, true);
+}
+
+// A file that did not reach the server (the network, or PHP refusing it: v7 D42) used to leave the
+// screen unchanged; say so, also on screens whose error line sits elsewhere.
+if (meta) {
+    window.addEventListener('livewire-upload-error', () => {
+        if (window.Flux?.toast) {
+            window.Flux.toast({ variant: 'danger', text: meta.dataset.failed });
+        }
+    });
 }

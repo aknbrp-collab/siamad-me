@@ -6,7 +6,6 @@ use App\Actions\Finance\AddFeeToBills;
 use App\Actions\Finance\CopyFeeRates;
 use App\Actions\Finance\ManageFees;
 use App\Actions\Finance\ManageScholarshipAwards;
-use App\Enums\StudentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use App\Models\FeeRate;
@@ -14,9 +13,10 @@ use App\Models\FeeType;
 use App\Models\Scholarship;
 use App\Models\ScholarshipAward;
 use App\Models\Semester;
+use App\Models\Setting;
 use App\Models\Student;
+use App\Support\StudentPicker;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -45,6 +45,10 @@ class FeeController extends Controller
             'fee_types' => FeeType::query()->orderBy('name')->get()->map(fn (FeeType $type) => [
                 ...$type->only(['id', 'name', 'is_active']),
                 'frequency' => $type->frequency->value,
+                /** How many payments the fee may be paid in (after-review D55). */
+                'max_installments' => $type->max_installments,
+                /** Months billed a semester, for a monthly fee (D56). */
+                'months_per_semester' => $type->months_per_semester,
             ])->values()->all(),
             'rates' => FeeRate::query()->with(['feeType', 'classGroup'])->where('academic_year_id', $yearId)->get()
                 ->sortBy(fn (FeeRate $rate) => $rate->feeType->name.'|'.$rate->class_group_id.'|'.$rate->entry_year)->values()
@@ -59,13 +63,19 @@ class FeeController extends Controller
     /**
      * Add or change a fee type.
      *
-     * `name`, `frequency` (per_semester, monthly, once), `is_active`. Bills already made keep their amounts.
+     * `name`, `frequency` (per_semester, monthly, once), `max_installments` (1–12), `months_per_semester`
+     * (1–6, for a monthly fee), `is_active`. Bills already made keep their amounts, instalment limits and months.
      */
     public function saveFeeType(Request $request, ManageFees $fees): JsonResponse
     {
-        $request->validate(['id' => ['nullable', 'integer'], 'name' => ['required', 'string'], 'frequency' => ['required', 'string'], 'is_active' => ['nullable', 'boolean']]);
-        $type = $fees->saveFeeType($request->filled('id') ? FeeType::query()->findOrFail($request->integer('id')) : null, [
+        $request->validate(['id' => ['nullable', 'integer'], 'name' => ['required', 'string'], 'frequency' => ['required', 'string'], 'is_active' => ['nullable', 'boolean'],
+            'max_installments' => ['nullable', 'integer'], 'months_per_semester' => ['nullable', 'integer']]);
+        $existing = $request->filled('id') ? FeeType::query()->findOrFail($request->integer('id')) : null;
+        $type = $fees->saveFeeType($existing, [
             ...$request->only(['name', 'frequency']),
+            // Left out: kept as it is (or the default for a new fee).
+            'max_installments' => $request->input('max_installments', $existing->max_installments ?? (int) Setting::get('payment.max_installments', 3)),
+            'months_per_semester' => $request->input('months_per_semester', $existing->months_per_semester ?? 6),
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -182,17 +192,26 @@ class FeeController extends Controller
     /**
      * Mahasantri to award.
      *
-     * Active mahasantri matching `search` (NIM or name, 2+ characters).
+     * All active mahasantri, 50 a page, narrowed by `search` (NIM or name), `class_id` (class in the active
+     * semester, or `none`) and `gender`.
      */
     public function candidates(Request $request): JsonResponse
     {
-        $request->validate(['search' => ['required', 'string', 'min:2']]);
-        $term = '%'.mb_strtolower(trim((string) $request->input('search'))).'%';
+        $request->validate(StudentPicker::rules());
+        $semester = Semester::active();
 
-        return response()->json(['data' => Student::query()->with('user')->where('status', StudentStatus::Active)
-            ->where(fn (Builder $query) => $query->whereRaw('lower(nim) like ?', [$term])->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
-            ->orderBy('nim')->limit(10)->get()
-            ->map(fn (Student $student) => ['id' => $student->id, 'nim' => $student->nim, 'name' => $student->user->name])->values()->all()]);
+        $students = StudentPicker::fromRequest(StudentPicker::query($semester), $request, $semester)->orderBy('nim')->paginate(StudentPicker::PAGE);
+
+        return response()->json([
+            'data' => collect($students->items())->map(fn (Student $student) => [
+                'id' => $student->id,
+                'nim' => $student->nim,
+                'name' => $student->user->name,
+                'gender' => $student->gender->value,
+                'class' => $student->classEnrollments->first()?->class_name,
+            ])->values()->all(),
+            'meta' => ['current_page' => $students->currentPage(), 'last_page' => $students->lastPage(), 'total' => $students->total()],
+        ]);
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Support;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Process\Process;
 
 /**
@@ -38,6 +39,26 @@ class DocxToPdf
         }
 
         return null;
+    }
+
+    /**
+     * Hand out a filled Word file: as PDF when LibreOffice is installed (and Word was not asked for),
+     * else as the Word file itself. The temporary files are removed after sending.
+     */
+    public function respond(string $docx, string $name, bool $wantsWord = false): BinaryFileResponse
+    {
+        if (! $wantsWord && $this->available()) {
+            try {
+                $pdf = $this->convert($docx);
+                @unlink($docx);
+
+                return response()->file($pdf, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="'.$name.'.pdf"'])->deleteFileAfterSend();
+            } catch (RuntimeException $exception) {
+                report($exception);
+            }
+        }
+
+        return response()->download($docx, $name.'.docx')->deleteFileAfterSend();
     }
 
     /**

@@ -9,9 +9,11 @@ use App\Models\Payment;
 use App\Models\Setting;
 use App\Support\ActiveRole;
 use App\Support\PrintMarks;
+use App\Support\PrintTemplates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ReceiptController extends Controller
 {
@@ -20,11 +22,11 @@ class ReceiptController extends Controller
      * (clearly marked) while it awaits verification. Finance staff, the
      * mahasantri and their wali santri may open it.
      */
-    public function __invoke(Request $request, Payment $payment): Response
+    public function __invoke(Request $request, Payment $payment): Response|BinaryFileResponse
     {
         abort_if($payment->status === PaymentStatus::Rejected, 404);
 
-        $payment->load(['bill.student.user', 'bill.student.guardians', 'bill.semester.academicYear', 'recorder', 'verifier']);
+        $payment->load(['bill.student.user', 'bill.student.guardians', 'bill.semester.academicYear', 'recorder', 'verifier', 'allocations.line']);
         $student = $payment->bill->student;
         $user = $request->user();
 
@@ -41,6 +43,17 @@ class ReceiptController extends Controller
             $marks = new PrintMarks($marks->signatory, $marks->stamp, false);
         }
 
+        $name = str_replace('/', '-', $payment->receipt_number ?? 'slip-'.$payment->id);
+
+        // The official receipt from the Word template when one is uploaded (v7 D44); a slip awaiting
+        // verification or a voided payment keeps the built-in layout with its watermark.
+        if ($payment->status === PaymentStatus::Verified) {
+            $word = PrintTemplates::respond(PrintDocument::Receipt, PrintTemplates::receipt($payment, Setting::get('receipt.footer')), $marks, $name, $request->query('format') === 'docx');
+            if ($word !== null) {
+                return $word;
+            }
+        }
+
         $pdf = Pdf::loadView('receipts.payment', [
             'payment' => $payment,
             'document' => PrintDocument::Receipt,
@@ -48,8 +61,6 @@ class ReceiptController extends Controller
             'footer' => Setting::get('receipt.footer'),
         ])->setPaper('a5', 'landscape');
 
-        $name = str_replace('/', '-', $payment->receipt_number ?? 'slip-'.$payment->id).'.pdf';
-
-        return $pdf->stream($name);
+        return $pdf->stream($name.'.pdf');
     }
 }

@@ -80,6 +80,11 @@ class GradeHistory implements HistoryImporter
             throw new LogicException('A semester is required.');
         }
 
+        // Without a grade scale every score would become E (after-review D54).
+        if ($this->scale()->isEmpty()) {
+            return ['input' => [], 'errors' => [__('Set the grade scale first (Grade scale page): letters and points come from it.')]];
+        }
+
         $errors = [];
         $nim = trim($row['nim'] ?? '');
         $code = trim($row['subject_code'] ?? '');
@@ -167,6 +172,8 @@ class GradeHistory implements HistoryImporter
             'score' => $score,
             'letter' => $grade['letter'] ?? null,
             'point' => $grade['point'] ?? null,
+            // The archive gave the letter (kept when the scale is applied again).
+            'archive_letter' => $letter !== '',
         ], 'errors' => $errors];
     }
 
@@ -189,6 +196,8 @@ class GradeHistory implements HistoryImporter
                 'final_point' => $input['point'],
                 'finalized_at' => $now,
                 'grade_note' => __('Imported from the archive of :semester.', ['semester' => $semester->label()]),
+                'from_archive' => true,
+                'archive_letter' => (bool) ($input['archive_letter'] ?? false),
             ]);
 
             if (! $offering->isFinalized()) {

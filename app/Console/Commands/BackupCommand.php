@@ -2,16 +2,19 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
+use App\Support\Backups;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Symfony\Component\Finder\SplFileInfo;
 use ZipArchive;
 
-#[Signature('siakad:backup {--keep= : Days to keep old backups (default: config siakad.backup.retention_days)}')]
+#[Signature('siakad:backup {--keep= : Days to keep old backups (default: config siakad.backup.retention_days)} {--by= : Made by hand by this user (id); kept until deleted}')]
 #[Description('Back up the database (pg_dump) and the private files, then remove backups older than the retention period')]
 class BackupCommand extends Command
 {
@@ -22,19 +25,33 @@ class BackupCommand extends Command
 
         File::ensureDirectoryExists($folder);
 
+        // An empty database (a new server) has no users yet.
+        $by = $this->option('by') !== null && Schema::hasTable('users') ? User::query()->find((int) $this->option('by')) : null;
+
         try {
             $this->dumpDatabase($folder.DIRECTORY_SEPARATOR.'database.dump');
             $files = $this->zipPrivateFiles($folder.DIRECTORY_SEPARATOR.'files.zip');
+            // When, by whom, the database version, row counts and checksums (D50).
+            Backups::writeManifest($folder, $by !== null ? Backups::MANUAL : Backups::SCHEDULED, $by, $files);
         } catch (RuntimeException $exception) {
             // A half-written backup must not look like a good one.
             File::deleteDirectory($folder);
             $this->components->error($exception->getMessage());
             logger()->error('SIAKAD backup failed', ['error' => $exception->getMessage()]);
 
+            if ($by !== null) {
+                Backups::finish(false, $exception->getMessage());
+            }
+
             return self::FAILURE;
         }
 
         $this->components->info("Backup written to {$folder} ({$files} private files).");
+
+        // Started from the Data page: the page shows it is done.
+        if ($by !== null) {
+            Backups::finish(true, basename($folder));
+        }
 
         $removed = $this->prune($root, (int) ($this->option('keep') ?? config('siakad.backup.retention_days')));
 
@@ -70,6 +87,10 @@ class BackupCommand extends Command
         if ($result->failed()) {
             throw new RuntimeException('pg_dump failed: '.trim($result->errorOutput() ?: $result->output()));
         }
+
+        if (! File::exists($target) || File::size($target) === 0) {
+            throw new RuntimeException('pg_dump wrote no dump file.');
+        }
     }
 
     /**
@@ -104,7 +125,8 @@ class BackupCommand extends Command
     }
 
     /**
-     * Delete backup folders older than the given number of days.
+     * Delete scheduled backup folders older than the given number of days; backups made by hand stay
+     * until the Superadmin deletes them (D50).
      */
     private function prune(string $root, int $days): int
     {
@@ -112,6 +134,10 @@ class BackupCommand extends Command
         $removed = 0;
 
         foreach (File::directories($root) as $directory) {
+            if ((Backups::manifest($directory)['kind'] ?? Backups::SCHEDULED) === Backups::MANUAL) {
+                continue;
+            }
+
             if (File::lastModified($directory) < $cutoff) {
                 File::deleteDirectory($directory);
                 $removed++;

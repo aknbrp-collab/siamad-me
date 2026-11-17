@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\AppInfoController;
 use App\Http\Controllers\Api\V1\ArticleController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DiscussionController;
+use App\Http\Controllers\Api\V1\DispensationController;
 use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\DownloadController;
 use App\Http\Controllers\Api\V1\FeedbackController;
@@ -91,6 +92,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('transcript', [StudentRecordController::class, 'transcript'])->name('transcript');
             Route::get('bills', [StudentRecordController::class, 'bills'])->name('bills');
             Route::get('activities', [StudentRecordController::class, 'activities'])->name('activities');
+            Route::get('dispensation', [DispensationController::class, 'show'])->name('dispensation');
         });
         Route::post('bills/{bill}/transfers', [StudentRecordController::class, 'confirmTransfer'])->middleware('role:student,guardian')->name('bills.transfers');
 
@@ -114,6 +116,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('exams', [ExamController::class, 'index'])->name('exams');
             Route::get('letters', [LetterController::class, 'index'])->name('letters');
             Route::post('letter-requests', [LetterController::class, 'store'])->name('letter-requests.store');
+            Route::post('dispensation', [DispensationController::class, 'store'])->name('dispensation.store');
             Route::get('evaluations', [EvaluationController::class, 'index'])->name('evaluations');
             Route::post('evaluations/{offering}', [EvaluationController::class, 'store'])->name('evaluations.store');
         });
@@ -158,6 +161,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::prefix('articles/{article}')->name('articles.')->group(function () {
             Route::get('/', [ArticleController::class, 'show'])->name('show');
             Route::put('/', [ArticleController::class, 'update'])->name('update');
+            Route::post('image', [ArticleController::class, 'image'])->name('image');
+            Route::delete('image', [ArticleController::class, 'removeImage'])->name('image.remove');
             Route::delete('/', [ArticleController::class, 'discard'])->name('discard');
             Route::post('submit', [ArticleController::class, 'submit'])->name('submit');
             Route::post('publish', [ArticleController::class, 'publish'])->name('publish');

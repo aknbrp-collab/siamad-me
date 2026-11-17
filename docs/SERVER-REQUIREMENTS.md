@@ -16,17 +16,24 @@ How to install and run it is in [OPERATIONS.md](OPERATIONS.md).
 | OS | Ubuntu Server 24.04 LTS (or Debian 12) | Windows Server works too, but Linux is easier to run and cheaper |
 | PHP | **8.4** (8.3 at least), PHP-FPM | Extensions: `pdo_pgsql`, `mbstring`, `intl`, `gd`, `zip`, `bcmath`, `exif`, `sodium`, `openssl`, `curl`, `fileinfo`, `xml`, `dom`; OPcache on |
 | Web server | Nginx 1.24+ (or Apache 2.4 with PHP-FPM) | HTTPS is required: Web Push, passkeys and the CMS signatures need it |
-| Database | **PostgreSQL 17** (16 at least) | `pg_dump` of the same version on the server, for backups |
+| Database | **PostgreSQL 17** (16 at least) | `pg_dump` and `pg_restore` of the same version on the server, for backups and restoring from the web |
 | Composer | 2.x | To install PHP packages |
 | Node.js | 22 LTS | Only to build the CSS/JS (`npm run build`); can be done on another machine |
 | Cron | `* * * * * php artisan schedule:run` | Backups, reminders, the queue (CMS calls) and the daily CMS check |
-| LibreOffice | 7.6+ (optional) | Only to turn letters made from a Word template into PDF; without it they download as Word |
+| LibreOffice | 7.6+ (optional) | Only to turn letters and printouts made from an uploaded Word template into PDF; without it they download as Word |
 | Time sync | NTP (chrony / systemd-timesyncd) | Signed calls to and from the CMS are refused when clocks differ by more than 5 minutes |
 | Email | Any SMTP account | Password-reset emails |
 
-PHP settings: `upload_max_filesize = 12M`, `post_max_size = 16M` (uploads allow 10 MB),
+PHP settings: `upload_max_filesize = 12M`, `post_max_size = 16M` (uploads allow 10 MB; to upload backups for
+restoring from the web, raise both and Nginx's `client_max_body_size` to the backup size, up to
+`SIAKAD_RESTORE_MAX_MB`, or copy larger backups onto the server instead),
 `memory_limit = 256M` (512M if large Excel imports are common), `max_execution_time = 60`.
 Nginx: `client_max_body_size 16m`.
+
+Backups, restoring and deleting data from the Superadmin's *Data & cadangan* page run `php artisan …` in a
+process of their own: the PHP command line must be installed next to PHP-FPM, `exec` / `popen` must not be in
+`disable_functions`, and the web server user must be able to write the backups folder and `storage/app`.
+A restore needs free space for a second copy of the files and a fresh backup of the current state.
 
 Outgoing HTTPS must be allowed to the CMS, the browser push services (Google, Mozilla, Apple) and the
 email server. Incoming HTTPS is needed from the CMS (for Tanya Hukum) and from users.

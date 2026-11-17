@@ -83,10 +83,10 @@ test('the full payment roadmap: record, hand over, verify, receipt', function ()
     $this->get(route('finance.bills.show', $bill))->assertOk()->assertSee($bill->number);
 
     Livewire::test('pages::finance.bills.show', ['bill' => $bill])
-        ->set('amount', 100_000)
+        ->set('pay.'.$bill->lines()->value('id'), true)->set('feeAmounts.'.$bill->lines()->value('id'), 100_000)
         ->call('recordPayment')
-        ->assertHasErrors('amount')
-        ->set('amount', 600_000)
+        ->assertHasErrors('allocations.'.$bill->lines()->value('id'))
+        ->set('pay.'.$bill->lines()->value('id'), true)->set('feeAmounts.'.$bill->lines()->value('id'), 600_000)
         ->call('recordPayment')
         ->assertHasNoErrors();
 
@@ -133,7 +133,7 @@ test('an admin rejects a bank transfer with a reason', function () {
     actAs($this->cashier);
     Livewire::test('pages::finance.bills.show', ['bill' => $bill])
         ->set('method', 'transfer')
-        ->set('amount', 500_000)
+        ->set('pay.'.$bill->lines()->value('id'), true)->set('feeAmounts.'.$bill->lines()->value('id'), 500_000)
         ->call('recordPayment')
         ->assertHasErrors('reference')
         ->set('reference', 'BSI 123')
@@ -244,7 +244,7 @@ test('amounts accept any whole rupiah, not only steps of 1000 from 1', function 
     $this->get(route('finance.fees'))->assertOk()->assertDontSee('step="1000"', false);
 
     Livewire::test('pages::finance.bills.show', ['bill' => $bill])
-        ->set('amount', 2_000_000)
+        ->set('pay.'.$bill->lines()->value('id'), true)->set('feeAmounts.'.$bill->lines()->value('id'), 2_000_000)
         ->set('paidOn', now()->toDateString())
         ->call('recordPayment')
         ->assertHasNoErrors();
@@ -273,7 +273,7 @@ test('arrears of a closed semester are listed and can still be paid and verified
         ->assertSee($this->semester->label());
 
     Livewire::test('pages::finance.bills.show', ['bill' => $bill])
-        ->set('amount', 1_000_000)
+        ->set('pay.'.$bill->lines()->value('id'), true)->set('feeAmounts.'.$bill->lines()->value('id'), 1_000_000)
         ->set('paidOn', now()->toDateString())
         ->call('recordPayment')
         ->assertHasNoErrors();

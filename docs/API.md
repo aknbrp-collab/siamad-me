@@ -60,8 +60,10 @@ the password (other devices), when the Admin resets the password, or when the ac
 Photos and documents never come as paths. A response carries a **signed link** (`…_url`) that works
 without the token and expires after 10 minutes; open it in the app or the phone's browser. Access is
 checked again when it is opened, with the web rules. Ask for the item again for a fresh link. PDFs (KHS,
-transcript, receipts, exam card, letters, teaching journal) and templates (score import, RPS / jurnal) are
-downloaded the same way (D41).
+transcript, receipts, exam card, letters, cash report, dispensation request, teaching journal) and templates
+(score import, RPS / jurnal) are downloaded the same way (D41). When the institution uploaded a Word template
+for a printout (v7 D44) the link gives the PDF made from it, or a `.docx` when the server has no LibreOffice:
+look at the `Content-Type`.
 
 ## Endpoints by screen
 
@@ -97,9 +99,10 @@ The mahasantri's own student id is in `GET /me` (`student.id`); records use it.
 | Kuis | `POST /student/quizzes/{id}/attempts` (start or continue), `GET /student/quiz-attempts/{id}`, `PUT /student/quiz-attempts/{id}/answers/{question}` (`answer`: option id, list of ids, or text) for each answer, `POST /student/quiz-attempts/{id}/submit`. Answers save at once; at `deadline_at` the attempt is submitted automatically. Correct answers are never sent; after submitting only the score |
 | KHS | `GET /students/{id}/khs?semester=` (grades, attendance per subject, IPS, `pdf_url`; `waits_for_evaluation` when the evaluation must come first) |
 | Transkrip | `GET /students/{id}/transcript` (`pdf_url`) |
-| Tagihan | `GET /students/{id}/bills` (lines, payments, `receipt_url`, `transfer` limits, `bank_accounts`), `POST /bills/{id}/transfers` (multipart `amount`, `paid_on`, `reference`, `proof`) |
+| Tagihan | `GET /students/{id}/bills` (lines, `fees` with what is left and instalments of each, payments with the `fees` they paid, `receipt_url`, `transfer` with `open_amount`, `min_amount` and the `fees` a transfer pays in order, `bank_accounts`), `POST /bills/{id}/transfers` (multipart `amount`, `paid_on`, `reference`, `proof`; spread over the fees) |
 | Kartu ujian | `GET /student/exams` (schedule, seat, eligibility per subject, `card_url` when eligible) |
 | Surat saya | `GET /student/letters`, `POST /student/letter-requests` (`letter_type_id`, `purpose`) |
+| Dispensasi | `GET /students/{id}/dispensation` (the mahasantri, their wali, staff: `can_request`, the request with `granted` and a signed `letter_url`), `POST /student/dispensation` (`reason`, 10 to 1000 characters; writing again replaces it) |
 | Dokumen saya | `GET /documents`, `POST /documents/{id}` (multipart `file`; ijazah also `education_level`, `institution`, `graduation_year`) |
 | Pembimbing akademik | `GET /student/supervision` |
 | Evaluasi muhadhir | `GET /student/evaluations` (classes, statements, closing question), `POST /student/evaluations/{class}` (`scores`: {statement id: 1–5}, `comment`) |
@@ -145,7 +148,7 @@ the web.
 | Bimbingan, LPPPK | `GET /discussions?kind=bimbingan` or `lpppk` (rooms with `unread` and the latest message) |
 | Ruang diskusi | `GET /discussions/{id}` (members, `moderator`, `cannot_post` with the reason), `GET /discussions/{id}/messages` (`after_id` to poll every few seconds while open, `before_id` to scroll back; reading marks the room read), `POST /discussions/{id}/messages` (multipart `body`, up to five `files[]`, `reply_to_id`), `DELETE …/messages/{m}`, `GET …/files`, `GET`/`POST …/notes`, `PUT`/`DELETE …/notes/{n}` |
 | Moderasi ruang | `POST`/`DELETE …/members/{member}/mute` (`until` or null), `PUT …/lock` (`locked`) |
-| Artikel saya | `GET /articles/mine`, `POST /articles` (`title`, `summary`, `body` in Markdown, `keywords` comma separated), `GET /articles/{id}` (`body_html`, reviews, `website` status, `can` = the actions allowed now), `PUT`, `DELETE` (a never-sent draft), `POST …/submit` (mahasantri), `POST …/publish` (muhadhir), `POST …/withdraw`, `POST …/website/resend`, `POST …/website/check` |
+| Artikel saya | `GET /articles/mine`, `POST /articles` (`title`, `summary`, `body` in Markdown, `keywords` comma separated), `GET /articles/{id}` (`body_html`, reviews, `website` status, `can` = the actions allowed now), `PUT`, `DELETE` (a never-sent draft), `POST …/image` (multipart `image`, `image_caption`) / `DELETE …/image` (the picture, v7; `GET` gives a signed `image_url`), `POST …/submit` (mahasantri), `POST …/publish` (muhadhir), `POST …/withdraw`, `POST …/website/resend`, `POST …/website/check` |
 | Tinjau artikel | `GET /articles/review` (muhadhir), `POST /articles/{id}/review` (`approve`, `note`) |
 | Tanya Hukum | `GET /tanya-hukum?show=open|approval|answered|all`, `GET /tanya-hukum/{id}` (open answer with approvals, sent versions, `can`), `PUT …/draft` (`answer`, `references`), `POST …/submit`, `POST …/approve`, `POST …/reopen`, `POST …/correction`, `POST …/resend`; the question's room is `discussion_id` |
 
@@ -159,10 +162,10 @@ Admin answer 403). Staff also read any mahasantri's records under `/students/{id
 | --- | --- |
 | Tahun akademik | `GET /admin/academic-years` (with semesters), `POST`, `PUT /admin/academic-years/{id}`, `POST /admin/semesters/{id}/activate`, `POST …/close` (`confirmed: true` to close; without it the number of classes with grades not final), `POST …/reopen` (Superadmin, `reason`) |
 | Program studi, mata kuliah, ruang, kelas | `GET`/`POST /admin/study-programs`, `DELETE /admin/study-programs/{id}`; `GET`/`POST /admin/subjects`; `GET`/`POST /admin/rooms`; `GET`/`POST /admin/classes`, `DELETE /admin/classes/{id}`; `GET /admin/grade-scale` (a `POST` without `id` adds, with `id` changes) |
-| Penempatan kelas | `GET /admin/semesters/{id}/placements?class=` (classes, roster), `GET …/placements/candidates?search=&class=`, `POST …/placements` (`class_id`, `student_ids`), `DELETE …/placements/{id}`, `POST …/placements/copy` (`from_semester_id`, `class_map`) |
+| Penempatan kelas | `GET /admin/semesters/{id}/placements?class=` (classes, roster), `GET …/placements/candidates?class=&search=&class_id=&gender=&page=` (all active mahasantri, 50 a page; `class_id=none` for those without a class), `POST …/placements` (`class_id`, `student_ids`), `DELETE …/placements/{id}`, `POST …/placements/copy` (`from_semester_id`, `class_map`) |
 | Kelas kuliah, jadwal | `GET /admin/semesters/{id}/classes`, `POST …/classes` (with `id` to change; `joint: true` after a `joint_class` 422), `DELETE …/classes/{id}`, `POST …/classes/copy` |
-| Ujian | `GET`/`POST /admin/semesters/{id}/exam-periods`, `GET /admin/exam-periods/{id}` (schedule, rooms, capacity), `POST …/sessions`, `DELETE …/sessions/{id}`, `PUT …/rooms`, `POST …/seats`, `PUT …/publish`, `GET …/participants`, `POST`/`DELETE …/dispensations/{student}` |
-| Mahasantri, muhadhir, wali | `GET /admin/students` (`search`, `status`, `program`), `GET /admin/students/{id}`, `POST /admin/students` (returns the temporary `password` once), `POST /admin/students/{id}` (change, multipart for `photo`); the same for `/admin/teachers`; `GET`/`POST /admin/guardians` (`student_ids`); `POST /admin/users/{id}/reset-password`, `PUT /admin/users/{id}/active` |
+| Ujian | `GET`/`POST /admin/semesters/{id}/exam-periods`, `GET /admin/exam-periods/{id}` (schedule, rooms, capacity), `POST …/sessions`, `DELETE …/sessions/{id}`, `PUT …/rooms`, `POST …/seats`, `PUT …/publish`, `GET …/participants` (with the mahasantri's own `dispensation_request`), `POST`/`DELETE …/dispensations/{student}` |
+| Mahasantri, muhadhir, wali | `GET /admin/students` (`search`, `status`, `program`, `class_id` or `none`, `gender`; also the list to choose mahasantri from for bimbingan, wali, activities and LPPPK), `GET /admin/students/{id}`, `POST /admin/students` (returns the temporary `password` once), `POST /admin/students/{id}` (change, multipart for `photo`); the same for `/admin/teachers`; `GET`/`POST /admin/guardians` (`student_ids`); `POST /admin/users/{id}/reset-password`, `PUT /admin/users/{id}/active` |
 | Dokumen | `GET /admin/documents?owner=students|teachers&status=`, `POST /admin/documents/{id}/review` (`owner`, `verify`, `note`) |
 | Pembimbing akademik | `GET /admin/supervision?teacher=`, `POST /admin/supervision` (`teacher_id`, `student_ids`), `DELETE /admin/supervision/{id}` |
 | Catatan kegiatan | `GET`/`POST /admin/activities`, `DELETE /admin/activities/{id}` |
@@ -184,13 +187,13 @@ office recorded) and the unverified-payments tracker.
 | Screen | Endpoints |
 | --- | --- |
 | Ringkasan | `GET /finance/overview?semester=` (billed, collected, pending, owed, per class, largest arrears, waiting) |
-| Tagihan | `GET /finance/bills` (`semester`, 0 = all; `status`, `outstanding`; `search`), `GET /finance/bills/grid` (Rekap angsuran: `class`, `gender`, `search`), `GET /finance/bills/{id}` (lines, payments, `allowance`, `can`), `POST /finance/bills/{id}/payments` (multipart `amount`, `method`, `paid_on`, `reference`, `proof`, `cash_account_id`) |
-| Buat tagihan, koreksi | `POST /finance/semesters/{id}/bills` (preview; `apply: true` makes them), `POST /finance/bills/{id}/void`, `PUT /finance/bills/{id}/installments` (Superadmin), `POST /finance/payments/{id}/void` (Superadmin) |
+| Tagihan | `GET /finance/bills` (`semester`, 0 = all; `status`, `outstanding`; `search`), `GET /finance/bills/grid` (Rekap angsuran: `fee` (a fee type of `fee_types`; `mode` all, monthly or fee), `class`, `gender`, `search`), `GET /finance/bills/{id}` (lines, `fees`, payments with their `fees`, `allowance`, `can`), `POST /finance/bills/{id}/payments` (multipart `allocations` {fee id: amount} or just `amount` (spread over the fees), `method`, `paid_on`, `reference`, `proof`, `cash_account_id`; a fee's error comes under `allocations.{fee id}`) |
+| Buat tagihan, koreksi | `POST /finance/semesters/{id}/bills` (preview; `apply: true` makes them), `POST /finance/bills/{id}/void`, `PUT /finance/bills/{id}/installments` (Superadmin; `fee_id` for one fee), `POST /finance/payments/{id}/void` (Superadmin) |
 | Setoran | `GET /finance/my-cash` (my cash not handed over, my handovers), `POST /finance/handovers` (`payment_ids`, `note`) |
 | Verifikasi | `GET /finance/to-verify` (handovers and transfers this role checks), `POST /finance/handovers/{id}/complete` (`rejections` {payment id: reason}, `cash_account_id`), `POST /finance/payments/{id}/review` (`verify`, `reason`, `cash_account_id`) |
 | Belum diverifikasi | `GET /finance/unverified?stage=`, `POST /finance/unverified/remind` (`holder_key`) |
-| Biaya | `GET /finance/fees?year=`, `POST /finance/fee-types`, `POST /finance/fee-rates`, `DELETE /finance/fee-rates/{id}`, `POST /finance/fee-rates/copy`, `POST /finance/fees/add-to-bills` (preview; `apply: true`) |
-| Beasiswa | `GET /finance/scholarships?year=&scholarship=`, `POST /finance/scholarships`, `GET /finance/scholarships/candidates?search=`, `POST /finance/scholarships/{id}/awards`, `DELETE /finance/scholarship-awards/{id}` |
+| Biaya | `GET /finance/fees?year=`, `POST /finance/fee-types` (`max_installments`, `months_per_semester`), `POST /finance/fee-rates`, `DELETE /finance/fee-rates/{id}`, `POST /finance/fee-rates/copy`, `POST /finance/fees/add-to-bills` (preview; `apply: true`) |
+| Beasiswa | `GET /finance/scholarships?year=&scholarship=`, `POST /finance/scholarships`, `GET /finance/scholarships/candidates?search=&class_id=&gender=&page=` (all active mahasantri, 50 a page), `POST /finance/scholarships/{id}/awards`, `DELETE /finance/scholarship-awards/{id}` |
 | Buku kas | `GET`/`POST /finance/cash/accounts`, `PUT /finance/cash/defaults`, `POST /finance/cash/categories`, `POST /finance/cash/assign-unbooked`, `GET /finance/cash/accounts/{id}/ledger?month=`, `GET /finance/cash/summary?from=&to=` (with `report_url`, the cash report PDF), `POST /finance/cash/entries` (multipart, receipt `proof`), `POST /finance/cash/transfers`, `POST /finance/cash/entries/{id}/void`, `POST /finance/cash/close` (`month`) |
 
 Web only: importing previous-year finance data (maintenance mode) and printing slips from the page.
@@ -209,7 +212,7 @@ Under `/superadmin`, for Superadmin only.
 | Templat | `GET /superadmin/templates` (with `download_url`), `POST /superadmin/templates/{key}` (multipart `file`), `DELETE /superadmin/templates/{key}` (back to built-in) |
 | Log audit | `GET /superadmin/audit-log` (`event`, `search`) |
 
-Web only (D41): maintenance mode, backups and the CMS integration page.
+Web only (D41): maintenance mode, backups and the CMS integration page; also restoring backups and deleting data (data-manage D53).
 
 ### Per role
 
@@ -225,3 +228,16 @@ Added step by step (v6 plan):
 | Superadmin | 11 | Done: see above |
 
 Not in the API (D41): maintenance mode, backups and the CMS page (web only).
+
+## Changes
+
+**2026-11-17: payments per fee** (after-review D55–D58). These break older app builds:
+- A bill's `transfer` no longer has `instalments_used` / `instalments_max`. Instalments are counted per fee:
+  read `fees[].instalments_used` / `instalments_max`, and `transfer.fees` for what a transfer pays, in order.
+- `GET /finance/bills/grid`: `columns` is now a list of `{key, label}` (fee types, or months for a monthly
+  `fee`), and each row has `fees`, `due`, `paid`, `pending`, `left` (and `used` / `max` for one fee) in
+  place of the per-instalment `cells` of the whole bill. `cells` are months, only for a monthly fee.
+
+Added: bill `fees`, `lines[].id`, payments' `fees`, `allocations` when recording a payment, `fee_id` on
+`PUT /finance/bills/{id}/installments`, `fee` on the grid, and `max_installments` / `months_per_semester`
+on fee types.

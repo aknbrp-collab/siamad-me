@@ -22,6 +22,8 @@ use Illuminate\Support\Str;
  * @property string|null $summary
  * @property string $body_md Markdown
  * @property list<string>|null $keywords
+ * @property string|null $image_path The picture (v7 D48), on the private disk
+ * @property string|null $image_caption
  * @property ArticleStatus $status
  * @property int $review_round
  * @property Carbon|null $submitted_at
@@ -39,7 +41,7 @@ use Illuminate\Support\Str;
  * @property Carbon $updated_at
  * @property-read User $author
  */
-#[Fillable(['code', 'user_id', 'title', 'summary', 'body_md', 'keywords', 'status', 'review_round', 'submitted_at', 'published_at', 'withdrawn_at',
+#[Fillable(['code', 'user_id', 'title', 'summary', 'body_md', 'keywords', 'image_path', 'image_caption', 'status', 'review_round', 'submitted_at', 'published_at', 'withdrawn_at',
     'cms_id', 'cms_status', 'cms_review_note', 'cms_public_url', 'cms_changes_pending', 'cms_sent_version', 'cms_sent_at', 'cms_checked_at', 'cms_error'])]
 class Article extends Model
 {

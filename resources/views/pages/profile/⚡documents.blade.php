@@ -58,7 +58,7 @@ new #[Title('My documents')] class extends Component {
         return $this->isStudent ? EducationLevel::forStudents() : EducationLevel::cases();
     }
 
-    public function upload(int $id, UploadDocument $uploadDocument): void
+    public function uploadFile(int $id, UploadDocument $uploadDocument): void
     {
         $this->resetErrorBag();
 
@@ -182,7 +182,7 @@ new #[Title('My documents')] class extends Component {
                         <input type="file" wire:model="uploads.{{ $document->id }}" accept=".pdf,.jpg,.jpeg,.png"
                             class="text-sm file:me-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 dark:file:bg-zinc-700">
                         <flux:button size="sm" variant="primary" icon="arrow-up-tray"
-                            wire:click="upload({{ $document->id }})"
+                            wire:click="uploadFile({{ $document->id }})"
                             wire:loading.attr="disabled" wire:target="uploads.{{ $document->id }}"
                             data-test="upload-{{ $document->type->value }}">
                             {{ $document->file_path ? __('Replace') : __('Upload') }}

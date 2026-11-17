@@ -12,7 +12,10 @@ use App\Models\Article;
 use App\Models\ArticleReview;
 use App\Models\ArticleVersion;
 use App\Models\User;
+use App\Support\ArticleImages;
 use App\Support\Notify;
+use App\Support\Upload;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -56,7 +59,8 @@ class ManageArticles
     /**
      * Create or change the working copy.
      *
-     * @param  array<string, mixed>  $input  title, summary, body, keywords (comma separated)
+     * @param  array<string, mixed>  $input  title, summary, body, keywords (comma separated), and the optional
+     *                                       picture (v7 D48): image (an upload), image_caption, remove_image
      */
     public function save(?Article $article, User $author, array $input): Article
     {
@@ -77,8 +81,12 @@ class ManageArticles
             'summary' => ['nullable', 'string', 'max:2000'],
             'body' => ['required', 'string', 'min:50', 'max:200000'],
             'keywords' => ['nullable', 'string', 'max:500'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', Upload::max()],
+            'image_caption' => ['nullable', 'string', 'max:255'],
+            'remove_image' => ['nullable', 'boolean'],
         ], [], [
             'title' => __('title'), 'summary' => __('summary'), 'body' => __('text'), 'keywords' => __('keywords'),
+            'image' => __('picture'), 'image_caption' => __('caption'),
         ])->validate();
 
         $keywords = collect(explode(',', (string) ($data['keywords'] ?? '')))
@@ -86,11 +94,20 @@ class ManageArticles
             ->filter()->unique()->take(10)->values()->all();
 
         $article ??= new Article(['user_id' => $author->id]);
+        $oldImage = $article->image_path;
+        $image = ($data['remove_image'] ?? false) ? null : $oldImage;
+
+        if (($data['image'] ?? null) instanceof UploadedFile) {
+            $image = ArticleImages::store($data['image']);
+        }
+
         $article->fill([
             'title' => trim($data['title']),
             'summary' => filled($data['summary'] ?? null) ? trim($data['summary']) : null,
             'body_md' => trim($data['body']),
             'keywords' => $keywords === [] ? null : $keywords,
+            'image_path' => $image,
+            'image_caption' => $image !== null && filled($data['image_caption'] ?? null) ? trim($data['image_caption']) : null,
         ]);
 
         // A changed published or withdrawn article is a new draft until it is published again.
@@ -99,6 +116,10 @@ class ManageArticles
         }
 
         $article->save();
+
+        if ($oldImage !== $article->image_path) {
+            ArticleImages::forget($oldImage);
+        }
 
         return $article;
     }
@@ -240,7 +261,9 @@ class ManageArticles
             $this->fail('article', __('Only a draft that was never sent or published can be deleted.'));
         }
 
+        $image = $article->image_path;
         $article->delete();
+        ArticleImages::forget($image);
     }
 
     private function doPublish(Article $article, User $by): ArticleVersion
@@ -262,6 +285,8 @@ class ManageArticles
                 'summary' => $article->summary,
                 'body_md' => $article->body_md,
                 'keywords' => $article->keywords,
+                'image_path' => $article->image_path,
+                'image_caption' => $article->image_caption,
                 'published_by' => $by->id,
             ]);
         });

@@ -9,6 +9,7 @@ use App\Models\ClassEnrollment;
 use App\Models\ClassGroup;
 use App\Models\CourseEnrollment;
 use App\Models\CourseOffering;
+use App\Models\GradeScale;
 use App\Models\Semester;
 use App\Models\Student;
 use App\Models\Subject;
@@ -204,3 +205,74 @@ test('the templates download', function (string $type) {
     $response = Livewire::test('pages::admin.history')->set('type', $type)->call('template');
     $response->assertFileDownloaded("template-{$type}.xlsx");
 })->with(['placements', 'grades']);
+
+test('grades are not imported while the grade scale is empty', function () {
+    MaintenanceMode::turnOn($this->superadmin, 'Input data 2025/2026');
+    placeFromSheet($this);
+    GradeScale::query()->delete();
+
+    $component = Livewire::test('pages::admin.history')
+        ->set('semesterId', $this->past->id)
+        ->set('type', 'grades')
+        ->set('file', historySheet([['nim*' => '2025110001', 'subject_code*' => 'FQH101', 'score' => '76', 'letter' => '', 'teacher_nidm' => '2026010001']]))
+        ->call('check')
+        ->assertSet('validCount', 0);
+
+    expect($component->get('rowErrors')[0]['messages'][0])->toContain(__('Set the grade scale first (Grade scale page): letters and points come from it.'))
+        ->and(CourseEnrollment::query()->count())->toBe(0);
+});
+
+test('imported grades with only a score follow the scale again; archive letters and class grades stay', function () {
+    MaintenanceMode::turnOn($this->superadmin, 'Input data 2025/2026');
+    placeFromSheet($this);
+
+    Livewire::test('pages::admin.history')
+        ->set('semesterId', $this->past->id)
+        ->set('type', 'grades')
+        ->set('file', historySheet([
+            ['nim*' => '2025110001', 'subject_code*' => 'FQH101', 'score' => '76', 'letter' => '', 'teacher_nidm' => '2026010001'],
+            ['nim*' => '2025110002', 'subject_code*' => 'FQH101', 'score' => '76', 'letter' => 'C', 'teacher_nidm' => ''],
+        ]))
+        ->call('import');
+
+    $ali = CourseEnrollment::query()->where('student_id', $this->ali->id)->sole();
+    $umar = CourseEnrollment::query()->where('student_id', $this->umar->id)->sole();
+    expect($ali->from_archive)->toBeTrue()->and($ali->archive_letter)->toBeFalse()->and($ali->final_letter)->toBe('B')
+        ->and($umar->archive_letter)->toBeTrue()->and($umar->final_letter)->toBe('C');
+
+    // A grade entered in class with the same score is not imported, so it never changes.
+    $classGrade = CourseEnrollment::query()->create(['course_offering_id' => $ali->course_offering_id, 'student_id' => $this->aisyah->id,
+        'final_score' => 76, 'final_letter' => 'B', 'final_point' => 3, 'finalized_at' => now()]);
+
+    // The institution's own scale: 76 is B+.
+    GradeScale::query()->delete();
+    foreach ([['A', 86, 3.75], ['B+', 76, 3.25], ['B', 71, 3.00], ['D', 0, 1.75]] as [$letter, $min, $point]) {
+        GradeScale::query()->create(['letter' => $letter, 'min_score' => $min, 'point' => $point]);
+    }
+
+    Livewire::test('pages::admin.history')
+        ->set('type', 'grades')
+        ->assertSeeHtml('data-test="scale-changes"')
+        ->assertSee('B → B+: 1')
+        ->call('applyScale')
+        ->assertHasNoErrors();
+
+    expect($ali->fresh()->final_letter)->toBe('B+')->and($ali->fresh()->final_point)->toBe('3.25')
+        ->and($umar->fresh()->final_letter)->toBe('C')
+        ->and($classGrade->fresh()->final_letter)->toBe('B')
+        ->and(AuditLog::query()->where('auditable_id', (string) $ali->id)->where('event', 'updated')->exists())->toBeTrue();
+
+    Livewire::test('pages::admin.history')->set('type', 'grades')->assertDontSeeHtml('data-test="scale-changes"');
+});
+
+test('the grade scale is applied only in maintenance mode', function () {
+    MaintenanceMode::turnOn($this->superadmin, 'Input data 2025/2026');
+    placeFromSheet($this);
+    Livewire::test('pages::admin.history')->set('semesterId', $this->past->id)->set('type', 'grades')
+        ->set('file', historySheet([['nim*' => '2025110001', 'subject_code*' => 'FQH101', 'score' => '76', 'letter' => '', 'teacher_nidm' => '2026010001']]))
+        ->call('import');
+    GradeScale::query()->where('letter', 'B')->update(['min_score' => 77]);
+    MaintenanceMode::turnOff($this->superadmin);
+
+    Livewire::test('pages::admin.history')->set('type', 'grades')->call('applyScale')->assertHasErrors('scale');
+});

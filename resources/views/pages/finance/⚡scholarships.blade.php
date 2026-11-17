@@ -3,13 +3,13 @@
 use App\Actions\Finance\ManageFees;
 use App\Actions\Finance\ManageScholarshipAwards;
 use App\Enums\ScholarshipType;
-use App\Enums\StudentStatus;
 use App\Models\AcademicYear;
 use App\Models\Scholarship;
 use App\Models\ScholarshipAward;
 use App\Models\Semester;
 use App\Models\Student;
 use App\Support\Money;
+use App\Livewire\PageWithStudentPicker;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,9 +18,8 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 
-new #[Title('Scholarships')] class extends Component {
+new #[Title('Scholarships')] class extends PageWithStudentPicker {
     #[Url(as: 'year')]
     public ?int $academicYearId = null;
 
@@ -37,7 +36,6 @@ new #[Title('Scholarships')] class extends Component {
     public bool $isActive = true;
 
     // Award form
-    public string $studentSearch = '';
     public ?int $awardSemesterId = null;
     public ?string $awardNote = null;
 
@@ -110,21 +108,7 @@ new #[Title('Scholarships')] class extends Component {
     #[Computed]
     public function candidates(): Collection
     {
-        if (mb_strlen(trim($this->studentSearch)) < 2) {
-            return new Collection;
-        }
-
-        $term = '%'.mb_strtolower(trim($this->studentSearch)).'%';
-
-        return Student::query()
-            ->with('user')
-            ->where('status', StudentStatus::Active)
-            ->where(fn (Builder $query) => $query
-                ->whereRaw('lower(nim) like ?', [$term])
-                ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
-            ->orderBy('nim')
-            ->limit(10)
-            ->get();
+        return $this->selectedId ? $this->pickStudents() : new Collection;
     }
 
     public function updatedAcademicYearId(): void
@@ -136,7 +120,7 @@ new #[Title('Scholarships')] class extends Component {
     {
         $this->selectedId = $id;
         $this->awardSemesterId = $this->openSemesters->firstWhere('status.value', 'active')?->id ?? $this->openSemesters->first()?->id;
-        $this->studentSearch = '';
+        $this->resetStudentPicker();
     }
 
     public function create(): void
@@ -208,7 +192,7 @@ new #[Title('Scholarships')] class extends Component {
             $this->awardNote ?: null,
         );
 
-        $this->studentSearch = '';
+        $this->resetStudentPicker();
         $this->awardNote = null;
         unset($this->awards, $this->scholarships);
         Flux::toast(variant: 'success', text: __('Scholarship awarded.'));
@@ -287,13 +271,19 @@ new #[Title('Scholarships')] class extends Component {
                             </flux:select>
                             <flux:input wire:model="awardNote" size="sm" :placeholder="__('Note (optional), e.g. SK number')" />
                         </div>
-                        <flux:input wire:model.live.debounce.300ms="studentSearch" icon="magnifying-glass" size="sm" :placeholder="__('Find mahasantri by NIM or name…')" />
-                        @foreach ($this->candidates as $candidate)
-                            <div wire:key="candidate-{{ $candidate->id }}" class="flex items-center justify-between text-sm">
-                                <span><span class="font-mono text-zinc-500">{{ $candidate->nim }}</span> {{ $candidate->user->name }}</span>
-                                <flux:button size="xs" wire:click="award({{ $candidate->id }})">{{ __('Award') }}</flux:button>
-                            </div>
-                        @endforeach
+                        <x-student-picker.filters :classes="$this->pickerClasses" />
+                        <div class="max-h-80 space-y-1 overflow-y-auto" data-test="candidates">
+                            @foreach ($this->candidates as $candidate)
+                                <div wire:key="candidate-{{ $candidate->id }}" class="flex items-center justify-between gap-2 text-sm">
+                                    <span>
+                                        <span class="font-mono text-zinc-500">{{ $candidate->nim }}</span> {{ $candidate->user->name }}
+                                        <span class="text-xs text-zinc-500">{{ $candidate->classEnrollments->first()?->class_name }}</span>
+                                    </span>
+                                    <flux:button size="xs" wire:click="award({{ $candidate->id }})">{{ __('Award') }}</flux:button>
+                                </div>
+                            @endforeach
+                        </div>
+                        <x-student-picker.more :shown="$this->candidates->count()" :total="$this->pickerTotal" />
                     </flux:card>
                 @endif
 

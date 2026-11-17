@@ -175,6 +175,14 @@ new #[Title('Article')] class extends Component {
     @if ($article->summary)
         <p class="mb-4 text-base text-zinc-600 dark:text-zinc-300">{{ $article->summary }}</p>
     @endif
+    @if ($article->image_path)
+        <figure class="mb-6" data-test="article-image">
+            <img src="{{ route('articles.image', $article) }}?v={{ substr(md5($article->image_path), 0, 8) }}" alt="{{ $article->image_caption ?? $article->title }}" class="w-full rounded-lg">
+            @if ($article->image_caption)
+                <figcaption class="mt-2 text-center text-sm text-zinc-500">{{ $article->image_caption }}</figcaption>
+            @endif
+        </figure>
+    @endif
     <div class="article-body mb-6">{!! $article->bodyHtml() !!}</div>
     @if ($article->keywords)
         <div class="mb-8 flex flex-wrap gap-1">

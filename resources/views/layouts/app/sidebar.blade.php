@@ -15,6 +15,8 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
+            {{-- Only the menu scrolls; the logo stays at the top and the theme switch and user menu at the bottom (v7 D45). --}}
+            <div class="sidebar-scroll -mx-4 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4" data-test="sidebar-menu">
             @if ($activeRole)
                 <flux:sidebar.nav>
                     <flux:sidebar.item icon="bell" :href="route('notifications')" :current="request()->routeIs('notifications')"
@@ -46,8 +48,7 @@
                     @endforeach
                 </flux:sidebar.nav>
             @endif
-
-            <flux:spacer />
+            </div>
 
             <x-theme-switch class="hidden lg:flex" data-test="theme-switch" />
 
@@ -86,6 +87,8 @@
         @if ($activeRole?->isStaff())
             <x-print-options />
         @endif
+
+        <x-confirm-dialog />
 
         @persist('toast')
             <flux:toast.group>

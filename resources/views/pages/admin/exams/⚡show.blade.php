@@ -7,6 +7,7 @@ use App\Enums\Gender;
 use App\Enums\TeacherStatus;
 use App\Models\CourseEnrollment;
 use App\Models\CourseOffering;
+use App\Models\DispensationRequest;
 use App\Models\ExamDispensation;
 use App\Models\ExamPeriod;
 use App\Models\ExamSession;
@@ -200,6 +201,21 @@ new #[Title('Exam period')] class extends Component {
             ->all();
     }
 
+    /**
+     * The participants' dispensation requests of the semester, by student (v7 D47).
+     *
+     * @return \Illuminate\Support\Collection<int, DispensationRequest>
+     */
+    #[Computed]
+    public function requests(): \Illuminate\Support\Collection
+    {
+        return DispensationRequest::query()
+            ->where('semester_id', $this->period->semester_id)
+            ->whereIn('student_id', collect($this->participants->items())->map(fn (Student $student) => $student->id))
+            ->get()
+            ->keyBy('student_id');
+    }
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -286,6 +302,11 @@ new #[Title('Exam period')] class extends Component {
     {
         $this->reset('letterNumber', 'letterNote');
         $this->dispensationStudentId = $studentId;
+        // From the mahasantri's request, when there is one (v7 D47).
+        $request = $this->requests->get($studentId);
+        if ($request !== null) {
+            $this->letterNote = mb_strimwidth(__('Request of :date: :reason', ['date' => $request->updated_at->translatedFormat('j F Y'), 'reason' => $request->reason]), 0, 500, '…');
+        }
         $this->letterDate = now()->toDateString();
         $this->resetErrorBag();
         Flux::modal('dispensation-form')->show();
@@ -454,12 +475,18 @@ new #[Title('Exam period')] class extends Component {
                             </flux:table.cell>
                             <flux:table.cell>{{ $subjects->where('ok', true)->count() }} / {{ $subjects->count() }}</flux:table.cell>
                             <flux:table.cell class="whitespace-normal">
+                                @php($request = $this->requests->get($student->id))
+                                @if ($request)
+                                    <a href="{{ route('dispensations.letter', $request) }}" target="_blank" class="me-1 inline-flex items-center gap-1 text-xs text-accent-content underline" title="{{ $request->reason }}" data-test="request-{{ $student->id }}">
+                                        <flux:icon.document-text class="size-3.5" />{{ __('Requested :date', ['date' => $request->updated_at->translatedFormat('j M')]) }}
+                                    </a>
+                                @endif
                                 @if ($status['dispensation'])
                                     <span class="text-sm">{{ $status['dispensation']->letter_number }}</span>
                                     @unless ($period->semester->isReadOnly())
                                         <flux:button size="xs" variant="ghost" icon="x-mark" wire:click="revokeDispensation({{ $student->id }})" wire:confirm="{{ __('Remove this dispensation?') }}" :aria-label="__('Remove')" />
                                     @endunless
-                                @else
+                                @elseif (! $request)
                                     —
                                 @endif
                             </flux:table.cell>

@@ -42,6 +42,14 @@
         <tr><td class="label">No. kwitansi</td><td>{{ $payment->receipt_number ?? '—' }}</td></tr>
         <tr><td class="label">Telah terima dari</td><td>{{ $bill->student->user->name }} (NIM {{ $bill->student->nim }})</td></tr>
         <tr><td class="label">Untuk pembayaran</td><td>Tagihan {{ $bill->number }} · {{ $bill->semester->label() }}</td></tr>
+        {{-- The fees this payment paid (after-review D55). --}}
+        @if ($payment->allocations->isNotEmpty())
+            <tr><td class="label">Rincian</td><td>
+                @foreach ($payment->allocations->sortBy('bill_line_id') as $allocation)
+                    {{ $allocation->line->description }}: {{ Money::format($allocation->amount) }}@if (! $loop->last)<br>@endif
+                @endforeach
+            </td></tr>
+        @endif
         <tr><td class="label">Sejumlah</td><td class="amount">{{ Money::format($payment->amount) }}</td></tr>
         <tr><td class="label">Terbilang</td><td class="words">{{ Money::inWords($payment->amount) }}</td></tr>
         <tr><td class="label">Cara bayar</td><td>{{ $payment->method->label() }}@if ($payment->reference) · {{ $payment->reference }}@endif · {{ $payment->paid_on->translatedFormat('j F Y') }}</td></tr>

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Actions\Enrollment\ManageClassEnrollments;
 use App\Actions\Enrollment\ManageCourseOfferings;
-use App\Enums\StudentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\OfferingResource;
 use App\Models\ClassEnrollment;
@@ -12,8 +11,8 @@ use App\Models\ClassGroup;
 use App\Models\CourseOffering;
 use App\Models\Semester;
 use App\Models\Student;
+use App\Support\StudentPicker;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -68,31 +67,31 @@ class SemesterController extends Controller
     /**
      * Mahasantri to place.
      *
-     * Active mahasantri matching `search` (NIM or name, 2+ characters), of the class's gender when `class`
-     * is given, with their class this semester and the semester of study they should be in.
+     * All active mahasantri, 50 a page, of the class's gender when `class` (the class they go to) is given.
+     * Narrowed by `search` (NIM or name), `class_id` (their class this semester, or `none` for those without
+     * one) and `gender`. Each with their class this semester and the semester of study they should be in.
      */
     public function candidates(Request $request, Semester $semester, ManageClassEnrollments $manage): JsonResponse
     {
-        $request->validate(['search' => ['required', 'string', 'min:2'], 'class' => ['nullable', 'integer']]);
+        $request->validate(['class' => ['nullable', 'integer'], ...StudentPicker::rules()]);
         $class = $request->filled('class') ? ClassGroup::withTrashed()->findOrFail($request->integer('class')) : null;
-        $term = '%'.mb_strtolower(trim((string) $request->input('search'))).'%';
 
-        $students = Student::query()
-            ->with(['user', 'classEnrollments' => fn ($query) => $query->where('semester_id', $semester->id)])
-            ->where('status', StudentStatus::Active)
-            ->when($class?->gender, fn (Builder $query, $gender) => $query->where('gender', $gender))
-            ->where(fn (Builder $query) => $query->whereRaw('lower(nim) like ?', [$term])
-                ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
-            ->orderBy('nim')->limit(15)->get();
-        $levels = $manage->expectedLevels($semester, array_values($students->map(fn (Student $student) => $student->id)->all()));
+        $students = StudentPicker::fromRequest(StudentPicker::query($semester), $request, $semester, gender: $class?->gender?->value)
+            ->orderBy('nim')->paginate(StudentPicker::PAGE);
+        $items = collect($students->items());
+        $levels = $manage->expectedLevels($semester, array_values($items->map(fn (Student $student) => $student->id)->all()));
 
-        return response()->json(['data' => $students->map(fn (Student $student) => [
-            'id' => $student->id,
-            'nim' => $student->nim,
-            'name' => $student->user->name,
-            'current_class' => $student->classEnrollments->first()?->class_name,
-            'expected_level' => $levels[$student->id] ?? null,
-        ])->values()->all()]);
+        return response()->json([
+            'data' => $items->map(fn (Student $student) => [
+                'id' => $student->id,
+                'nim' => $student->nim,
+                'name' => $student->user->name,
+                'gender' => $student->gender->value,
+                'current_class' => $student->classEnrollments->first()?->class_name,
+                'expected_level' => $levels[$student->id] ?? null,
+            ])->values()->all(),
+            'meta' => ['current_page' => $students->currentPage(), 'last_page' => $students->lastPage(), 'total' => $students->total()],
+        ]);
     }
 
     /**

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Setting;
 use Illuminate\Validation\ValidationException;
 use App\Actions\Finance\ManageFees;
 use App\Actions\Finance\AddFeeToBills;
@@ -28,6 +29,8 @@ new #[Title('Fees')] class extends Component {
     public string $feeName = '';
     public string $frequency = 'per_semester';
     public bool $feeActive = true;
+    public ?int $feeMaxInstallments = null;
+    public ?int $feeMonths = 6;
 
     // Rate form
     public ?int $rateId = null;
@@ -149,6 +152,8 @@ new #[Title('Fees')] class extends Component {
         $this->reset('feeTypeId', 'feeName');
         $this->frequency = FeeFrequency::PerSemester->value;
         $this->feeActive = true;
+        $this->feeMaxInstallments = (int) Setting::get('payment.max_installments', 3);
+        $this->feeMonths = 6;
         $this->resetErrorBag();
         Flux::modal('fee-type-form')->show();
     }
@@ -161,6 +166,8 @@ new #[Title('Fees')] class extends Component {
         $this->feeName = $feeType->name;
         $this->frequency = $feeType->frequency->value;
         $this->feeActive = $feeType->is_active;
+        $this->feeMaxInstallments = $feeType->max_installments;
+        $this->feeMonths = $feeType->months_per_semester;
         $this->resetErrorBag();
         Flux::modal('fee-type-form')->show();
     }
@@ -173,11 +180,20 @@ new #[Title('Fees')] class extends Component {
             'feeActive' => ['boolean'],
         ]);
 
-        app(ManageFees::class)->saveFeeType($this->feeTypeId ? FeeType::query()->findOrFail($this->feeTypeId) : null, [
-            'name' => $data['feeName'],
-            'frequency' => $data['frequency'],
-            'is_active' => $data['feeActive'],
-        ]);
+        try {
+            app(ManageFees::class)->saveFeeType($this->feeTypeId ? FeeType::query()->findOrFail($this->feeTypeId) : null, [
+                'name' => $data['feeName'],
+                'frequency' => $data['frequency'],
+                'max_installments' => $this->feeMaxInstallments,
+                'months_per_semester' => $this->frequency === FeeFrequency::Monthly->value ? $this->feeMonths : null,
+                'is_active' => $data['feeActive'],
+            ]);
+        } catch (ValidationException $exception) {
+            // The action's field names, shown under this form's fields.
+            throw ValidationException::withMessages(collect($exception->errors())->mapWithKeys(fn ($messages, $key) => [
+                ['max_installments' => 'feeMaxInstallments', 'months_per_semester' => 'feeMonths'][$key] ?? $key => $messages,
+            ])->all());
+        }
 
         Flux::modal('fee-type-form')->close();
         unset($this->feeTypes, $this->rates);
@@ -273,7 +289,10 @@ new #[Title('Fees')] class extends Component {
                         class="flex w-full items-center justify-between gap-3 px-3 py-2 text-start hover:bg-zinc-50 dark:hover:bg-zinc-800">
                         <span>
                             <span class="font-medium">{{ $feeType->name }}</span>
-                            <span class="block text-xs text-zinc-500">{{ $feeType->frequency->label() }}</span>
+                            <span class="block text-xs text-zinc-500">
+                                {{ $feeType->frequency === FeeFrequency::Monthly ? trans_choice('Monthly, :count month per semester|Monthly, :count months per semester', $feeType->months_per_semester) : $feeType->frequency->label() }}
+                                · {{ $feeType->max_installments > 1 ? __('up to :count instalments', ['count' => $feeType->max_installments]) : __('paid at once') }}
+                            </span>
                         </span>
                         @unless ($feeType->is_active)
                             <flux:badge size="sm">{{ __('Inactive') }}</flux:badge>
@@ -342,11 +361,17 @@ new #[Title('Fees')] class extends Component {
         <form wire:submit="saveFeeType" class="space-y-6">
             <flux:heading size="lg">{{ $feeTypeId ? __('Edit fee type') : __('Add fee type') }}</flux:heading>
             <flux:input wire:model="feeName" :label="__('Name')" placeholder="SPP" required />
-            <flux:radio.group wire:model="frequency" :label="__('Billed')">
+            <flux:radio.group wire:model.live="frequency" :label="__('Billed')">
                 @foreach (FeeFrequency::cases() as $case)
                     <flux:radio :value="$case->value" :label="$case->label()" />
                 @endforeach
             </flux:radio.group>
+            @if ($frequency === FeeFrequency::Monthly->value)
+                {{-- after-review D56: e.g. 5 months a semester, 10 a year. --}}
+                <flux:input type="number" min="1" max="6" wire:model="feeMonths" :label="__('Months billed per semester')" :description:trailing="__('The rate is per month; a bill of the semester holds this many months.')" data-test="fee-months" />
+            @endif
+            {{-- after-review D55: e.g. Pendaftaran in up to 3 payments. --}}
+            <flux:input type="number" min="1" max="12" wire:model="feeMaxInstallments" :label="__('Maximum instalments')" :description:trailing="__('How many payments this fee may be paid in. 1 = paid at once. Bills already made keep their limit.')" data-test="fee-installments" />
             <flux:switch wire:model="feeActive" :label="__('Active (included when generating bills)')" />
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>

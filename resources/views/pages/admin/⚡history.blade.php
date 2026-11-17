@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Teaching\ApplyGradeScale;
 use App\Enums\Role;
 use App\Enums\SemesterStatus;
 use App\Imports\History\BillHistory;
@@ -113,6 +114,30 @@ new #[Title('Previous-year data')] class extends Component {
     public function open(): bool
     {
         return MaintenanceMode::allowsEditing();
+    }
+
+    /**
+     * Imported grades whose letter the current scale would change (after-review D54), grouped as
+     * "E → B+" => count.
+     *
+     * @return array<string, int>
+     */
+    #[Computed]
+    public function scaleChanges(): array
+    {
+        return collect(app(ApplyGradeScale::class)->changes())
+            ->countBy(fn (array $change) => $change['enrollment']->final_letter.' → '.$change['letter'])
+            ->sortDesc()
+            ->all();
+    }
+
+    public function applyScale(ApplyGradeScale $apply): void
+    {
+        abort_unless(array_key_exists('grades', $this->types), 403);
+        $changed = $apply->handle();
+
+        unset($this->scaleChanges);
+        Flux::toast(variant: 'success', text: trans_choice(':count grade now follows the grade scale.|:count grades now follow the grade scale.', $changed));
     }
 
     public function updatedType(): void
@@ -259,10 +284,27 @@ new #[Title('Previous-year data')] class extends Component {
                 {{ match ($type) {
                     'placements' => __('Import the class placements first: grades are matched to the class each mahasantri was in.'),
                     'grades' => __('Each grade is stored as final. Rows for a subject and class without a class offering create it, with the muhadhir given in teacher_nidm.'),
-                    'bills' => __('One row per mahasantri: the bill of the semester and what was paid on it. Payments are stored as verified and booked to the account given.'),
+                    'bills' => __('One row per mahasantri: the bill of the semester and what was paid on it. Payments are stored as verified and booked to the account given. A bill of the semester without payments (e.g. made with Buat tagihan) is replaced by the archive bill.'),
                     default => __('Other income and expenses, each with its date. Set the accounts and their opening balance first (Accounts & categories).'),
                 } }}
             </flux:text>
+
+            @if ($type === 'grades' && $this->scaleChanges !== [])
+                {{-- Grades imported with a score follow the grade scale (after-review D54). --}}
+                <flux:callout icon="scale" color="amber" data-test="scale-changes">
+                    <flux:callout.heading>{{ __('Imported grades do not follow the grade scale') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ trans_choice(':count grade imported with a score has a letter the current grade scale would not give (for example because the scale was empty or different at the time).|:count grades imported with a score have a letter the current grade scale would not give (for example because the scale was empty or different at the time).', array_sum($this->scaleChanges)) }}
+                        <span class="block mt-1 font-mono text-xs">{{ collect($this->scaleChanges)->map(fn ($count, $change) => $change.': '.$count)->join(' · ') }}</span>
+                        {{ __('Letters from the archive and grades entered in classes are not changed.') }}
+                    </flux:callout.text>
+                    <x-slot name="actions">
+                        <flux:button size="sm" variant="primary" wire:click="applyScale" :disabled="! $this->open" data-test="apply-scale"
+                            wire:confirm="{{ __('Apply the current grade scale to these imported grades? KHS, transcripts and IPS/IPK change with them.') }}">{{ __('Apply the grade scale') }}</flux:button>
+                    </x-slot>
+                </flux:callout>
+                <flux:error name="scale" />
+            @endif
 
             <flux:card class="space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">

@@ -102,7 +102,7 @@ class StudentRecordController extends Controller
     {
         abort_unless(StudentAccess::canViewBills($request->user(), ActiveRole::get(), $student), 403);
 
-        $bills = $student->bills()->with(['semester.academicYear', 'lines', 'payments'])->orderByDesc('semester_id')->orderByDesc('id')->get();
+        $bills = $student->bills()->with(['semester.academicYear', 'lines', 'payments.allocations.line'])->orderByDesc('semester_id')->orderByDesc('id')->get();
         $accounts = Setting::get('payment.bank_accounts');
 
         return response()->json(['data' => [
@@ -116,7 +116,8 @@ class StudentRecordController extends Controller
      * Confirm a transfer.
      *
      * The payer (the mahasantri or their wali) reports a bank transfer with a photo of the receipt
-     * (multipart `proof`); the finance office checks it against the bank statement.
+     * (multipart `proof`); the finance office checks it against the bank statement. The amount is spread over
+     * the bill's fees in order (the bill's `transfer.fees`), within each fee's rules.
      */
     public function confirmTransfer(Request $request, Bill $bill, ConfirmTransfer $confirm): BillResource
     {
@@ -136,7 +137,7 @@ class StudentRecordController extends Controller
             'proof' => $request->file('proof'),
         ]);
 
-        return new BillResource($bill->refresh()->load(['semester.academicYear', 'lines', 'payments']));
+        return new BillResource($bill->refresh()->load(['semester.academicYear', 'lines', 'payments.allocations.line']));
     }
 
     /**

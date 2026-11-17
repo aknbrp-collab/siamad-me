@@ -79,7 +79,7 @@ final class LetterDocuments
         $section->addTextBreak();
         $signature = $section->addTable(['width' => 100 * 50, 'unit' => TblWidth::PERCENT]);
         $signature->addRow();
-        $signature->addCell(null)->addText('${stempel}');
+        $signature->addCell(5300)->addText('${stempel}');
         $cell = $signature->addCell(4300);
         $cell->addText('${kota}, ${tanggal}', null, ['spaceAfter' => 0]);
         $cell->addText('${jabatan},', null, ['spaceAfter' => 0]);

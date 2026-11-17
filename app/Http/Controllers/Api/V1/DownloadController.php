@@ -6,6 +6,7 @@ use App\Http\Controllers\AcademicRecordPdfController;
 use App\Http\Controllers\Api\V1\Concerns\ActsForSignedUser;
 use App\Http\Controllers\CashReportController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\DispensationLetterController;
 use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\LetterPdfController;
 use App\Http\Controllers\ReceiptController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\ScoreTemplateController;
 use App\Http\Controllers\TeachingJournalController;
 use App\Http\Controllers\TemplateController;
 use App\Models\CourseOffering;
+use App\Models\DispensationRequest;
 use App\Models\ExamPeriod;
 use App\Models\Letter;
 use App\Models\Payment;
@@ -45,6 +47,7 @@ class DownloadController extends Controller
         'khs' => [AcademicRecordPdfController::class, 'khs', ['student' => Student::class, 'semester' => Semester::class]],
         'transcript' => [AcademicRecordPdfController::class, 'transcript', ['student' => Student::class]],
         'exam-card' => [ExamCardController::class, '__invoke', ['period' => ExamPeriod::class, 'student' => Student::class]],
+        'dispensation-letter' => [DispensationLetterController::class, '__invoke', ['dispensation' => DispensationRequest::class]],
         'letter' => [LetterPdfController::class, '__invoke', ['letter' => Letter::class]],
         'receipt' => [ReceiptController::class, '__invoke', ['payment' => Payment::class]],
         // Muhadhir (Step 7): the score import template, the RPS / journal Word templates and the journal PDF.

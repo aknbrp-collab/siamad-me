@@ -3233,10 +3233,145 @@
                 }
             }
         },
+        "/students/{student}/dispensation": {
+            "get": {
+                "operationId": "v1.students.dispensation",
+                "description": "The request of the active semester (the mahasantri's own, a wali's child, academic and finance\nstaff): whether one may be written (`can_request`, the semester bill is not paid off), the request\nwith a signed link to the letter (`letter_url`), and whether Admin granted it.",
+                "summary": "Dispensation request",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "student",
+                        "in": "path",
+                        "required": true,
+                        "description": "The student ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "can_request": {
+                                                    "type": "boolean"
+                                                },
+                                                "request": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "semester_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "reason": {
+                                                            "type": "string"
+                                                        },
+                                                        "outstanding": {
+                                                            "type": "integer",
+                                                            "description": "Still to pay over all bills when the request was written (rupiah)."
+                                                        },
+                                                        "granted": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "written_at": {
+                                                            "type": "string"
+                                                        },
+                                                        "letter_url": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "semester_id",
+                                                        "reason",
+                                                        "outstanding",
+                                                        "granted",
+                                                        "written_at",
+                                                        "letter_url"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "can_request",
+                                                "request"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/bills/{bill}/transfers": {
             "post": {
                 "operationId": "v1.bills.transfers",
-                "description": "The payer (the mahasantri or their wali) reports a bank transfer with a photo of the receipt\n(multipart `proof`); the finance office checks it against the bank statement.",
+                "description": "The payer (the mahasantri or their wali) reports a bank transfer with a photo of the receipt\n(multipart `proof`); the finance office checks it against the bank statement. The amount is spread over\nthe bill's fees in order (the bill's `transfer.fees`), within each fee's rules.",
                 "summary": "Confirm a transfer",
                 "tags": [
                     "Records"
@@ -3353,6 +3488,150 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/student/dispensation": {
+            "post": {
+                "operationId": "v1.student.dispensation.store",
+                "description": "The mahasantri's `reason` (10 to 1000 characters) for the active semester; writing again replaces\nit. Refused (422) when the semester bill is paid off. Admin is told about a new request.",
+                "summary": "Write a dispensation request",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "can_request": {
+                                                    "type": "boolean"
+                                                },
+                                                "request": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "semester_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "reason": {
+                                                            "type": "string"
+                                                        },
+                                                        "outstanding": {
+                                                            "type": "integer",
+                                                            "description": "Still to pay over all bills when the request was written (rupiah)."
+                                                        },
+                                                        "granted": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "written_at": {
+                                                            "type": "string"
+                                                        },
+                                                        "letter_url": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "semester_id",
+                                                        "reason",
+                                                        "outstanding",
+                                                        "granted",
+                                                        "written_at",
+                                                        "letter_url"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "can_request",
+                                                "request"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "examples": [
+                                                ""
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
@@ -10205,6 +10484,19 @@
                                                         "type": "string"
                                                     }
                                                 },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "review_round": {
                                                     "type": "integer"
                                                 },
@@ -10337,6 +10629,8 @@
                                                 "body",
                                                 "body_html",
                                                 "keywords",
+                                                "image_url",
+                                                "image_caption",
                                                 "review_round",
                                                 "reviews",
                                                 "website",
@@ -10479,6 +10773,19 @@
                                                         "type": "string"
                                                     }
                                                 },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "review_round": {
                                                     "type": "integer"
                                                 },
@@ -10611,6 +10918,8 @@
                                                 "body",
                                                 "body_html",
                                                 "keywords",
+                                                "image_url",
+                                                "image_caption",
                                                 "review_round",
                                                 "reviews",
                                                 "website",
@@ -10719,6 +11028,13 @@
                                             "null"
                                         ],
                                         "maxLength": 500
+                                    },
+                                    "image_caption": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 255
                                     }
                                 },
                                 "required": [
@@ -10810,6 +11126,19 @@
                                                     "items": {
                                                         "type": "string"
                                                     }
+                                                },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 },
                                                 "review_round": {
                                                     "type": "integer"
@@ -10943,6 +11272,8 @@
                                                 "body",
                                                 "body_html",
                                                 "keywords",
+                                                "image_url",
+                                                "image_caption",
                                                 "review_round",
                                                 "reviews",
                                                 "website",
@@ -11006,6 +11337,611 @@
                 "responses": {
                     "204": {
                         "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/articles/{article}/image": {
+            "post": {
+                "operationId": "v1.articles.image",
+                "description": "Multipart `image` (JPG, PNG or WebP; made at most 1600 px wide) and an optional `image_caption`.\nLike any change, a published article becomes a draft until it is published again (v7 D48).",
+                "summary": "Set the picture",
+                "tags": [
+                    "Articles"
+                ],
+                "parameters": [
+                    {
+                        "name": "article",
+                        "in": "path",
+                        "required": true,
+                        "description": "The article ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream"
+                                    },
+                                    "image_caption": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 255
+                                    }
+                                },
+                                "required": [
+                                    "image"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "code": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "draft",
+                                                        "in_review",
+                                                        "changes_requested",
+                                                        "published",
+                                                        "withdrawn"
+                                                    ]
+                                                },
+                                                "status_label": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Draf",
+                                                        "Sedang diperiksa",
+                                                        "Perlu perbaikan",
+                                                        "Terbit",
+                                                        "Ditarik"
+                                                    ]
+                                                },
+                                                "submitted_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "published_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "updated_at": {
+                                                    "type": "string"
+                                                },
+                                                "author": {
+                                                    "type": "string"
+                                                },
+                                                "mine": {
+                                                    "type": "boolean"
+                                                },
+                                                "summary": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "body": {
+                                                    "type": "string"
+                                                },
+                                                "body_html": {
+                                                    "type": "string"
+                                                },
+                                                "keywords": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "review_round": {
+                                                    "type": "integer"
+                                                },
+                                                "reviews": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "website": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "enabled": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "status": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "status_label": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ],
+                                                            "enum": [
+                                                                "Diterima editor website",
+                                                                "Sedang diperiksa editor website",
+                                                                "Di website",
+                                                                "Tidak diterima editor website",
+                                                                "Dihapus dari website",
+                                                                null
+                                                            ]
+                                                        },
+                                                        "review_note": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "public_url": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "changes_pending": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "sent_at": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "checked_at": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "error": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "enabled",
+                                                        "status",
+                                                        "status_label",
+                                                        "review_note",
+                                                        "public_url",
+                                                        "changes_pending",
+                                                        "sent_at",
+                                                        "checked_at",
+                                                        "error"
+                                                    ]
+                                                },
+                                                "can": {
+                                                    "type": "object",
+                                                    "description": "What I can do now.",
+                                                    "properties": {
+                                                        "edit": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "submit": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "publish": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "review": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "withdraw": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "discard": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "edit",
+                                                        "submit",
+                                                        "publish",
+                                                        "review",
+                                                        "withdraw",
+                                                        "discard"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "code",
+                                                "title",
+                                                "status",
+                                                "status_label",
+                                                "submitted_at",
+                                                "published_at",
+                                                "updated_at",
+                                                "author",
+                                                "mine",
+                                                "summary",
+                                                "body",
+                                                "body_html",
+                                                "keywords",
+                                                "image_url",
+                                                "image_caption",
+                                                "review_round",
+                                                "reviews",
+                                                "website",
+                                                "can"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1.articles.image.remove",
+                "summary": "Remove the picture",
+                "tags": [
+                    "Articles"
+                ],
+                "parameters": [
+                    {
+                        "name": "article",
+                        "in": "path",
+                        "required": true,
+                        "description": "The article ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Role",
+                        "in": "header",
+                        "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "superadmin",
+                                "admin",
+                                "admin_payment",
+                                "academic_monitor",
+                                "teacher",
+                                "student",
+                                "guardian",
+                                "payment_collector"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "code": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "draft",
+                                                        "in_review",
+                                                        "changes_requested",
+                                                        "published",
+                                                        "withdrawn"
+                                                    ]
+                                                },
+                                                "status_label": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Draf",
+                                                        "Sedang diperiksa",
+                                                        "Perlu perbaikan",
+                                                        "Terbit",
+                                                        "Ditarik"
+                                                    ]
+                                                },
+                                                "submitted_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "published_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "updated_at": {
+                                                    "type": "string"
+                                                },
+                                                "author": {
+                                                    "type": "string"
+                                                },
+                                                "mine": {
+                                                    "type": "boolean"
+                                                },
+                                                "summary": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "body": {
+                                                    "type": "string"
+                                                },
+                                                "body_html": {
+                                                    "type": "string"
+                                                },
+                                                "keywords": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "review_round": {
+                                                    "type": "integer"
+                                                },
+                                                "reviews": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "website": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "enabled": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "status": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "status_label": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ],
+                                                            "enum": [
+                                                                "Diterima editor website",
+                                                                "Sedang diperiksa editor website",
+                                                                "Di website",
+                                                                "Tidak diterima editor website",
+                                                                "Dihapus dari website",
+                                                                null
+                                                            ]
+                                                        },
+                                                        "review_note": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "public_url": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "changes_pending": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "sent_at": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "checked_at": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "error": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "enabled",
+                                                        "status",
+                                                        "status_label",
+                                                        "review_note",
+                                                        "public_url",
+                                                        "changes_pending",
+                                                        "sent_at",
+                                                        "checked_at",
+                                                        "error"
+                                                    ]
+                                                },
+                                                "can": {
+                                                    "type": "object",
+                                                    "description": "What I can do now.",
+                                                    "properties": {
+                                                        "edit": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "submit": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "publish": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "review": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "withdraw": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "discard": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "edit",
+                                                        "submit",
+                                                        "publish",
+                                                        "review",
+                                                        "withdraw",
+                                                        "discard"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "code",
+                                                "title",
+                                                "status",
+                                                "status_label",
+                                                "submitted_at",
+                                                "published_at",
+                                                "updated_at",
+                                                "author",
+                                                "mine",
+                                                "summary",
+                                                "body",
+                                                "body_html",
+                                                "keywords",
+                                                "image_url",
+                                                "image_caption",
+                                                "review_round",
+                                                "reviews",
+                                                "website",
+                                                "can"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
@@ -11134,6 +12070,19 @@
                                                         "type": "string"
                                                     }
                                                 },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "review_round": {
                                                     "type": "integer"
                                                 },
@@ -11266,6 +12215,8 @@
                                                 "body",
                                                 "body_html",
                                                 "keywords",
+                                                "image_url",
+                                                "image_caption",
                                                 "review_round",
                                                 "reviews",
                                                 "website",
@@ -11407,6 +12358,19 @@
                                                         "type": "string"
                                                     }
                                                 },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "review_round": {
                                                     "type": "integer"
                                                 },
@@ -11539,6 +12503,8 @@
                                                 "body",
                                                 "body_html",
                                                 "keywords",
+                                                "image_url",
+                                                "image_caption",
                                                 "review_round",
                                                 "reviews",
                                                 "website",
@@ -11706,6 +12672,19 @@
                                                         "type": "string"
                                                     }
                                                 },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "review_round": {
                                                     "type": "integer"
                                                 },
@@ -11838,6 +12817,8 @@
                                                 "body",
                                                 "body_html",
                                                 "keywords",
+                                                "image_url",
+                                                "image_caption",
                                                 "review_round",
                                                 "reviews",
                                                 "website",
@@ -11983,6 +12964,19 @@
                                                         "type": "string"
                                                     }
                                                 },
+                                                "image_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "A signed link to the picture (v7 D48), or null."
+                                                },
+                                                "image_caption": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "review_round": {
                                                     "type": "integer"
                                                 },
@@ -12115,6 +13109,8 @@
                                                 "body",
                                                 "body_html",
                                                 "keywords",
+                                                "image_url",
+                                                "image_caption",
                                                 "review_round",
                                                 "reviews",
                                                 "website",
@@ -15927,7 +16923,7 @@
         "/admin/semesters/{semester}/placements/candidates": {
             "get": {
                 "operationId": "v1.admin.semesters.placements.candidates",
-                "description": "Active mahasantri matching `search` (NIM or name, 2+ characters), of the class's gender when `class`\nis given, with their class this semester and the semester of study they should be in.",
+                "description": "All active mahasantri, 50 a page, of the class's gender when `class` (the class they go to) is given.\nNarrowed by `search` (NIM or name), `class_id` (their class this semester, or `none` for those without\none) and `gender`. Each with their class this semester and the semester of study they should be in.",
                 "summary": "Mahasantri to place",
                 "tags": [
                     "Admin akademik"
@@ -15943,21 +16939,47 @@
                         }
                     },
                     {
-                        "name": "search",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "minLength": 2
-                        }
-                    },
-                    {
                         "name": "class",
                         "in": "query",
                         "schema": {
                             "type": [
                                 "integer",
                                 "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "class_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "gender",
+                        "in": "query",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/Gender"
+                                },
+                                {
+                                    "type": "null"
+                                }
                             ]
                         }
                     },
@@ -15991,12 +17013,70 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "nim": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "gender": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "male",
+                                                            "female"
+                                                        ]
+                                                    },
+                                                    "current_class": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "expected_level": {
+                                                        "type": [
+                                                            "integer",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "nim",
+                                                    "name",
+                                                    "gender",
+                                                    "current_class",
+                                                    "expected_level"
+                                                ]
                                             }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -17420,6 +18500,29 @@
                                                             "note"
                                                         ]
                                                     },
+                                                    "dispensation_request": {
+                                                        "type": [
+                                                            "object",
+                                                            "null"
+                                                        ],
+                                                        "description": "The mahasantri's own request (v7 D47), with a signed link to the letter.",
+                                                        "properties": {
+                                                            "reason": {
+                                                                "type": "string"
+                                                            },
+                                                            "written_at": {
+                                                                "type": "string"
+                                                            },
+                                                            "letter_url": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "reason",
+                                                            "written_at",
+                                                            "letter_url"
+                                                        ]
+                                                    },
                                                     "seat": {
                                                         "type": [
                                                             "object",
@@ -17453,6 +18556,7 @@
                                                     "payment_ok",
                                                     "outstanding",
                                                     "dispensation",
+                                                    "dispensation_request",
                                                     "seat",
                                                     "subjects_short"
                                                 ]
@@ -17648,22 +18752,12 @@
         "/admin/students": {
             "get": {
                 "operationId": "v1.admin.students",
-                "description": "`search` (NIM or name), `status` (active, leave, graduated, \u2026), `program` (study program id); paginated,\nwith how many documents are verified.",
+                "description": "`search` (NIM or name), `status` (active, leave, graduated, \u2026), `program` (study program id), `class_id`\n(class in the active semester, or `none`) and `gender`; paginated, with how many documents are verified\nand the class. Also the list to choose mahasantri from (v7 D43).",
                 "summary": "Mahasantri",
                 "tags": [
                     "Admin akademik"
                 ],
                 "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        }
-                    },
                     {
                         "name": "status",
                         "in": "query",
@@ -17681,6 +18775,41 @@
                             "type": [
                                 "integer",
                                 "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "class_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "gender",
+                        "in": "query",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/Gender"
+                                },
+                                {
+                                    "type": "null"
+                                }
                             ]
                         }
                     },
@@ -17744,6 +18873,12 @@
                                                     "study_program": {
                                                         "type": "string"
                                                     },
+                                                    "class": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
                                                     "entry_year": {
                                                         "type": "integer"
                                                     },
@@ -17764,6 +18899,7 @@
                                                     "gender",
                                                     "status",
                                                     "study_program",
+                                                    "class",
                                                     "entry_year",
                                                     "documents",
                                                     "verified_documents",
@@ -23156,7 +24292,7 @@
         "/finance/bills/grid": {
             "get": {
                 "operationId": "v1.finance.bills.grid",
-                "description": "One row per bill of a semester with a cell per instalment (paid, pending, open, done, none) up to the\nsemester's highest limit, and what is still owed from earlier semesters. Filters: `class`, `gender`\n(finance office), `search`.",
+                "description": "One row per bill of a semester, and what is still owed from earlier semesters. Without `fee`: every fee\ntype of the semester as a column (`columns`), each row's `fees` with due / paid / pending / left per fee\ntype, and the total `left`. With `fee` (a fee type id, see `fee_types`): only bills with that fee; a\nmonthly fee has a cell per month (`cells`: paid, pending, open, none), another fee its instalments\n`used` / `max`; both with `paid`, `pending` and `left` of that fee. \"Left\" is what is not verified yet.\nFilters: `class`, `gender` (finance office), `search`.",
                 "summary": "Instalment grid (Rekap angsuran)",
                 "tags": [
                     "Keuangan"
@@ -23203,6 +24339,16 @@
                         }
                     },
                     {
+                        "name": "fee",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
                         "name": "X-Role",
                         "in": "header",
                         "description": "The role to act in, one of the user's `roles`. Needed when the user holds more than one; a role the user does not hold gives 403 `role_not_held`.",
@@ -23235,16 +24381,150 @@
                                                 "semester": {
                                                     "type": "string"
                                                 },
-                                                "columns": {},
-                                                "rows": {
+                                                "mode": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "all",
+                                                        "monthly",
+                                                        "fee"
+                                                    ]
+                                                },
+                                                "fee": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "frequency": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "per_semester",
+                                                                "monthly",
+                                                                "once"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "frequency"
+                                                    ]
+                                                },
+                                                "fee_types": {
                                                     "type": "array",
                                                     "items": {
                                                         "type": "string"
+                                                    }
+                                                },
+                                                "columns": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "rows": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "bill_id": {
+                                                                "type": "string"
+                                                            },
+                                                            "nim": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "class_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "fees": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "fee_type_id": {
+                                                                            "anyOf": [
+                                                                                {
+                                                                                    "type": [
+                                                                                        "integer",
+                                                                                        "null"
+                                                                                    ]
+                                                                                },
+                                                                                {}
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "fee_type_id"
+                                                                    ],
+                                                                    "additionalProperties": {}
+                                                                }
+                                                            },
+                                                            "cells": {
+                                                                "type": "array",
+                                                                "items": {}
+                                                            },
+                                                            "due": {
+                                                                "type": "string"
+                                                            },
+                                                            "paid": {
+                                                                "type": "string"
+                                                            },
+                                                            "pending": {
+                                                                "type": "string"
+                                                            },
+                                                            "left": {
+                                                                "type": "string"
+                                                            },
+                                                            "used": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "max": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "previous_semesters": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "bill_id",
+                                                            "nim",
+                                                            "name",
+                                                            "class_name",
+                                                            "fees",
+                                                            "cells",
+                                                            "due",
+                                                            "paid",
+                                                            "pending",
+                                                            "left",
+                                                            "used",
+                                                            "max",
+                                                            "previous_semesters",
+                                                            "status"
+                                                        ]
                                                     }
                                                 }
                                             },
                                             "required": [
                                                 "semester",
+                                                "mode",
+                                                "fee",
+                                                "fee_types",
                                                 "columns",
                                                 "rows"
                                             ]
@@ -23272,7 +24552,7 @@
         "/finance/bills/{bill}": {
             "get": {
                 "operationId": "v1.finance.bills.show",
-                "description": "Lines and payments (with receipt links), what a new payment may be (`allowance`: open amount,\ninstalments used / allowed, minimum), and what this role may do.",
+                "description": "Lines, fees (what is left of each, instalments used / allowed) and payments with the fees they paid\n(and receipt links), what a new payment may be (`allowance`: open amount, minimum, fees), and what this\nrole may do.",
                 "summary": "A bill",
                 "tags": [
                     "Keuangan"
@@ -23423,7 +24703,7 @@
         "/finance/bills/{bill}/payments": {
             "post": {
                 "operationId": "v1.finance.bills.payments",
-                "description": "`amount`, `method` (cash or transfer), `paid_on`, `reference` (transfers), `proof` (multipart), and for the\nfinance office the `cash_account_id` it goes into. It waits for verification: cash is handed over, a\ntransfer is checked against the bank statement.",
+                "description": "`allocations` (fee line id => amount, the fees this payment pays; the bill's `fees` list them) or just\n`amount` (spread over the fees in the bill's order), `method` (cash or transfer), `paid_on`, `reference`\n(transfers), `proof` (multipart), and for the finance office the `cash_account_id` it goes into. Each fee\nkeeps its own instalment rules. It waits for verification: cash is handed over, a transfer is checked\nagainst the bank statement.",
                 "summary": "Record a payment",
                 "tags": [
                     "Keuangan"
@@ -23465,7 +24745,19 @@
                                 "type": "object",
                                 "properties": {
                                     "amount": {
-                                        "type": "integer"
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "allocations": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "string"
+                                        }
                                     },
                                     "method": {
                                         "type": "string"
@@ -23496,7 +24788,6 @@
                                     }
                                 },
                                 "required": [
-                                    "amount",
                                     "method",
                                     "paid_on"
                                 ]
@@ -24626,7 +25917,7 @@
         "/finance/bills/{bill}/installments": {
             "put": {
                 "operationId": "v1.finance.bills.installments",
-                "description": "`max_installments` (up to 5) with a `reason`.",
+                "description": "`max_installments` (1\u201312, not below the payments already made) with a `reason`; for one fee with\n`fee_id` (a bill line id from `fees`), else for every fee of the bill.",
                 "summary": "Change the instalment limit (Superadmin)",
                 "tags": [
                     "Keuangan"
@@ -24673,6 +25964,12 @@
                                     "reason": {
                                         "type": "string",
                                         "maxLength": 500
+                                    },
+                                    "fee_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -24904,7 +26201,7 @@
         "/finance/fee-types": {
             "post": {
                 "operationId": "v1.finance.fee-types.save",
-                "description": "`name`, `frequency` (per_semester, monthly, once), `is_active`. Bills already made keep their amounts.",
+                "description": "`name`, `frequency` (per_semester, monthly, once), `max_installments` (1\u201312), `months_per_semester`\n(1\u20136, for a monthly fee), `is_active`. Bills already made keep their amounts, instalment limits and months.",
                 "summary": "Add or change a fee type",
                 "tags": [
                     "Keuangan"
@@ -24951,6 +26248,18 @@
                                     "is_active": {
                                         "type": [
                                             "boolean",
+                                            "null"
+                                        ]
+                                    },
+                                    "max_installments": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "months_per_semester": {
+                                        "type": [
+                                            "integer",
                                             "null"
                                         ]
                                     }
@@ -25629,7 +26938,7 @@
         "/finance/scholarships/candidates": {
             "get": {
                 "operationId": "v1.finance.scholarships.candidates",
-                "description": "Active mahasantri matching `search` (NIM or name, 2+ characters).",
+                "description": "All active mahasantri, 50 a page, narrowed by `search` (NIM or name), `class_id` (class in the active\nsemester, or `none`) and `gender`.",
                 "summary": "Mahasantri to award",
                 "tags": [
                     "Keuangan"
@@ -25638,10 +26947,36 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "required": true,
                         "schema": {
-                            "type": "string",
-                            "minLength": 2
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "class_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "gender",
+                        "in": "query",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/Gender"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
                         }
                     },
                     {
@@ -25674,12 +27009,63 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "nim": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "gender": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "male",
+                                                            "female"
+                                                        ]
+                                                    },
+                                                    "class": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "nim",
+                                                    "name",
+                                                    "gender",
+                                                    "class"
+                                                ]
                                             }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -29543,8 +30929,70 @@
                     },
                     "lines": {
                         "type": "array",
+                        "description": "Every line, discounts (negative) included.",
                         "items": {
                             "type": "string"
+                        }
+                    },
+                    "fees": {
+                        "type": "array",
+                        "description": "The fees (positive lines) with what is left of each and its instalments.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "The bill line id: the key of `allocations` when recording a payment."
+                                },
+                                "fee_type_id": {
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "type": "string"
+                                },
+                                "due": {
+                                    "type": "string",
+                                    "description": "After this fee's share of the scholarship discount."
+                                },
+                                "paid": {
+                                    "type": "string",
+                                    "description": "Verified."
+                                },
+                                "pending": {
+                                    "type": "string",
+                                    "description": "Waiting for verification."
+                                },
+                                "left": {
+                                    "type": "string"
+                                },
+                                "instalments_used": {
+                                    "type": "string"
+                                },
+                                "instalments_max": {
+                                    "type": "string"
+                                },
+                                "months": {
+                                    "type": "string",
+                                    "description": "Months billed, for a monthly fee."
+                                },
+                                "payable": {
+                                    "type": "boolean",
+                                    "description": "Can it take another payment."
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "fee_type_id",
+                                "description",
+                                "due",
+                                "paid",
+                                "pending",
+                                "left",
+                                "instalments_used",
+                                "instalments_max",
+                                "months",
+                                "payable"
+                            ]
                         }
                     },
                     "payments": {
@@ -29558,25 +31006,42 @@
                             "object",
                             "null"
                         ],
-                        "description": "For \"Konfirmasi transfer\": null when nothing is left to pay.",
+                        "description": "For \"Konfirmasi transfer\": null when nothing is left to pay. The amount is spread over `fees` in\nthis order; a fee paid in part needs at least `min_amount` unless that settles it.",
                         "properties": {
-                            "open_amount": {},
-                            "instalments_used": {
-                                "type": "integer",
-                                "minimum": 0
-                            },
-                            "instalments_max": {
+                            "open_amount": {
                                 "type": "integer"
                             },
                             "min_amount": {
                                 "type": "integer"
+                            },
+                            "fees": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "description": "The bill line id: the key of `allocations` when recording a payment."
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "left": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "description",
+                                        "left"
+                                    ]
+                                }
                             }
                         },
                         "required": [
                             "open_amount",
-                            "instalments_used",
-                            "instalments_max",
-                            "min_amount"
+                            "min_amount",
+                            "fees"
                         ]
                     }
                 },
@@ -29592,6 +31057,7 @@
                     "status",
                     "status_label",
                     "lines",
+                    "fees",
                     "payments",
                     "transfer"
                 ],

@@ -210,3 +210,12 @@ select:focus[data-flux-control] {
 .article-body blockquote { @apply border-s-4 border-zinc-300 ps-3 italic text-zinc-600 dark:border-zinc-600 dark:text-zinc-400; }
 .article-body a { @apply text-[var(--color-accent-content)] underline; }
 .article-body code { @apply rounded bg-zinc-100 px-1 font-mono text-xs dark:bg-zinc-800; }
+
+/* The sidebar menu scrolls on its own with a thin bar (v7 D45); the footer stays in place. */
+.sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-zinc-300) transparent;
+}
+.dark .sidebar-scroll {
+    scrollbar-color: var(--color-zinc-600) transparent;
+}

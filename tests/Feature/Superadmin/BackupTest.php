@@ -19,6 +19,19 @@ beforeEach(function () {
     ]);
 });
 
+/**
+ * Stand in for pg_dump writing its --file.
+ */
+function fakePgDump(): void
+{
+    Process::fake(function (PendingProcess $process) {
+        $file = collect($process->command)->first(fn (string $arg) => str_starts_with($arg, '--file='));
+        File::put(substr($file, 7), 'dump');
+
+        return Process::result();
+    });
+}
+
 afterEach(function () {
     File::deleteDirectory($this->backups);
     File::deleteDirectory($this->private);
@@ -58,7 +71,7 @@ test('a failed dump leaves no partial backup behind', function () {
 });
 
 test('backups older than the retention period are removed', function () {
-    Process::fake();
+    fakePgDump();
 
     $old = $this->backups.'/2026-01-01_020000';
     File::ensureDirectoryExists($old);

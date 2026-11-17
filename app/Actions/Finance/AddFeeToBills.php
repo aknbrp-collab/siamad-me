@@ -31,7 +31,7 @@ class AddFeeToBills
     /**
      * What would be added, per bill, and how many bills are skipped and why.
      *
-     * @return array{entries: Collection<int, array{bill: Bill, class: string, amount: int, discount: int, lines: list<array{fee_type_id: int|null, scholarship_award_id: int|null, description: string, amount: int}>}>, skipped: array{has_fee: int, no_rate: int, once: int}}
+     * @return array{entries: Collection<int, array{bill: Bill, class: string, amount: int, discount: int, lines: list<array{fee_type_id: int|null, scholarship_award_id: int|null, description: string, amount: int, max_installments?: int, months?: int|null}>}>, skipped: array{has_fee: int, no_rate: int, once: int}}
      */
     public function preview(FeeType $feeType, Semester $semester): array
     {
@@ -88,9 +88,9 @@ class AddFeeToBills
                 continue;
             }
 
-            $months = $feeType->frequency === FeeFrequency::Monthly ? FeeFrequency::MONTHS_PER_SEMESTER : 1;
-            $amount = $rate->amount * $months;
-            $lines = [['fee_type_id' => $feeType->id, 'scholarship_award_id' => null, 'description' => $this->generate->describe($feeType), 'amount' => $amount]];
+            $line = $this->generate->feeLine($feeType, $rate->amount);
+            $amount = $line['amount'];
+            $lines = [$line];
 
             $discount = 0;
             $gross = (int) $bill->lines->where('amount', '>', 0)->sum('amount') + $amount;

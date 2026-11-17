@@ -12,14 +12,17 @@ atau gunakan **Ganti peran** di menu nama Anda untuk berpindah.
 
 1. Menu **Tagihan** hanya menampilkan tagihan mahasantri putra atau putri sesuai tugas Anda. Gunakan
    **Semua semester** dan **Belum lunas** untuk melihat tunggakan.
-2. Buka tagihan, lalu **Catat pembayaran**: jumlah, metode (**Tunai** / **Transfer bank**), tanggal,
-   referensi bank (untuk transfer), dan bukti bila ada. Aturan cicilan sama seperti di loket.
+2. Buka tagihan, lalu **Catat pembayaran**: centang biaya yang dibayar (jumlahnya terisi dengan sisanya,
+   dapat diturunkan; biaya bulanan dapat diisi per bulan), metode (**Tunai** / **Transfer bank**),
+   tanggal, referensi bank (untuk transfer), dan bukti bila ada. Aturan cicilan berlaku per biaya, sama
+   seperti di loket.
 3. Cetak slip bertanda *BELUM TERVERIFIKASI* untuk pembayar bila perlu. Kuitansi resmi terbit setelah
    diverifikasi.
 
-**Rekap angsuran** di menu **Tagihan** menampilkan angsuran mahasantri yang Anda layani dalam satu tabel
-per semester: ✓ sudah terverifikasi, jam kuning menunggu verifikasi, kotak kosong belum dibayar (klik untuk
-mencatat pembayaran), dan sisa semester sebelumnya. Dapat dicetak dan diekspor ke Excel.
+**Rekap angsuran** di menu **Tagihan** menampilkan pembayaran mahasantri yang Anda layani dalam satu tabel
+per semester: semua biaya (dibayar / sisa), atau satu **Jenis tagihan**; untuk biaya bulanan ✓ per bulan
+yang sudah terverifikasi, jam kuning menunggu verifikasi, kotak kosong belum dibayar (klik untuk mencatat
+pembayaran). Juga sisa semester sebelumnya. Dapat dicetak dan diekspor ke Excel.
 
 ## Menyetor uang tunai
 

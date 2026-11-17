@@ -14,6 +14,7 @@ enum PrintDocument: string
     case Receipt = 'receipt';
     case CashReport = 'cash_report';
     case Letter = 'letter';
+    case Dispensation = 'dispensation';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum PrintDocument: string
             self::Receipt => __('Payment receipt'),
             self::CashReport => __('Cash report'),
             self::Letter => __('Official letter'),
+            self::Dispensation => __('Dispensation request'),
         };
     }
 
@@ -35,7 +37,7 @@ enum PrintDocument: string
      */
     public static function withDefaults(): array
     {
-        return [self::Khs, self::Transcript, self::ExamCard, self::Receipt, self::CashReport];
+        return [self::Khs, self::Transcript, self::ExamCard, self::Receipt, self::CashReport, self::Dispensation];
     }
 
     /**
@@ -45,7 +47,7 @@ enum PrintDocument: string
     {
         return match ($this) {
             self::Receipt, self::CashReport => 'Bagian Keuangan',
-            self::Letter => 'Mudir',
+            self::Letter, self::Dispensation => 'Mudir',
             default => 'Bagian Akademik',
         };
     }

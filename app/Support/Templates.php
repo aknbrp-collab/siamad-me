@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\PrintDocument;
 use App\Imports\History\BillHistory;
 use App\Imports\History\CashHistory;
 use App\Imports\History\GradeHistory;
@@ -52,6 +53,11 @@ final class Templates
 
         $slots['teaching.rps'] = ['label' => __('RPS'), 'format' => 'docx', 'group' => __('Teaching documents'), 'source' => 'rps'];
         $slots['teaching.journal'] = ['label' => __('Teaching journal'), 'format' => 'docx', 'group' => __('Teaching documents'), 'source' => 'journal'];
+
+        // Printouts (v7 D44); without a replacement each keeps its built-in PDF layout.
+        foreach (PrintTemplates::documents() as $document) {
+            $slots[PrintTemplates::key($document)] = ['label' => $document->label(), 'format' => 'docx', 'group' => __('Printouts'), 'source' => 'print'];
+        }
 
         // One per letter type (v4 D19); without a replacement the type keeps the built-in PDF layout.
         foreach (LetterType::query()->orderBy('name')->get() as $type) {
@@ -117,6 +123,10 @@ final class Templates
             return LetterDocuments::defaultFile();
         }
 
+        if ($slot['source'] === 'print') {
+            return PrintTemplates::defaultFile(self::printDocument($key));
+        }
+
         if ($slot['format'] === 'docx') {
             return TeachingTemplates::defaultFile($slot['source']);
         }
@@ -137,7 +147,7 @@ final class Templates
         Validator::make(['file' => $file], ['file' => ['required', 'file', 'mimes:'.($slot['format'] === 'docx' ? 'docx' : 'xlsx'), Upload::max()]])->validate();
 
         /** @var UploadedFile $file */
-        $slot['format'] === 'docx' ? self::checkWord($file, self::wordPlaceholders($slot)) : self::checkSheet($slot, $file);
+        $slot['format'] === 'docx' ? self::checkWord($file, self::wordPlaceholders($key)) : self::checkSheet($slot, $file);
 
         return DB::transaction(function () use ($key, $slot, $file, $by) {
             $version = self::nextVersion($key);
@@ -205,14 +215,23 @@ final class Templates
     /**
      * Placeholder names a Word slot may use.
      *
-     * @param  array{label: string, format: string, group: string, source: string}  $slot
      * @return list<string>
      */
-    public static function wordPlaceholders(array $slot): array
+    public static function wordPlaceholders(string $key): array
     {
-        return $slot['source'] === 'letter'
-            ? array_keys(LetterDocuments::placeholders())
-            : [...array_keys(TeachingTemplates::placeholders()), ...array_keys(TeachingTemplates::journalRow())];
+        return match (self::slot($key)['source']) {
+            'letter' => array_keys(LetterDocuments::placeholders()),
+            'print' => PrintTemplates::names(self::printDocument($key)),
+            default => [...array_keys(TeachingTemplates::placeholders()), ...array_keys(TeachingTemplates::journalRow())],
+        };
+    }
+
+    /**
+     * The printout of a "print.{document}" slot.
+     */
+    public static function printDocument(string $key): PrintDocument
+    {
+        return PrintDocument::tryFrom(Str::after($key, 'print.')) ?? abort(404);
     }
 
     /**

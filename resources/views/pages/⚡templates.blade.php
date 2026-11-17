@@ -2,6 +2,7 @@
 
 use App\Models\DocumentTemplate;
 use App\Support\LetterDocuments;
+use App\Support\PrintTemplates;
 use App\Support\Templates;
 use App\Support\TeachingTemplates;
 use Flux\Flux;
@@ -33,7 +34,7 @@ new #[Title('Templates')] class extends Component {
             ->groupBy('group', preserveKeys: true);
     }
 
-    public function upload(string $key): void
+    public function uploadFile(string $key): void
     {
         $this->resetErrorBag();
         $field = str_replace('.', '-', $key);
@@ -76,7 +77,7 @@ new #[Title('Templates')] class extends Component {
                                         @if ($custom)
                                             {{ __('Replacement :name, uploaded by :by :time', ['name' => $slot['current']->original_name, 'by' => $slot['current']->uploader->name, 'time' => $slot['current']->created_at->diffForHumans()]) }}
                                         @else
-                                            {{ $slot['source'] === 'letter' ? __('Built-in PDF layout: the download is a Word starting point') : __('Built-in template') }}
+                                            {{ in_array($slot['source'], ['letter', 'print'], true) ? __('Built-in PDF layout: the download is a Word starting point') : __('Built-in template') }}
                                         @endif
                                     </flux:text>
                                 </div>
@@ -89,9 +90,19 @@ new #[Title('Templates')] class extends Component {
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                                 <input type="file" wire:model="uploads.{{ $field }}" accept=".{{ $slot['format'] }}"
                                     class="text-sm file:me-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 dark:file:bg-zinc-700">
-                                <flux:button size="sm" icon="arrow-up-tray" wire:click="upload('{{ $slot['key'] }}')" wire:loading.attr="disabled" wire:target="uploads.{{ $field }}" data-test="upload-{{ $field }}">{{ __('Upload replacement') }}</flux:button>
+                                <flux:button size="sm" icon="arrow-up-tray" wire:click="uploadFile('{{ $slot['key'] }}')" wire:loading.attr="disabled" wire:target="uploads.{{ $field }}" data-test="upload-{{ $field }}">{{ __('Upload replacement') }}</flux:button>
                             </div>
                             <flux:error :name="'uploads.'.$field" />
+                            @if ($slot['source'] === 'print')
+                                @php($document = Templates::printDocument($slot['key']))
+                                <details class="text-xs text-zinc-500" data-test="placeholders-{{ $field }}">
+                                    <summary class="cursor-pointer select-none">{{ __('Placeholders') }}</summary>
+                                    <p class="mt-1">{{ collect([...PrintTemplates::common(), ...PrintTemplates::placeholders($document)])->map(fn ($label, $name) => '${'.$name.'} '.$label)->join(' · ') }}.</p>
+                                    @foreach (PrintTemplates::rows($document) as $row)
+                                        <p class="mt-1">{{ __('One table row, repeated for each item:') }} {{ collect($row)->map(fn ($label, $name) => '${'.$name.'} '.$label)->join(' · ') }}.</p>
+                                    @endforeach
+                                </details>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -100,6 +111,8 @@ new #[Title('Templates')] class extends Component {
                         {{ __('A letter type without a Word template uses the built-in PDF layout. With one, new letters are filled from it and turned into PDF when LibreOffice is installed (otherwise they download as Word); letters already issued keep their version. Placeholders:') }}
                         {{ collect(LetterDocuments::placeholders())->map(fn ($label, $name) => '${'.$name.'} '.$label)->join(' · ') }}.
                     </flux:text>
+                @elseif ($slots->first()['source'] === 'print')
+                    <flux:text class="mt-2 text-xs">{{ __('A printout without a Word template uses the built-in PDF layout. With one, it is filled from the template and turned into PDF when LibreOffice is installed (otherwise it downloads as Word), for the web and the mobile app alike. A pending payment slip keeps the built-in layout; the dispensation request never prints signature or stamp images.') }}</flux:text>
                 @elseif ($slots->first()['format'] === 'xlsx')
                     <flux:text class="mt-2 text-xs">{{ __('Keep the column names in the first row: SIAKAD reads them. Colours, widths and extra sheets are yours to change.') }}</flux:text>
                 @else

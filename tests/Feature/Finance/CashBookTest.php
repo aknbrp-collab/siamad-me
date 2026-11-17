@@ -283,3 +283,38 @@ test('admin keuangan sees only the finance imports, admin only the academic ones
     $this->actingAs($this->admin)->get(route('admin.history'))->assertOk()->assertSee(__('Final grades'))->assertDontSee(__('Bills & payments'));
     Livewire::test('pages::admin.history')->set('type', 'cash')->assertForbidden();
 });
+
+test('an archive bill replaces an unpaid bill of the semester; a bill with payments stays', function () {
+    MaintenanceMode::turnOn(User::factory()->withRole(Role::Superadmin)->create(), 'Input keuangan 2025/2026');
+    $past = Semester::factory()->closed()->create();
+    $this->kas->update(['opening_date' => '2025-07-01']);
+    $paidStudent = Student::factory()->create(['nim' => '2025110002']);
+    $make = fn (Student $student, string $number) => Bill::query()->create([
+        'student_id' => $student->id, 'semester_id' => $past->id, 'number' => $number,
+        'gross_amount' => 2_000_000, 'net_amount' => 2_000_000, 'max_installments' => 3, 'status' => BillStatus::Unpaid,
+    ]);
+    // Made with "Buat tagihan", nothing paid yet; and one with a payment.
+    $generated = $make($this->student, 'INV/2025/000101');
+    $withPayment = $make($paidStudent, 'INV/2025/000102');
+    $withPayment->payments()->create(['amount' => 500_000, 'method' => 'cash', 'source' => PaymentSource::Staff, 'paid_on' => '2025-09-01',
+        'status' => PaymentStatus::Verified, 'recorded_by' => $this->cashier->id, 'verified_by' => $this->cashier->id, 'verified_at' => now()]);
+    $this->actingAs($this->cashier)->get(route('finance.history'))->assertOk();
+
+    $import = Livewire::test('pages::admin.history')
+        ->set('type', 'bills')
+        ->set('semesterId', $past->id)
+        ->set('file', cashSheet([
+            ['nim*' => '2026110001', 'billed*' => '3500000', 'paid' => '3500000', 'paid_on' => '2025-09-15', 'method' => 'tunai', 'account' => 'kas', 'description' => 'SPP dan asrama'],
+            ['nim*' => '2025110002', 'billed*' => '3500000', 'paid' => '0', 'paid_on' => '', 'method' => '', 'account' => '', 'description' => ''],
+        ]))
+        ->call('check')
+        ->assertSet('validCount', 1);
+    expect($import->get('rowErrors')[0]['messages'][0])->toContain('INV/2025/000102');
+    $import->call('import')->assertSet('importedCount', 1);
+
+    expect($generated->fresh()->status)->toBe(BillStatus::Void)
+        ->and($generated->fresh()->status_note)->toBe(__('Replaced by the archive data.'))
+        ->and(Bill::query()->where('semester_id', $past->id)->where('student_id', $this->student->id)->where('status', '!=', BillStatus::Void)->sole()->status)->toBe(BillStatus::Paid)
+        ->and($withPayment->fresh()->status)->toBe(BillStatus::Unpaid)
+        ->and(Bill::query()->where('student_id', $paidStudent->id)->count())->toBe(1);
+});

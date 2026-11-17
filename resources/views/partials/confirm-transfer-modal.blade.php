@@ -17,13 +17,23 @@
             @endif
 
             <flux:text class="text-sm">
-                {{ __('Open: :open · instalment :next of :max · minimum :min unless it settles the rest.', [
+                {{ __('Open: :open. The transfer pays the fees below in this order; a fee paid in part needs at least :min unless that settles it or pays whole months of a monthly fee.', [
                     'open' => \App\Support\Money::format($allowance['open']),
-                    'next' => $allowance['used'] + 1,
-                    'max' => $allowance['max'],
                     'min' => \App\Support\Money::format($allowance['min']),
                 ]) }}
             </flux:text>
+            {{-- Each fee with what is left; a transfer is spread over them in this order (after-review D55). --}}
+            <ul class="divide-y divide-zinc-200 rounded-lg border border-zinc-200 text-sm dark:divide-zinc-700 dark:border-zinc-700" data-test="transfer-fees">
+                @foreach ($allowance['fees'] as $fee)
+                    @if ($fee['left'] > 0)
+                        <li class="flex justify-between gap-3 px-3 py-1.5">
+                            <span>{{ $fee['description'] }}</span>
+                            <span class="tabular-nums">{{ \App\Support\Money::format($fee['left']) }}</span>
+                        </li>
+                    @endif
+                @endforeach
+            </ul>
+
 
             <flux:input wire:model="transferAmount" :label="__('Amount (Rp)')" type="number" min="1" step="1" required />
             <flux:error name="amount" />

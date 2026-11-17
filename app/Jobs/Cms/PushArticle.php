@@ -3,6 +3,7 @@
 namespace App\Jobs\Cms;
 
 use App\Models\Article;
+use App\Support\ArticleImages;
 use App\Support\Cms\CmsClient;
 use Illuminate\Http\Client\Response;
 
@@ -38,6 +39,15 @@ class PushArticle extends CmsArticleJob
     {
         $version = $article->latestVersion();
         $author = $article->author()->with('teacher')->firstOrFail();
+        $image = ArticleImages::publicUrl($article);
+        $body = Article::render($version->body_md ?? $article->body_md);
+
+        // The picture also on top of the text (v7 D48), so the website shows it before it reads image_url.
+        if ($image !== null) {
+            $caption = $version?->image_caption;
+            $body = '<figure><img src="'.e($image).'" alt="'.e($caption ?? $version->title ?? $article->title).'">'
+                .($caption !== null ? '<figcaption>'.e($caption).'</figcaption>' : '').'</figure>'."\n".$body;
+        }
 
         return array_filter([
             'id' => $article->code,
@@ -46,8 +56,10 @@ class PushArticle extends CmsArticleJob
             'authors' => [$author->teacher?->displayName() ?? $author->name],
             'year' => ($article->published_at ?? now())->year,
             'abstract' => $version->summary ?? $article->summary,
-            'body_html' => Article::render($version->body_md ?? $article->body_md),
+            'body_html' => $body,
             'keywords' => $version->keywords ?? $article->keywords,
+            'image_url' => $image,
+            'image_caption' => $image !== null ? $version?->image_caption : null,
         ], fn ($value) => $value !== null && $value !== [] && $value !== '');
     }
 }

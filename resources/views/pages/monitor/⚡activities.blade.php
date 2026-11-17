@@ -3,10 +3,10 @@
 use App\Actions\Lms\RecordActivity;
 use App\Enums\ActivityCategory;
 use App\Enums\Role;
-use App\Enums\StudentStatus;
 use App\Models\ActivityLog;
 use App\Models\Student;
 use App\Support\ActiveRole;
+use App\Livewire\PageWithStudentPicker;
 use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,10 +14,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Title('Activity log')] class extends Component {
+new #[Title('Activity log')] class extends PageWithStudentPicker {
     use WithPagination;
 
     #[Url(except: '')]
@@ -27,7 +26,6 @@ new #[Title('Activity log')] class extends Component {
     public string $category = '';
 
     // Form
-    public string $studentSearch = '';
     public ?int $studentId = null;
     public string $formCategory = 'tahfidz';
     public ?string $happenedOn = null;
@@ -65,20 +63,7 @@ new #[Title('Activity log')] class extends Component {
     #[Computed]
     public function candidates(): Collection
     {
-        if (mb_strlen(trim($this->studentSearch)) < 2) {
-            return new Collection;
-        }
-
-        $term = '%'.mb_strtolower(trim($this->studentSearch)).'%';
-
-        return Student::query()
-            ->with('user')
-            ->where('status', StudentStatus::Active)
-            ->where(fn (Builder $query) => $query
-                ->whereRaw('lower(nim) like ?', [$term])
-                ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
-            ->limit(8)
-            ->get();
+        return $this->pickStudents();
     }
 
     #[Computed]
@@ -89,7 +74,8 @@ new #[Title('Activity log')] class extends Component {
 
     public function create(): void
     {
-        $this->reset('studentSearch', 'studentId', 'title', 'notes');
+        $this->reset('studentId', 'title', 'notes');
+        $this->resetStudentPicker();
         $this->formCategory = ActivityCategory::Tahfidz->value;
         $this->happenedOn = now()->format('Y-m-d');
         $this->resetErrorBag();
@@ -99,7 +85,6 @@ new #[Title('Activity log')] class extends Component {
     public function choose(int $id): void
     {
         $this->studentId = $id;
-        $this->studentSearch = '';
     }
 
     public function save(RecordActivity $record): void
@@ -198,13 +183,18 @@ new #[Title('Activity log')] class extends Component {
                 </div>
             @else
                 <div>
-                    <flux:input wire:model.live.debounce.300ms="studentSearch" icon="magnifying-glass" :label="__('Mahasantri')" :placeholder="__('NIM or name…')" />
-                    @foreach ($this->candidates as $candidate)
-                        <button type="button" wire:key="cand-{{ $candidate->id }}" wire:click="choose({{ $candidate->id }})"
-                            class="mt-1 block w-full rounded px-2 py-1 text-start text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                            <span class="font-mono text-zinc-500">{{ $candidate->nim }}</span> {{ $candidate->user->name }}
-                        </button>
-                    @endforeach
+                    <flux:label class="mb-2">{{ __('Mahasantri') }}</flux:label>
+                    <x-student-picker.filters :classes="$this->pickerClasses" />
+                    <div class="mt-2 max-h-64 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700" data-test="candidates">
+                        @foreach ($this->candidates as $candidate)
+                            <button type="button" wire:key="cand-{{ $candidate->id }}" wire:click="choose({{ $candidate->id }})"
+                                class="block w-full px-3 py-1.5 text-start text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                                <span class="font-mono text-zinc-500">{{ $candidate->nim }}</span> {{ $candidate->user->name }}
+                                <span class="text-xs text-zinc-500">{{ $candidate->classEnrollments->first()?->class_name }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                    <x-student-picker.more :shown="$this->candidates->count()" :total="$this->pickerTotal" class="mt-1" />
                     <flux:error name="studentId" />
                 </div>
             @endif

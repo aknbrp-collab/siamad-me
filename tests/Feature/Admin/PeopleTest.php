@@ -85,10 +85,10 @@ test('mahasantri upload documents and admin verifies or rejects them', function 
 
     Livewire::test('pages::profile.documents')
         ->set("uploads.{$ktp->id}", UploadedFile::fake()->create('ktp.exe', 10))
-        ->call('upload', $ktp->id)
+        ->call('uploadFile', $ktp->id)
         ->assertHasErrors("uploads.{$ktp->id}")
         ->set("uploads.{$ktp->id}", UploadedFile::fake()->create('ktp.pdf', 300, 'application/pdf'))
-        ->call('upload', $ktp->id)
+        ->call('uploadFile', $ktp->id)
         ->assertHasNoErrors();
 
     $ktp->refresh();
@@ -114,7 +114,7 @@ test('mahasantri upload documents and admin verifies or rejects them', function 
     $this->get(route('documents.mine'))->assertSee('Foto buram');
     Livewire::test('pages::profile.documents')
         ->set("uploads.{$ktp->id}", UploadedFile::fake()->image('ktp.jpg'))
-        ->call('upload', $ktp->id);
+        ->call('uploadFile', $ktp->id);
 
     $this->actingAs($admin);
     Livewire::test('pages::admin.documents')->call('verify', $ktp->id)->assertHasNoErrors();

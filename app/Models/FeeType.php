@@ -14,9 +14,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property string $name
  * @property FeeFrequency $frequency
+ * @property int $max_installments How many payments the fee may be paid in (after-review D55)
+ * @property int $months_per_semester Months billed a semester for a monthly fee (D56)
  * @property bool $is_active
  */
-#[Fillable(['name', 'frequency', 'is_active'])]
+#[Fillable(['name', 'frequency', 'max_installments', 'months_per_semester', 'is_active'])]
 class FeeType extends Model
 {
     /** @use HasFactory<FeeTypeFactory> */
@@ -40,8 +42,18 @@ class FeeType extends Model
     {
         return [
             'frequency' => FeeFrequency::class,
+            'max_installments' => 'integer',
+            'months_per_semester' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * How many times the rate is billed in a semester: its months for a monthly fee, else once.
+     */
+    public function monthsBilled(): int
+    {
+        return $this->frequency === FeeFrequency::Monthly ? max(1, $this->months_per_semester) : 1;
     }
 
     /**

@@ -31,16 +31,16 @@ test('a mahasantri ijazah needs its level, institution and graduation year', fun
         ->assertSee(__('Graduation year'))
         ->assertDontSee(__('Gelar from this ijazah'))
         ->set("uploads.{$ijazah->id}", scan())
-        ->call('upload', $ijazah->id)
+        ->call('uploadFile', $ijazah->id)
         ->assertHasErrors(["details.{$ijazah->id}.education_level", "details.{$ijazah->id}.institution", "details.{$ijazah->id}.graduation_year"])
         // A mahasantri enters with MA/SMA or pesantren, not a degree.
         ->set("details.{$ijazah->id}.education_level", 's1')
         ->set("details.{$ijazah->id}.institution", 'MA Al-Hikmah Kediri')
         ->set("details.{$ijazah->id}.graduation_year", 2025)
-        ->call('upload', $ijazah->id)
+        ->call('uploadFile', $ijazah->id)
         ->assertHasErrors("details.{$ijazah->id}.education_level")
         ->set("details.{$ijazah->id}.education_level", 'ma')
-        ->call('upload', $ijazah->id)
+        ->call('uploadFile', $ijazah->id)
         ->assertHasNoErrors();
 
     expect($ijazah->fresh())
@@ -53,7 +53,7 @@ test('a mahasantri ijazah needs its level, institution and graduation year', fun
     $ktp = $student->documents()->where('type', DocumentType::Ktp)->sole();
     Livewire::test('pages::profile.documents')
         ->set("uploads.{$ktp->id}", scan())
-        ->call('upload', $ktp->id)
+        ->call('uploadFile', $ktp->id)
         ->assertHasNoErrors();
 });
 
@@ -73,7 +73,7 @@ test('a muhadhir adds an ijazah per level, each with its gelar', function () {
         ->set("details.{$first->id}.graduation_year", 2012)
         ->set("details.{$first->id}.degree_title", 'Lc.')
         ->set("uploads.{$first->id}", scan())
-        ->call('upload', $first->id)
+        ->call('uploadFile', $first->id)
         ->assertHasNoErrors()
         ->call('addIjazah')
         ->assertHasNoErrors();
@@ -85,11 +85,11 @@ test('a muhadhir adds an ijazah per level, each with its gelar', function () {
         ->set("details.{$second->id}.institution", 'UIN Sunan Ampel')
         ->set("details.{$second->id}.graduation_year", 2016)
         ->set("uploads.{$second->id}", scan())
-        ->call('upload', $second->id)
+        ->call('uploadFile', $second->id)
         ->assertHasErrors("details.{$second->id}.education_level")
         ->set("details.{$second->id}.education_level", 's2')
         ->set("details.{$second->id}.degree_title", 'M.Pd.I.')
-        ->call('upload', $second->id)
+        ->call('uploadFile', $second->id)
         ->assertHasNoErrors();
 
     expect($first->fresh()->details())->toBe('Universitas Al-Azhar, Kairo · 2012 · Lc.')

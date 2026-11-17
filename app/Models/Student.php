@@ -133,6 +133,14 @@ class Student extends Model
     }
 
     /**
+     * @return HasMany<DispensationRequest, $this>
+     */
+    public function dispensationRequests(): HasMany
+    {
+        return $this->hasMany(DispensationRequest::class);
+    }
+
+    /**
      * @return HasMany<ScholarshipAward, $this>
      */
     public function scholarshipAwards(): HasMany

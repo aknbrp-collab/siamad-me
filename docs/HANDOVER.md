@@ -73,6 +73,7 @@ app/
     UpdateUserProfile.php
   Concerns/                Auditable (audit-log trait), IsPersonalDocument, validation-rule traits
   Console/Commands/        CreateSuperadmin (php artisan siakad:superadmin), BackupCommand (siakad:backup, daily),
+                           RestoreCommand (siakad:restore), WipeCommand (siakad:wipe) — started from the Data page,
                            SendReminders (siakad:send-reminders, hourly)
   Enums/                   19 enums: Role (labels, areas, sidebar navigation!), statuses, types…
   Http/Controllers/        PrivateFileController (all private files + access rules), ReceiptController,
@@ -94,8 +95,8 @@ database/
   factories/               Factories for people, academic structure, fee types
   seeders/DatabaseSeeder   Full demo data (refuses to run in production)
 docs/                      DESIGN.md (design + phase notes), HANDOVER.md (this file), OPERATIONS.md (server,
-                           scheduler, backups, restore), UAT.md (acceptance checklist), panduan/ (user guides per
-                           role, in Indonesian)
+                           scheduler, backups, restore), UAT.md (acceptance checklist), LOCAL-DEMO.md (another
+                           computer on the local network), panduan/ (user guides per role, in Indonesian)
 lang/                      id.json (every UI string) + id/{validation,auth,passwords,pagination}.php
 resources/views/
   pages/                   Livewire pages, by area:
@@ -147,6 +148,8 @@ tests/Feature/             Admin, Auth, Finance, Teaching, Lms, Superadmin, Sett
 - [x] **Indonesian translation** — `APP_LOCALE=id`, `lang/id.json` + validation messages (2026-10-26).
 - [x] **Mobile layout** — list tables become cards below `md`; every page checked at 375 px (2026-10-26).
 - [x] **Backups** — `siakad:backup` daily at 02:00, 30-day retention, restore tested; see OPERATIONS.md.
+- [x] **Data & cadangan** (Superadmin) — backups made, downloaded, restored and data deleted by groups from the
+      web (docs/req/data-manage-plan.md); restore round trip checked on PostgreSQL 17.
 - [x] **User guides** per role in `docs/panduan/` (Indonesian).
 - [ ] **Institution logo upload** in settings (design mentions it; only name/address/phone exist).
 - [x] **Retaken subjects** — the transcript lists a subject once, with its best grade; only that attempt
@@ -229,8 +232,10 @@ edition) · Tailwind 4 · Alpine (via Livewire) · Fortify (auth, 2FA, passkeys)
   `upload_max_filesize = 12M` and `post_max_size = 16M` in php.ini (Herd: `~/.config/herd/bin/php84/php.ini`,
   then restart Herd; on the server likewise, plus nginx `client_max_body_size`). The browser also stops
   larger files before uploading (`resources/js/upload-limit.js`).
-- **LibreOffice** (optional): turns letters made from a Word template into PDF. SIAKAD looks for `soffice`
-  in the usual install places or at `SIAKAD_LIBREOFFICE`; without it those letters download as Word.
+- **LibreOffice** (optional): turns letters and printouts (KHS, transcript, exam card, receipt, cash report,
+  dispensation request) made from an uploaded Word template into PDF. SIAKAD looks for `soffice` in the usual
+  install places or at `SIAKAD_LIBREOFFICE`; without it those download as Word. Printouts without an uploaded
+  template keep the built-in PDF and never need it.
   Not installed on the development PC yet.
 - **Selects:** `resources/views/flux/select/{index,variants/default}.blade.php` override Flux. When a
   `wire:model` value is empty, Livewire unselects every option and the browser then shows the first
@@ -265,6 +270,8 @@ vendor/bin/phpstan analyse --memory-limit=1G   # static analysis
 npm run build                        # rebuild CSS/JS after adding Tailwind classes
 php artisan siakad:superadmin        # first account on a fresh/production install
 php artisan siakad:backup            # backup now (also runs daily via the scheduler)
+php artisan siakad:restore <backup>  # replace everything with a backup (a backup of the current state first)
+php artisan siakad:wipe <groups> --by=<superadmin id>   # delete groups of data (backup first)
 ```
 
 **Definition of done used so far:** tests for the rules and the pages (both DBs) · Pint + Larastan clean

@@ -11,6 +11,8 @@ use App\Jobs\Cms\PushArticle;
 use App\Models\Article;
 use App\Models\ArticleReview;
 use App\Models\User;
+use App\Support\ActiveRole;
+use App\Support\ApiFiles;
 use App\Support\Cms\CmsClient;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -92,10 +94,57 @@ class ArticleController extends Controller
      */
     public function update(Request $request, Article $article, ManageArticles $manage): JsonResponse
     {
-        $request->validate($this->rules());
-        $manage->save($article, $request->user(), $request->only(['title', 'summary', 'body', 'keywords']));
+        $request->validate([...$this->rules(), 'image_caption' => ['nullable', 'string', 'max:255']]);
+        $manage->save($article, $request->user(), [
+            ...$request->only(['title', 'summary', 'body', 'keywords']),
+            // The picture stays; its caption changes only when sent.
+            'image_caption' => $request->exists('image_caption') ? $request->input('image_caption') : $article->image_caption,
+        ]);
 
         return response()->json(['data' => $this->detail($request->user(), $article->refresh())]);
+    }
+
+    /**
+     * Set the picture.
+     *
+     * Multipart `image` (JPG, PNG or WebP; made at most 1600 px wide) and an optional `image_caption`.
+     * Like any change, a published article becomes a draft until it is published again (v7 D48).
+     */
+    public function image(Request $request, Article $article, ManageArticles $manage): JsonResponse
+    {
+        $request->validate(['image' => ['required', 'file'], 'image_caption' => ['nullable', 'string', 'max:255']]);
+        $manage->save($article, $request->user(), [
+            ...$this->current($article),
+            'image' => $request->file('image'),
+            'image_caption' => $request->input('image_caption'),
+        ]);
+
+        return response()->json(['data' => $this->detail($request->user(), $article->refresh())]);
+    }
+
+    /**
+     * Remove the picture.
+     */
+    public function removeImage(Request $request, Article $article, ManageArticles $manage): JsonResponse
+    {
+        $manage->save($article, $request->user(), [...$this->current($article), 'remove_image' => true]);
+
+        return response()->json(['data' => $this->detail($request->user(), $article->refresh())]);
+    }
+
+    /**
+     * The working copy as ManageArticles::save() takes it.
+     *
+     * @return array<string, string|null>
+     */
+    private function current(Article $article): array
+    {
+        return [
+            'title' => $article->title,
+            'summary' => $article->summary,
+            'body' => $article->body_md,
+            'keywords' => implode(', ', $article->keywords ?? []),
+        ];
     }
 
     /**
@@ -235,6 +284,9 @@ class ArticleController extends Controller
             'body' => $article->body_md,
             'body_html' => $article->bodyHtml(),
             'keywords' => $article->keywords ?? [],
+            /** A signed link to the picture (v7 D48), or null. */
+            'image_url' => $article->image_path === null ? null : ApiFiles::url($user, ActiveRole::get(), 'article-image', $article->id),
+            'image_caption' => $article->image_caption,
             'review_round' => $article->review_round,
             'reviews' => $reviews->map(fn (ArticleReview $review) => [
                 'round' => $review->round,

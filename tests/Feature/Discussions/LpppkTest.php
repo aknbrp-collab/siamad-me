@@ -84,7 +84,7 @@ test('staff manage channels and moderate from the pages', function () {
 
     $this->get(route('lpppk.moderation'))->assertOk();
     Livewire::test('pages::lpppk.moderation')
-        ->set('search', $this->student->user->name)
+        ->set('studentSearch', $this->student->user->name)
         ->assertSee($this->student->nim)
         ->call('start', $this->student->user_id, 'restrict')
         ->set('reason', 'Spam')

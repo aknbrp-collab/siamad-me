@@ -20,10 +20,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $final_point
  * @property Carbon|null $finalized_at
  * @property string|null $grade_note
+ * @property bool $from_archive Imported from the archive (after-review D54)
+ * @property bool $archive_letter The archive gave the letter (not worked out from the score)
  * @property-read CourseOffering $courseOffering
  * @property-read Student $student
  */
-#[Fillable(['course_offering_id', 'student_id', 'final_score', 'final_letter', 'final_point', 'finalized_at', 'grade_note'])]
+#[Fillable(['course_offering_id', 'student_id', 'final_score', 'final_letter', 'final_point', 'finalized_at', 'grade_note', 'from_archive', 'archive_letter'])]
 class CourseEnrollment extends Model
 {
     use Auditable;
@@ -39,6 +41,8 @@ class CourseEnrollment extends Model
             'final_score' => 'decimal:2',
             'final_point' => 'decimal:2',
             'finalized_at' => 'datetime',
+            'from_archive' => 'boolean',
+            'archive_letter' => 'boolean',
         ];
     }
 

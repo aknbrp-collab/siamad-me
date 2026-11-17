@@ -111,10 +111,10 @@ test('the Templates page lists every slot for Admin and the monitor, not for oth
 
     Livewire::test('pages::templates')
         ->set('uploads.teaching-rps', UploadedFile::fake()->create('rps.pdf', 10, 'application/pdf'))
-        ->call('upload', 'teaching.rps')
+        ->call('uploadFile', 'teaching.rps')
         ->assertHasErrors('uploads.teaching-rps')
         ->set('uploads.teaching-rps', UploadedFile::fake()->createWithContent('rps-kami.docx', (string) file_get_contents(TeachingTemplates::defaultFile('rps'))))
-        ->call('upload', 'teaching.rps')
+        ->call('uploadFile', 'teaching.rps')
         ->assertHasNoErrors()
         ->assertSee('rps-kami.docx')
         ->call('revert', 'teaching.rps')

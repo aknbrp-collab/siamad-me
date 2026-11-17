@@ -25,7 +25,7 @@ class GenerateBills
      * What would be billed: one entry per enrolled, active mahasantri without
      * a live bill this semester.
      *
-     * @return Collection<int, array{enrollment: ClassEnrollment, lines: list<array{fee_type_id: int|null, scholarship_award_id: int|null, description: string, amount: int}>, gross: int, discount: int, net: int}>
+     * @return Collection<int, array{enrollment: ClassEnrollment, lines: list<array{fee_type_id: int|null, scholarship_award_id: int|null, description: string, amount: int, max_installments?: int, months?: int|null}>, gross: int, discount: int, net: int}>
      */
     public function preview(Semester $semester): Collection
     {
@@ -82,8 +82,7 @@ class GenerateBills
                     continue;
                 }
 
-                $months = $feeType->frequency === FeeFrequency::Monthly ? FeeFrequency::MONTHS_PER_SEMESTER : 1;
-                $lines[] = $this->line($feeType->id, null, $this->describe($feeType), $rate->amount * $months);
+                $lines[] = $this->feeLine($feeType, $rate->amount);
             }
 
             $gross = 0;
@@ -165,8 +164,26 @@ class GenerateBills
     public function describe(FeeType $feeType): string
     {
         return $feeType->frequency === FeeFrequency::Monthly
-            ? $this->text(':fee (:months months)', ['fee' => $feeType->name, 'months' => FeeFrequency::MONTHS_PER_SEMESTER])
+            ? $this->text(':fee (:months months)', ['fee' => $feeType->name, 'months' => $feeType->monthsBilled()])
             : $feeType->name;
+    }
+
+    /**
+     * The bill line of a fee at a rate: the rate times its months (after-review D56), with the fee's instalment
+     * limit (D55) and months kept on the line.
+     *
+     * @return array{fee_type_id: int, scholarship_award_id: null, description: string, amount: int, max_installments: int, months: int|null}
+     */
+    public function feeLine(FeeType $feeType, int $rate): array
+    {
+        return [
+            'fee_type_id' => $feeType->id,
+            'scholarship_award_id' => null,
+            'description' => $this->describe($feeType),
+            'amount' => $rate * $feeType->monthsBilled(),
+            'max_installments' => max(1, $feeType->max_installments),
+            'months' => $feeType->frequency === FeeFrequency::Monthly ? $feeType->monthsBilled() : null,
+        ];
     }
 
     /**
@@ -178,7 +195,7 @@ class GenerateBills
     }
 
     /**
-     * @return array{fee_type_id: int|null, scholarship_award_id: int|null, description: string, amount: int}
+     * @return array{fee_type_id: int|null, scholarship_award_id: int|null, description: string, amount: int, max_installments?: int, months?: int|null}
      */
     private function line(?int $feeTypeId, ?int $awardId, string $description, int $amount): array
     {

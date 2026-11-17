@@ -5,6 +5,7 @@ use App\Livewire\PersonForm;
 use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\User;
+use App\Livewire\Concerns\PicksStudents;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,6 +14,8 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 
 new #[Title('Wali santri')] class extends PersonForm {
+    use PicksStudents;
+
     public ?Guardian $guardian = null;
 
     public string $name = '';
@@ -23,7 +26,6 @@ new #[Title('Wali santri')] class extends PersonForm {
     /** @var list<int> */
     public array $student_ids = [];
 
-    public string $studentSearch = '';
 
     #[Url(as: 'student')]
     public ?int $presetStudent = null;
@@ -57,27 +59,13 @@ new #[Title('Wali santri')] class extends PersonForm {
     #[Computed]
     public function candidates(): Collection
     {
-        if (mb_strlen(trim($this->studentSearch)) < 2) {
-            return new Collection;
-        }
-
-        $term = '%'.mb_strtolower(trim($this->studentSearch)).'%';
-
-        return Student::query()
-            ->with('user')
-            ->whereKeyNot($this->student_ids)
-            ->where(fn (Builder $query) => $query
-                ->whereRaw('lower(nim) like ?', [$term])
-                ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
-            ->orderBy('nim')
-            ->limit(10)
-            ->get();
+        // Any status: a wali may also be linked to a mahasantri on leave or graduated (v7 D43).
+        return $this->pickStudents(fn (Builder $query) => $query->whereKeyNot($this->student_ids), activeOnly: false);
     }
 
     public function addStudent(int $id): void
     {
         $this->student_ids = array_values(array_unique([...$this->student_ids, $id]));
-        $this->studentSearch = '';
     }
 
     public function removeStudent(int $id): void
@@ -155,19 +143,21 @@ new #[Title('Wali santri')] class extends PersonForm {
                     @endforelse
                 </div>
 
-                <flux:input wire:model.live.debounce.300ms="studentSearch" icon="magnifying-glass" :placeholder="__('Find mahasantri by NIM or name…')" />
+                <x-student-picker.filters :classes="$this->pickerClasses" />
                 @if ($this->candidates->isNotEmpty())
-                    <div class="mt-2 divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700">
+                    <div class="mt-2 max-h-80 divide-y divide-zinc-200 overflow-y-auto rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700" data-test="candidates">
                         @foreach ($this->candidates as $candidate)
                             <button type="button" wire:key="candidate-{{ $candidate->id }}" wire:click="addStudent({{ $candidate->id }})"
                                 class="flex w-full items-center gap-2 px-3 py-2 text-start text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
                                 <flux:icon.plus class="size-4 text-zinc-400" />
                                 <span class="font-mono text-zinc-500">{{ $candidate->nim }}</span>
                                 <span class="font-medium">{{ $candidate->user->name }}</span>
+                                <span class="text-xs text-zinc-500">{{ $candidate->classEnrollments->first()?->class_name }}</span>
                             </button>
                         @endforeach
                     </div>
                 @endif
+                <x-student-picker.more :shown="$this->candidates->count()" :total="$this->pickerTotal" class="mt-1" />
                 <flux:error name="student_ids" />
             </flux:fieldset>
 

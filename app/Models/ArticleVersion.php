@@ -17,11 +17,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $summary
  * @property string $body_md
  * @property list<string>|null $keywords
+ * @property string|null $image_path
+ * @property string|null $image_caption
  * @property int $published_by
  * @property Carbon $created_at
  * @property-read Article $article
  */
-#[Fillable(['article_id', 'version', 'title', 'summary', 'body_md', 'keywords', 'published_by'])]
+#[Fillable(['article_id', 'version', 'title', 'summary', 'body_md', 'keywords', 'image_path', 'image_caption', 'published_by'])]
 class ArticleVersion extends Model
 {
     /**

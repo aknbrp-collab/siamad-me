@@ -1,6 +1,6 @@
 # SIAKAD ⇄ CMS Integration API
 
-Version 1.1, 2026-11-04. Machine-readable version: [siakad-openapi.yaml](siakad-openapi.yaml). Changes since 1.0 are listed at the end.
+Version 1.2, 2026-11-08. Machine-readable version: [siakad-openapi.yaml](siakad-openapi.yaml). Changes since 1.0 are listed at the end.
 
 This document is the contract the SIAKAD project implements to work with the CMS:
 
@@ -100,6 +100,8 @@ Idempotent on `id`: sending the same `id` again updates the stored article. Stat
 | `doi` | string ≤ 255 | no | without `https://doi.org/` |
 | `file_url` | URL ≤ 2048 | no | public PDF link |
 | `source_url` | URL ≤ 2048 | no | public page in SIAKAD or OJS |
+| `image_url` | URL ≤ 2048 | no | (1.2) public JPEG of the article's picture, at most 1600 px wide; the URL changes when the picture changes, so it can be cached for good. Absent when the article has no picture |
+| `image_caption` | string ≤ 255 | no | (1.2) caption of the picture |
 
 Example:
 
@@ -281,6 +283,13 @@ With `SIAKAD_DRIVER=fake` (default), forwarding a question pretends SIAKAD accep
 - [ ] Log request IDs and CMS responses for support.
 
 ## Changes
+
+**1.2 (2026-11-08)**
+- Articles may carry a picture: `image_url` and `image_caption` in §3.1. SIAKAD also puts the picture at the top of
+  `body_html` as `<figure><img src="…"><figcaption>…</figcaption></figure>`, so a CMS that does not read `image_url`
+  yet still shows it. A CMS that does should show `image_url` once and may drop that first `<figure>`.
+- The picture link answers `404` once the article is withdrawn or its picture changed; re-read `image_url` when an
+  article is sent again.
 
 **1.1 (2026-11-04)**
 - New `GET /articles/{id}` (§3.2): review status, reviewer note and public URL.

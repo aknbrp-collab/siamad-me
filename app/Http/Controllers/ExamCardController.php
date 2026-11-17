@@ -9,10 +9,12 @@ use App\Models\ExamPeriod;
 use App\Models\Student;
 use App\Support\ActiveRole;
 use App\Support\PrintMarks;
+use App\Support\PrintTemplates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * The exam card (kartu ujian) PDF. A mahasantri prints their own once the
@@ -22,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class ExamCardController extends Controller
 {
-    public function __invoke(Request $request, ExamPeriod $period, Student $student, ExamEligibility $eligibility): Response
+    public function __invoke(Request $request, ExamPeriod $period, Student $student, ExamEligibility $eligibility): Response|BinaryFileResponse
     {
         $student->loadMissing(['user', 'studyProgram', 'classEnrollments' => fn ($query) => $query->where('semester_id', $period->semester_id)]);
         $status = $eligibility->check($period, $student);
@@ -40,16 +42,27 @@ class ExamCardController extends Controller
             ? Storage::disk('local')->path($student->photo_path)
             : null;
 
+        $marks = PrintMarks::for(PrintDocument::ExamCard, $request);
+        $className = $student->classEnrollments->first()?->class_name;
+        $name = 'Kartu-Ujian-'.$period->type->short().'-'.$student->nim;
+        $status['seat']->loadMissing('room');
+
+        // From the Word template when one is uploaded (v7 D44).
+        $word = PrintTemplates::respond(PrintDocument::ExamCard, PrintTemplates::examCard($period->loadMissing('semester.academicYear'), $student, $className, $subjects, $status['seat'], $status['dispensation'], $photo), $marks, $name, $request->query('format') === 'docx');
+        if ($word !== null) {
+            return $word;
+        }
+
         return Pdf::loadView('records.exam-card', [
             'period' => $period->loadMissing('semester.academicYear'),
             'student' => $student,
-            'className' => $student->classEnrollments->first()?->class_name,
+            'className' => $className,
             'subjects' => $subjects,
             'seat' => $status['seat'],
             'dispensation' => $status['dispensation'],
             'photo' => $photo,
             'document' => PrintDocument::ExamCard,
-            'marks' => PrintMarks::for(PrintDocument::ExamCard, $request),
-        ])->setPaper('a5', 'portrait')->stream('Kartu-Ujian-'.$period->type->short().'-'.$student->nim.'.pdf');
+            'marks' => $marks,
+        ])->setPaper('a5', 'portrait')->stream($name.'.pdf');
     }
 }

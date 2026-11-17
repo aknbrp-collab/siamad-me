@@ -6,6 +6,7 @@ use App\Enums\Gender;
 use App\Models\Bill;
 use App\Models\ClassEnrollment;
 use App\Models\ClassGroup;
+use App\Models\FeeType;
 use App\Models\Semester;
 use App\Support\ActiveRole;
 use App\Support\BillAccess;
@@ -52,6 +53,10 @@ new #[Title('Bills')] class extends Component {
     /** Grid: male | female (finance office; a collector already sees one gender). */
     #[Url(except: '')]
     public string $gender = '';
+
+    /** Grid: one fee type (after-review D58); null shows every fee. */
+    #[Url(as: 'fee')]
+    public ?int $feeTypeId = null;
 
     public ?string $dueOn = null;
 
@@ -190,7 +195,7 @@ new #[Title('Bills')] class extends Component {
     }
 
     /**
-     * @return array{columns: int, rows: \Illuminate\Support\Collection<int, array{bill: Bill, class: string, cells: list<string>, arrears: int}>}|null
+     * @return array{mode: string, fee: FeeType|null, columns: list<array{key: int, label: string}>, rows: \Illuminate\Support\Collection<int, array{bill: Bill, class: string, arrears: int, fees: array<int, array{due: int, paid: int, pending: int, left: int}>, due: int, paid: int, pending: int, left: int, cells: list<string>, used: int, max: int}>}|null
      */
     #[Computed]
     public function grid(): ?array
@@ -199,7 +204,20 @@ new #[Title('Bills')] class extends Component {
             return null;
         }
 
-        return InstallmentGrid::build($this->semester, auth()->user(), ActiveRole::get(), $this->classId, $this->search, Gender::tryFrom($this->gender));
+        $fee = $this->feeTypeId ? FeeType::query()->find($this->feeTypeId) : null;
+
+        return InstallmentGrid::build($this->semester, auth()->user(), ActiveRole::get(), $this->classId, $this->search, Gender::tryFrom($this->gender), $fee);
+    }
+
+    /**
+     * Fee types billed in the semester shown, for the grid filter.
+     *
+     * @return \Illuminate\Support\Collection<int, FeeType>
+     */
+    #[Computed]
+    public function feeTypes(): \Illuminate\Support\Collection
+    {
+        return $this->semester ? InstallmentGrid::feeTypes($this->semester) : collect();
     }
 
     /**
@@ -228,18 +246,35 @@ new #[Title('Bills')] class extends Component {
     public function exportGrid(): BinaryFileResponse
     {
         abort_if($this->grid === null, 404);
-        $mark = ['paid' => 'V', 'pending' => '?', 'done' => '-', 'none' => '', 'open' => ''];
+        $grid = $this->grid;
+        $mark = ['paid' => 'V', 'pending' => '?', 'none' => '', 'open' => ''];
 
-        $rows = $this->grid['rows']->map(function (array $row) use ($mark) {
+        // The export follows the view shown (after-review D58).
+        $rows = $grid['rows']->map(function (array $row) use ($grid, $mark) {
             $line = [
                 __('NIM') => $row['bill']->student->nim,
                 __('Name') => $row['bill']->student->user->name,
                 __('Class') => $row['class'],
             ];
 
-            // Assigned one by one: spreading would renumber the numeric keys.
-            foreach ($row['cells'] as $index => $cell) {
-                $line[$index + 1] = $mark[$cell];
+            if ($grid['mode'] === InstallmentGrid::ALL) {
+                foreach ($grid['columns'] as $column) {
+                    $amounts = $row['fees'][$column['key']] ?? null;
+                    $line[$column['label'].' · '.__('Paid amount')] = $amounts['paid'] ?? null;
+                    $line[$column['label'].' · '.__('Left')] = $amounts['left'] ?? null;
+                }
+                $line[__('Total left')] = $row['left'];
+            } else {
+                // Assigned one by one: spreading would renumber the numeric keys.
+                foreach ($row['cells'] as $index => $cell) {
+                    $line[__('Month :n', ['n' => $index + 1])] = $mark[$cell];
+                }
+                $line[__('Paid amount')] = $row['paid'];
+                $line[__('Waiting for verification')] = $row['pending'];
+                $line[__('Left')] = $row['left'];
+                if ($grid['mode'] === InstallmentGrid::FEE) {
+                    $line[__('Instalments')] = $row['used'].'/'.$row['max'];
+                }
             }
 
             $line[__('Previous semesters')] = $row['arrears'];
@@ -248,7 +283,9 @@ new #[Title('Bills')] class extends Component {
             return $line;
         });
 
-        return SpreadsheetDownload::make('rekap-angsuran-'.$this->semesterId.'.xlsx', $rows);
+        $suffix = $grid['fee'] ? '-'.\Illuminate\Support\Str::slug($grid['fee']->name) : '';
+
+        return SpreadsheetDownload::make('rekap-angsuran-'.$this->semesterId.$suffix.'.xlsx', $rows);
     }
 
     public function export(): BinaryFileResponse
@@ -306,6 +343,12 @@ new #[Title('Bills')] class extends Component {
             @endforeach
         </flux:select>
         @if ($view === 'grid')
+            <flux:select wire:model.live="feeTypeId" class="sm:max-w-56" data-test="grid-fee">
+                <flux:select.option value="">{{ __('All fees') }}</flux:select.option>
+                @foreach ($this->feeTypes as $type)
+                    <flux:select.option :value="$type->id">{{ $type->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
             <flux:select wire:model.live="classId" class="sm:max-w-56">
                 <flux:select.option value="">{{ __('All classes') }}</flux:select.option>
                 @foreach ($this->classes as $class)
@@ -334,56 +377,100 @@ new #[Title('Bills')] class extends Component {
 
     @if ($view === 'grid')
         @php($grid = $this->grid)
-        <flux:heading class="mb-2 hidden print:block">{{ __('Instalment grid') }} · {{ $this->semester?->label() }}</flux:heading>
+        <flux:heading class="mb-2 hidden print:block">{{ __('Instalment grid') }} · {{ $this->semester?->label() }}{{ $grid && $grid['fee'] ? ' · '.$grid['fee']->name : '' }}</flux:heading>
+        @php($mode = $grid['mode'] ?? InstallmentGrid::ALL)
         <div class="mb-2 flex flex-wrap gap-4 text-xs text-zinc-500 print:hidden">
-            <span><span class="font-semibold text-green-700 dark:text-green-400">✓</span> {{ __('verified') }}</span>
-            <span><flux:icon.clock variant="micro" class="inline text-amber-500" /> {{ __('waiting for verification') }}</span>
-            <span><span class="inline-block size-3 rounded border border-zinc-300 align-middle dark:border-zinc-600"></span> {{ __('not paid yet: click to open the bill') }}</span>
+            @if ($mode === InstallmentGrid::MONTHLY)
+                <span><span class="font-semibold text-green-700 dark:text-green-400">✓</span> {{ __('month paid (verified)') }}</span>
+                <span><flux:icon.clock variant="micro" class="inline text-amber-500" /> {{ __('waiting for verification') }}</span>
+                <span><span class="inline-block size-3 rounded border border-zinc-300 align-middle dark:border-zinc-600"></span> {{ __('not paid yet: click to open the bill') }}</span>
+            @else
+                <span>{{ __('Paid counts verified payments; left is what is not verified yet.') }}</span>
+                <span><flux:icon.clock variant="micro" class="inline text-amber-500" /> {{ __('waiting for verification') }}</span>
+            @endif
         </div>
-        <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700" data-test="installment-grid">
+        <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700" data-test="installment-grid" data-mode="{{ $mode }}">
             <table class="min-w-full text-sm">
                 <thead class="bg-zinc-50 text-left dark:bg-zinc-800">
                     <tr>
                         <th class="px-3 py-2 font-medium">{{ __('NIM') }}</th>
                         <th class="px-3 py-2 font-medium">{{ __('Name') }}</th>
                         <th class="hidden px-3 py-2 font-medium md:table-cell print:table-cell">{{ __('Class') }}</th>
-                        @for ($slot = 1; $slot <= ($grid['columns'] ?? 0); $slot++)
-                            <th class="w-10 px-1 py-2 text-center font-medium">{{ $slot }}</th>
-                        @endfor
+                        @if ($mode === InstallmentGrid::ALL)
+                            @foreach ($grid['columns'] ?? [] as $column)
+                                <th class="px-3 py-2 text-end font-medium">{{ $column['label'] }}<div class="text-xs font-normal text-zinc-500">{{ __('paid / left') }}</div></th>
+                            @endforeach
+                            <th class="px-3 py-2 text-end font-medium">{{ __('Total left') }}</th>
+                        @else
+                            @foreach ($grid['columns'] ?? [] as $column)
+                                <th class="w-10 px-1 py-2 text-center font-medium" title="{{ __('Month :n', ['n' => $column['label']]) }}">{{ $column['label'] }}</th>
+                            @endforeach
+                            <th class="px-3 py-2 text-end font-medium">{{ __('Paid amount') }}</th>
+                            <th class="px-3 py-2 text-end font-medium">{{ __('Left') }}</th>
+                            @if ($mode === InstallmentGrid::FEE)
+                                <th class="px-3 py-2 text-center font-medium">{{ __('Instalments') }}</th>
+                            @endif
+                        @endif
                         <th class="px-3 py-2 text-end font-medium">{{ __('Previous semesters') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse ($grid['rows'] ?? [] as $row)
                         @php($bill = $row['bill'])
-                        <tr wire:key="grid-{{ $bill->id }}" @class(['bg-green-50/60 dark:bg-green-900/10' => $bill->status === BillStatus::Paid])>
+                        <tr wire:key="grid-{{ $bill->id }}" @class(['bg-green-50/60 dark:bg-green-900/10' => $row['due'] > 0 && $row['left'] === 0])>
                             <td class="px-3 py-1.5 font-mono text-xs text-zinc-500">{{ $bill->student->nim }}</td>
                             <td class="px-3 py-1.5">
                                 <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate class="font-medium hover:underline">{{ $bill->student->user->name }}</a>
                             </td>
                             <td class="hidden px-3 py-1.5 text-xs text-zinc-500 md:table-cell print:table-cell">{{ $row['class'] }}</td>
-                            @foreach ($row['cells'] as $index => $cell)
-                                <td class="px-1 py-1 text-center" data-cell="{{ $cell }}">
-                                    @switch ($cell)
-                                        @case ('paid')
-                                            <span class="font-semibold text-green-700 dark:text-green-400" title="{{ __('Instalment :n verified', ['n' => $index + 1]) }}">✓</span>
-                                            @break
-                                        @case ('pending')
-                                            <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate title="{{ __('Waiting for verification') }}"><flux:icon.clock variant="micro" class="inline text-amber-500" /></a>
-                                            @break
-                                        @case ('open')
-                                            <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate title="{{ __('Record instalment :n', ['n' => $index + 1]) }}"
-                                                class="inline-block size-4 rounded border border-zinc-300 align-middle hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 dark:border-zinc-600"></a>
-                                            @break
-                                        @case ('done')
-                                            <span class="text-zinc-300 dark:text-zinc-600">–</span>
-                                            @break
-                                        @default
-                                            <span class="inline-block size-4 rounded bg-zinc-100 align-middle dark:bg-zinc-800"></span>
-                                    @endswitch
+                            @if ($mode === InstallmentGrid::ALL)
+                                @foreach ($grid['columns'] as $column)
+                                    @php($amounts = $row['fees'][$column['key']] ?? null)
+                                    <td class="px-3 py-1.5 text-end text-xs whitespace-nowrap tabular-nums" data-fee="{{ $column['key'] }}">
+                                        @if ($amounts === null)
+                                            <span class="text-zinc-300 dark:text-zinc-600">—</span>
+                                        @else
+                                            <span class="text-green-700 dark:text-green-400">{{ Money::format($amounts['paid']) }}</span>
+                                            /
+                                            <span @class(['text-red-600 dark:text-red-400' => $amounts['left'] > 0, 'text-zinc-400' => $amounts['left'] === 0])>{{ Money::format($amounts['left']) }}</span>
+                                            @if ($amounts['pending'] > 0)
+                                                <flux:icon.clock variant="micro" class="inline text-amber-500" title="{{ __('Waiting for verification: :amount', ['amount' => Money::format($amounts['pending'])]) }}" />
+                                            @endif
+                                        @endif
+                                    </td>
+                                @endforeach
+                                <td class="px-3 py-1.5 text-end font-medium whitespace-nowrap tabular-nums">{{ Money::format($row['left']) }}</td>
+                            @else
+                                @foreach ($row['cells'] as $index => $cell)
+                                    <td class="px-1 py-1 text-center" data-cell="{{ $cell }}">
+                                        @switch ($cell)
+                                            @case ('paid')
+                                                <span class="font-semibold text-green-700 dark:text-green-400" title="{{ __('Month :n paid', ['n' => $index + 1]) }}">✓</span>
+                                                @break
+                                            @case ('pending')
+                                                <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate title="{{ __('Waiting for verification') }}"><flux:icon.clock variant="micro" class="inline text-amber-500" /></a>
+                                                @break
+                                            @case ('open')
+                                                <a href="{{ route('finance.bills.show', $bill) }}" wire:navigate title="{{ __('Record a payment') }}"
+                                                    class="inline-block size-4 rounded border border-zinc-300 align-middle hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 dark:border-zinc-600"></a>
+                                                @break
+                                            @default
+                                                <span class="inline-block size-4 rounded bg-zinc-100 align-middle dark:bg-zinc-800"></span>
+                                        @endswitch
+                                    </td>
+                                @endforeach
+                                <td class="px-3 py-1.5 text-end whitespace-nowrap tabular-nums">
+                                    {{ Money::format($row['paid']) }}
+                                    @if ($row['pending'] > 0)
+                                        <flux:icon.clock variant="micro" class="inline text-amber-500" title="{{ __('Waiting for verification: :amount', ['amount' => Money::format($row['pending'])]) }}" />
+                                    @endif
                                 </td>
-                            @endforeach
-                            <td class="px-3 py-1.5 text-end tabular-nums">
+                                <td @class(['px-3 py-1.5 text-end whitespace-nowrap tabular-nums', 'text-red-600 dark:text-red-400' => $row['left'] > 0, 'text-zinc-400' => $row['left'] === 0])>{{ Money::format($row['left']) }}</td>
+                                @if ($mode === InstallmentGrid::FEE)
+                                    <td class="px-3 py-1.5 text-center tabular-nums">{{ $row['used'] }}/{{ $row['max'] }}</td>
+                                @endif
+                            @endif
+                            <td class="px-3 py-1.5 text-end whitespace-nowrap tabular-nums">
                                 @if ($row['arrears'] > 0)
                                     <a href="{{ route('finance.bills.index', ['semester' => 0, 'status' => 'outstanding', 'search' => $bill->student->nim]) }}" wire:navigate class="text-red-600 hover:underline">{{ Money::format($row['arrears']) }}</a>
                                 @else
@@ -393,7 +480,7 @@ new #[Title('Bills')] class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ 4 + ($grid['columns'] ?? 0) }}" class="px-3 py-6 text-center text-zinc-500">{{ __('No bills for this semester yet.') }}</td>
+                            <td colspan="{{ 8 + count($grid['columns'] ?? []) }}" class="px-3 py-6 text-center text-zinc-500">{{ __('No bills for this semester yet.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

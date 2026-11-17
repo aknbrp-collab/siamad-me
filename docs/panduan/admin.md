@@ -52,7 +52,10 @@ sudah ditutup, lalu:
 2. **Nilai akhir**: isi `nim`, `subject_code`, `score` (0–100) dan/atau `letter` (huruf dari arsip,
    bobotnya mengikuti skala nilai), serta `teacher_nidm` bila kelas kuliah mata kuliah itu belum ada di
    SIAKAD (cukup sekali per mata kuliah dan kelas dalam satu berkas). Nilai disimpan sebagai nilai
-   akhir sehingga KHS, transkrip, dan IPK langsung lengkap. Nilai yang sudah final tidak ditimpa.
+   akhir sehingga KHS, transkrip, dan IPK langsung lengkap. Nilai yang sudah final tidak ditimpa. Atur
+   **skala nilai** lebih dulu: selama skala kosong, nilai tidak dapat diimpor. Bila skala nilai diubah
+   setelah impor, halaman ini menampilkan berapa nilai impor yang berbeda (mis. E → B+: 480); **Terapkan
+   skala nilai** mengubahnya (nilai dengan huruf dari arsip dan nilai yang diinput di kelas tidak diubah).
 
 Baris yang bermasalah ditampilkan beserta alasannya dan dilewati; perbaiki lalu impor ulang berkasnya.
 

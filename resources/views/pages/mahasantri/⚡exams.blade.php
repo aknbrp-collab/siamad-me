@@ -59,7 +59,10 @@ new #[Title('Exam card')] class extends Component {
             @elseif (! $status['payment_ok'])
                 <flux:callout icon="banknotes" color="amber" data-test="payment-missing"
                     :text="__('The semester bill is not paid in full yet (still to pay :amount). The exam card can be printed once it is paid and verified.', ['amount' => Money::format($status['outstanding'])])">
-                    <x-slot name="actions"><flux:button size="sm" :href="route('mahasantri.bills')" wire:navigate>{{ __('My bills') }}</flux:button></x-slot>
+                    <x-slot name="actions">
+                        <flux:button size="sm" :href="route('mahasantri.bills')" wire:navigate>{{ __('My bills') }}</flux:button>
+                        <flux:button size="sm" variant="ghost" icon="document-check" :href="route('mahasantri.bills').'#dispensasi'" data-test="ask-dispensation">{{ __('Ask for a dispensation') }}</flux:button>
+                    </x-slot>
                 </flux:callout>
             @endif
 

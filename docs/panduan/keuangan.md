@@ -7,8 +7,11 @@ mencatatnya. Pemisahan tugas ini disengaja.
 ## 1. Biaya dan tarif (awal tahun akademik)
 
 Menu **Keuangan → Biaya**:
-1. **Tambah jenis biaya**: nama (SPP, Daftar Ulang, Asrama…) dan frekuensi: per semester, bulanan
-   (ditagih 6× per semester), atau sekali per mahasantri.
+1. **Tambah jenis biaya**: nama (SPP, Daftar Ulang, Asrama…) dan frekuensi: per semester, bulanan, atau
+   sekali per mahasantri. Setiap biaya punya **maks. angsuran** sendiri (mis. Pendaftaran 3×, SPP 1×), dan
+   biaya bulanan punya **bulan per semester** (bawaan 6; mis. 5 bila hanya ditagih 10 bulan setahun).
+   Tagihan bulanan menjadi "Syahriah (5 bulan)" = tarif × 5. Mengubahnya tidak mengubah tagihan yang sudah
+   dibuat.
 2. **Tambah tarif** untuk tahun akademik: nominal, dan bila perlu khusus kelas dan/atau angkatan. Saat
    tagihan dibuat, tarif yang paling spesifik yang dipakai (kelas + angkatan → kelas → angkatan → semua).
 3. Tahun berikutnya: **Salin tarif** dari tahun lalu, lalu ubah yang naik. Tarif khusus kelas disalin ke
@@ -47,11 +50,23 @@ daftar tagihan ke Excel.
 
 ## 4. Mencatat pembayaran
 
-Buka tagihan → **Catat pembayaran**: jumlah, metode (**Tunai** / **Transfer bank**), tanggal, referensi
-bank (wajib untuk transfer), dan bukti (opsional). Aturan cicilan:
-- maksimal **3 kali** per tagihan (diatur Superadmin);
-- setiap cicilan minimal **Rp 200.000**, kecuali pembayaran yang melunasi sisa tagihan;
-- tidak boleh melebihi sisa tagihan; cicilan terakhir harus melunasi.
+Buka tagihan → **Catat pembayaran**. Setiap biaya tagihan tampil dengan sisanya dan angsuran yang sudah
+dipakai (mis. "Sisa Rp 800.000 · angsuran 1 dari 3"). **Centang** biaya yang dibayar: jumlahnya terisi
+dengan sisa biaya itu dan dapat diturunkan; untuk biaya bulanan isi **Bulan** (mis. 2 bulan) dan jumlahnya
+mengikuti. **Jumlah** adalah totalnya. Lalu pilih metode (**Tunai** / **Transfer bank**), tanggal,
+referensi bank (wajib untuk transfer), dan bukti (opsional).
+
+Aturan cicilan berlaku **per biaya**:
+- tidak lebih dari maks. angsuran biaya itu (diatur di **Biaya**; Superadmin dapat menambahnya untuk satu
+  tagihan);
+- setiap pembayaran minimal **Rp 200.000**, kecuali yang melunasi biaya itu, atau untuk biaya bulanan yang
+  membayar bulan penuh (mis. Syahriah Rp 100.000/bulan boleh dibayar Rp 100.000 per bulan);
+- tidak boleh melebihi sisa biaya itu; angsuran terakhir yang diizinkan harus melunasinya.
+
+Pesan kesalahan tampil di bawah biaya yang bermasalah. Potongan beasiswa dibagi ke setiap biaya sebanding
+nominalnya. Di daftar pembayaran, setiap pembayaran menampilkan biaya yang dibayarnya, dan kuitansi memuat
+**Rincian** per biaya. Konfirmasi transfer dari mahasantri dibagikan otomatis ke biaya sesuai urutan
+tagihan.
 
 Setelah dicatat, Anda dapat mencetak slip bertanda *BELUM TERVERIFIKASI* untuk pembayar. Kuitansi resmi
 baru tersedia setelah Admin memverifikasi. Saat mencetak kwitansi, pilih dicetak dengan gambar tanda
@@ -88,15 +103,19 @@ pembayaran tunggakannya tetap dapat dicatat.
 ### Rekap angsuran
 
 Di **Tagihan**, pilih **Rekap angsuran** untuk melihat satu semester sebagai tabel: NIM, nama, kelas,
-satu kolom per angsuran (sebanyak batas cicilan tertinggi semester itu, biasanya 3; bisa sampai 5 bila ada
-yang diberi batas lebih), lalu **Semester sebelumnya** (sisa tagihan semester-semester lalu).
+lalu menurut **Jenis tagihan**:
+- **Semua biaya** (bawaan): satu kolom per biaya berisi *dibayar / sisa*, lalu **Total sisa**.
+- **Biaya bulanan** (mis. Syahriah): satu kolom per bulan. ✓ hijau: bulan itu lunas dan terverifikasi; jam
+  kuning: sudah dibayar, menunggu verifikasi; kotak kosong: belum dibayar (klik untuk membuka tagihannya dan
+  **Catat pembayaran**); kotak abu-abu: tagihan itu dibuat untuk bulan yang lebih sedikit. Lalu
+  **Terbayar** dan **Sisa**.
+- **Biaya lain**: **Terbayar**, **Sisa**, dan **Angsuran** terpakai/batas (mis. 1/3).
 
-- ✓ hijau: angsuran itu sudah terverifikasi. Jam kuning: sudah dibayar, menunggu verifikasi.
-- Kotak kosong: belum dibayar. Klik untuk membuka tagihannya dan **Catat pembayaran**.
-- Kotak abu-abu: di luar batas cicilan tagihan itu. Tanda – : tagihan sudah lunas. Baris lunas berwarna hijau.
-- Jumlah merah di **Semester sebelumnya** membuka daftar tunggakan mahasantri itu.
+"Sisa" adalah yang belum terverifikasi. Baris lunas berwarna hijau. **Semester sebelumnya** berisi sisa
+tagihan semester-semester lalu; jumlah merahnya membuka daftar tunggakan mahasantri itu.
 
-Saring per kelas atau Putra/Putri, cari NIM/nama, lalu **Export** (Excel dengan tanda V) atau **Cetak**.
+Saring per jenis tagihan, kelas atau Putra/Putri, cari NIM/nama, lalu **Export** (Excel, mengikuti tampilan
+yang dipilih) atau **Cetak**.
 
 ## 7. Ringkasan
 
@@ -155,8 +174,10 @@ Menu **Keuangan → Data tahun sebelumnya**, hanya selama Superadmin mengaktifka
 - **Tagihan & pembayaran** (per semester yang sudah ditutup): satu baris per mahasantri — `nim`,
   `billed` (total tagihan), `paid` (total dibayar), `paid_on`, `method` (tunai/transfer), `account`
   (nama rekening), `description`. Tagihan dibuat dengan satu baris; pembayaran disimpan terverifikasi
-  (sumber: arsip) dan dibukukan ke rekening itu. Mahasantri yang sudah punya tagihan semester itu
-  dilewati.
+  (sumber: arsip) dan dibukukan ke rekening itu. Bila mahasantri sudah punya tagihan semester itu (mis.
+  dari **Buat tagihan**) yang **belum ada pembayarannya**, tagihan itu dibatalkan ("Diganti data arsip")
+  dan diganti tagihan arsip; tagihan yang sudah ada pembayarannya dilaporkan dengan nomornya dan tidak
+  diubah.
 - **Pemasukan & pengeluaran**: `date`, `type` (masuk/keluar), `category`, `amount`, `account`, `party`,
   `description`. Tercatat seperti catatan buku kas biasa dengan nomor BKM/BKK tahunnya.
 

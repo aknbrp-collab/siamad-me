@@ -10,9 +10,11 @@ use App\Models\Semester;
 use App\Models\Student;
 use App\Support\ActiveRole;
 use App\Support\PrintMarks;
+use App\Support\PrintTemplates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * KHS and transcript as PDF, for the mahasantri, their wali santri and
@@ -20,7 +22,7 @@ use Illuminate\Http\Response;
  */
 class AcademicRecordPdfController extends Controller
 {
-    public function khs(Request $request, Student $student, Semester $semester, AcademicRecord $record, ManageEvaluations $evaluations): Response
+    public function khs(Request $request, Student $student, Semester $semester, AcademicRecord $record, ManageEvaluations $evaluations): Response|BinaryFileResponse
     {
         $this->authorizeView($request, $student);
 
@@ -30,25 +32,44 @@ class AcademicRecordPdfController extends Controller
             __('The KHS of this semester opens once you have evaluated all your classes kuliah.'),
         );
 
+        $khs = $record->khs($student, $semester);
+        $marks = PrintMarks::for(PrintDocument::Khs, $request);
+        $name = 'KHS-'.$student->nim.'-'.$semester->id;
+
+        // From the Word template when one is uploaded (v7 D44).
+        $word = PrintTemplates::respond(PrintDocument::Khs, PrintTemplates::khs($student, $semester->loadMissing('academicYear'), $khs), $marks, $name, $request->query('format') === 'docx');
+        if ($word !== null) {
+            return $word;
+        }
+
         return Pdf::loadView('records.khs', [
             'student' => $student,
             'semester' => $semester->loadMissing('academicYear'),
-            'khs' => $record->khs($student, $semester),
+            'khs' => $khs,
             'document' => PrintDocument::Khs,
-            'marks' => PrintMarks::for(PrintDocument::Khs, $request),
-        ])->setPaper('a4')->stream('KHS-'.$student->nim.'-'.$semester->id.'.pdf');
+            'marks' => $marks,
+        ])->setPaper('a4')->stream($name.'.pdf');
     }
 
-    public function transcript(Request $request, Student $student, AcademicRecord $record): Response
+    public function transcript(Request $request, Student $student, AcademicRecord $record): Response|BinaryFileResponse
     {
         $this->authorizeView($request, $student);
 
+        $transcript = $record->transcript($student);
+        $marks = PrintMarks::for(PrintDocument::Transcript, $request);
+        $name = 'Transkrip-'.$student->nim;
+
+        $word = PrintTemplates::respond(PrintDocument::Transcript, PrintTemplates::transcript($student, $transcript), $marks, $name, $request->query('format') === 'docx');
+        if ($word !== null) {
+            return $word;
+        }
+
         return Pdf::loadView('records.transcript', [
             'student' => $student,
-            'transcript' => $record->transcript($student),
+            'transcript' => $transcript,
             'document' => PrintDocument::Transcript,
-            'marks' => PrintMarks::for(PrintDocument::Transcript, $request),
-        ])->setPaper('a4')->stream('Transkrip-'.$student->nim.'.pdf');
+            'marks' => $marks,
+        ])->setPaper('a4')->stream($name.'.pdf');
     }
 
     /**

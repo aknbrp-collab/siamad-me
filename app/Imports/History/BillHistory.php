@@ -2,6 +2,7 @@
 
 namespace App\Imports\History;
 
+use App\Actions\Finance\AdjustBill;
 use App\Enums\BillStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentSource;
@@ -22,8 +23,9 @@ use LogicException;
  * A past semester's bill of each mahasantri and what was paid on it, from the
  * paper archive: one row per mahasantri. The bill gets one line with the
  * total; what was paid becomes one verified payment (source: archive),
- * booked to the account given. A mahasantri who already has a bill for the
- * semester is reported, not changed.
+ * booked to the account given. A bill of the semester without payments (e.g. made with
+ * "Buat tagihan") is voided and replaced (after-review D59); one with payments is
+ * reported with its number, not changed.
  */
 class BillHistory implements HistoryImporter
 {
@@ -95,8 +97,12 @@ class BillHistory implements HistoryImporter
 
         if ($student === null) {
             $errors[] = $nim === '' ? __('NIM is required.') : __('No mahasantri with NIM :nim.', ['nim' => $nim]);
-        } elseif (Bill::query()->where('student_id', $student->id)->where('semester_id', $semester->id)->where('status', '!=', BillStatus::Void)->exists()) {
-            $errors[] = __('Already has a bill for this semester.');
+        } else {
+            $existing = $this->existingBill($student, $semester);
+
+            if ($existing !== null && $existing->payments()->whereIn('status', PaymentStatus::counting())->exists()) {
+                $errors[] = __('Already has bill :number for this semester, with payments; it is not replaced.', ['number' => $existing->number]);
+            }
         }
 
         if ($billed === null || $billed < 1) {
@@ -141,6 +147,14 @@ class BillHistory implements HistoryImporter
         ], 'errors' => $errors];
     }
 
+    /**
+     * The mahasantri's live bill of the semester, if any.
+     */
+    private function existingBill(Student $student, Semester $semester): ?Bill
+    {
+        return Bill::query()->where('student_id', $student->id)->where('semester_id', $semester->id)->where('status', '!=', BillStatus::Void)->first();
+    }
+
     public function import(?Semester $semester, array $input, User $by): void
     {
         if ($semester === null) {
@@ -148,6 +162,12 @@ class BillHistory implements HistoryImporter
         }
 
         DB::transaction(function () use ($semester, $input, $by) {
+            // A bill without payments (made with "Buat tagihan") gives way to the archive (D59).
+            $existing = $this->existingBill(Student::query()->whereKey((int) $input['student_id'])->firstOrFail(), $semester);
+            if ($existing !== null) {
+                app(AdjustBill::class)->void($existing, __('Replaced by the archive data.'));
+            }
+
             $semester->loadMissing('academicYear');
             $year = (int) substr($semester->academicYear->name, 0, 4);
 
@@ -162,10 +182,10 @@ class BillHistory implements HistoryImporter
                 'status_note' => __('Entered from the archive.'),
             ]);
 
-            $bill->lines()->create(['description' => $input['description'], 'amount' => $input['billed']]);
+            $line = $bill->lines()->create(['description' => $input['description'], 'amount' => $input['billed']]);
 
             if ($input['paid'] > 0) {
-                $bill->payments()->create([
+                $payment = $bill->payments()->create([
                     'amount' => $input['paid'],
                     'method' => $input['method'],
                     'source' => PaymentSource::Import,
@@ -177,6 +197,9 @@ class BillHistory implements HistoryImporter
                     'status_note' => __('Entered from the archive.'),
                     'cash_account_id' => $input['cash_account_id'],
                 ]);
+
+                // The archive bill has one line: the payment goes to it (after-review D55).
+                $payment->allocations()->create(['bill_line_id' => $line->id, 'amount' => $input['paid']]);
             }
 
             $bill->recalculate();

@@ -7,12 +7,10 @@
     use App\Enums\PaymentStatus;
     use App\Support\Money;
 
-    // From the loaded payments, as RecordPayment::allowance() counts them.
-    $counting = $bill->payments->whereIn('status', PaymentStatus::counting());
+    // Something left on a fee that can still take a payment (after-review D55).
     $canConfirm = $confirmable
         && $bill->status !== BillStatus::Void
-        && $bill->net_amount - (int) $counting->sum('amount') > 0
-        && $counting->count() < $bill->max_installments;
+        && \App\Support\BillFees::open($bill) > 0;
 @endphp
 
 <flux:card class="space-y-4">

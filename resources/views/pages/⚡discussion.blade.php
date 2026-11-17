@@ -361,6 +361,7 @@ new #[Title('Discussion')] class extends Component {
                 <flux:text class="text-xs">{{ __('Enter sends, Shift+Enter for a new line. Up to :count files, :size MB each.', ['count' => ManageDiscussions::MAX_FILES, 'size' => \App\Support\Upload::maxMb()]) }}</flux:text>
                 <flux:error name="body" />
                 <flux:error name="uploads" />
+                <flux:error name="uploads.*" />
             </form>
         @endif
     @endif

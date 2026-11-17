@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Actions\Exams\ExamEligibility;
 use App\Actions\Exams\ManageExams;
+use App\Http\Controllers\Api\V1\DispensationController;
 use App\Http\Controllers\Controller;
 use App\Models\CourseEnrollment;
+use App\Models\DispensationRequest;
 use App\Models\ExamDispensation;
 use App\Models\ExamPeriod;
 use App\Models\ExamSession;
@@ -169,8 +171,13 @@ class ExamController extends Controller
                 ->orWhereHas('user', fn ($query) => $query->whereRaw('lower(name) like ?', [$term]))))
             ->orderBy('nim')->paginate(25);
 
+        $requests = DispensationRequest::query()->where('semester_id', $period->semester_id)
+            ->whereIn('student_id', collect($students->items())->map(fn (Student $student) => $student->id))
+            ->get()->keyBy('student_id');
+
         return response()->json([
-            'data' => collect($students->items())->map(function (Student $student) use ($eligibility, $period) {
+            'data' => collect($students->items())->map(function (Student $student) use ($eligibility, $period, $requests, $request) {
+                $asked = $requests->get($student->id);
                 $status = $eligibility->check($period, $student);
                 $status['seat']?->loadMissing('room');
 
@@ -182,6 +189,12 @@ class ExamController extends Controller
                     'payment_ok' => $status['payment_ok'],
                     'outstanding' => $status['outstanding'],
                     'dispensation' => $status['dispensation']?->only(['letter_number', 'note']),
+                    /** The mahasantri's own request (v7 D47), with a signed link to the letter. */
+                    'dispensation_request' => $asked === null ? null : [
+                        'reason' => $asked->reason,
+                        'written_at' => $asked->updated_at->toIso8601String(),
+                        'letter_url' => DispensationController::letterUrl($request, $asked),
+                    ],
                     'seat' => $status['seat'] === null ? null : ['room' => $status['seat']->room->name, 'number' => $status['seat']->seat_number],
                     'subjects_short' => collect($status['subjects'])->reject(fn (array $subject) => $subject['ok'])->map(fn (array $subject) => $subject['session']->courseOffering->subject_name)->values()->all(),
                 ];

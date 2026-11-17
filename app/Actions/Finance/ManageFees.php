@@ -19,19 +19,25 @@ use Illuminate\Validation\ValidationException;
 class ManageFees
 {
     /**
-     * @param  array<string, mixed>  $input  name, frequency, is_active
+     * @param  array<string, mixed>  $input  name, frequency, max_installments, months_per_semester, is_active
      */
     public function saveFeeType(?FeeType $feeType, array $input): FeeType
     {
         $data = Validator::make($input, [
             'name' => ['required', 'string', 'max:100', Rule::unique('fee_types', 'name')->ignore($feeType?->id)],
             'frequency' => ['required', Rule::enum(FeeFrequency::class)],
+            // How many payments the fee may be paid in (after-review D55).
+            'max_installments' => ['required', 'integer', 'min:1', 'max:12'],
+            // Months a semester bills a monthly fee (D56); a semester has at most 6.
+            'months_per_semester' => ['nullable', 'required_if:frequency,'.FeeFrequency::Monthly->value, 'integer', 'min:1', 'max:6'],
             'is_active' => ['boolean'],
-        ])->validate();
+        ], [], ['max_installments' => __('instalments'), 'months_per_semester' => __('months per semester')])->validate();
 
         return FeeType::query()->updateOrCreate(['id' => $feeType?->id], [
             'name' => $data['name'],
             'frequency' => $data['frequency'],
+            'max_installments' => (int) $data['max_installments'],
+            'months_per_semester' => (int) ($data['months_per_semester'] ?? $feeType->months_per_semester ?? 6),
             'is_active' => (bool) ($data['is_active'] ?? true),
         ]);
     }

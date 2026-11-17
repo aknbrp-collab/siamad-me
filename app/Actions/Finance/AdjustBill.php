@@ -5,6 +5,8 @@ namespace App\Actions\Finance;
 use App\Enums\BillStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Bill;
+use App\Models\BillLine;
+use App\Support\BillFees;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -34,12 +36,16 @@ class AdjustBill
     }
 
     /**
-     * Superadmin only (checked by the caller): allow more (or fewer)
-     * instalments on one bill. The reason is kept on the bill and audited.
+     * Superadmin only (checked by the caller): allow more (or fewer) instalments on one fee of a bill, or on
+     * every fee of it (after-review D55). Never fewer than the payments that fee already has. The reason is kept
+     * on the bill and audited.
      */
-    public function setMaxInstallments(Bill $bill, int $max, string $reason): void
+    public function setMaxInstallments(Bill $bill, int $max, string $reason, ?BillLine $line = null): void
     {
-        $used = $bill->payments()->whereIn('status', PaymentStatus::counting())->count();
+        $fees = BillFees::of($bill);
+        abort_if($line !== null && ! $fees->has($line->id), 404);
+        $chosen = $line !== null ? $fees->only([$line->id]) : $fees;
+        $used = (int) $chosen->max('used');
 
         if ($max < max(1, $used) || $max > 12) {
             $this->fail('maxInstallments', __('Choose between :min and 12 (payments already recorded: :used).', ['min' => max(1, $used), 'used' => $used]));
@@ -49,10 +55,19 @@ class AdjustBill
             $this->fail('overrideReason', __('Give a reason for changing the instalment limit.'));
         }
 
-        DB::transaction(fn () => $bill->update([
-            'max_installments' => $max,
-            'status_note' => __('Instalment limit set to :max: :reason', ['max' => $max, 'reason' => trim($reason)]),
-        ]));
+        DB::transaction(function () use ($bill, $chosen, $line, $max, $reason) {
+            foreach ($chosen as $fee) {
+                $fee['line']->update(['max_installments' => $max]);
+            }
+
+            $bill->update([
+                // The bill's own limit is what lines without one (archive lines) follow.
+                'max_installments' => $line === null ? $max : $bill->max_installments,
+                'status_note' => $line === null
+                    ? __('Instalment limit set to :max: :reason', ['max' => $max, 'reason' => trim($reason)])
+                    : __('Instalment limit of :fee set to :max: :reason', ['fee' => $line->description, 'max' => $max, 'reason' => trim($reason)]),
+            ]);
+        });
     }
 
     private function fail(string $key, string $message): never

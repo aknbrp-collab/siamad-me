@@ -12,7 +12,6 @@ use App\Support\PrintMarks;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -53,21 +52,6 @@ class LetterPdfController extends Controller
 
     private function fromWord(Letter $letter, PrintMarks $marks, bool $wantsWord): BinaryFileResponse
     {
-        $name = 'Surat-'.str_replace('/', '-', $letter->number);
-        $docx = LetterDocuments::render($letter, $marks);
-        $converter = app(DocxToPdf::class);
-
-        if (! $wantsWord && $converter->available()) {
-            try {
-                $pdf = $converter->convert($docx);
-                @unlink($docx);
-
-                return response()->file($pdf, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="'.$name.'.pdf"'])->deleteFileAfterSend();
-            } catch (RuntimeException $exception) {
-                report($exception);
-            }
-        }
-
-        return response()->download($docx, $name.'.docx')->deleteFileAfterSend();
+        return app(DocxToPdf::class)->respond(LetterDocuments::render($letter, $marks), 'Surat-'.str_replace('/', '-', $letter->number), $wantsWord);
     }
 }

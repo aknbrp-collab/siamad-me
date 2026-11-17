@@ -106,8 +106,9 @@ di `.env` ke lokasi `soffice`).
 ## Pengaturan sistem
 
 **Sistem → Pengaturan**: **rekening untuk transfer** (ditampilkan kepada mahasantri dan wali saat konfirmasi transfer),
-catatan kaki kuitansi, **Maksimal cicilan per tagihan** (bawaan 3), **Cicilan minimal (Rp)** (bawaan
-200.000), dan **Kehadiran minimal (%)** (bawaan 75). Perubahan berlaku untuk tagihan dan perhitungan
+catatan kaki kuitansi, **Maksimal cicilan per tagihan** (bawaan 3; kini menjadi nilai awal **maks.
+angsuran** biaya baru, karena batas cicilan diatur per biaya di **Keuangan → Biaya**), **Cicilan minimal
+(Rp)** (bawaan 200.000), dan **Kehadiran minimal (%)** (bawaan 75). Perubahan berlaku untuk tagihan dan perhitungan
 berikutnya; data lama tidak berubah.
 
 ## Mode pemeliharaan (input data tahun sebelumnya)
@@ -131,7 +132,8 @@ Klik **Matikan** setelah selesai; semua kembali terkunci. Halaman ini juga menam
   wajib dengan alasan. Tutup lagi setelah koreksi selesai.
 - **Membatalkan pembayaran terverifikasi** (halaman tagihan → **Batalkan pembayaran terverifikasi**),
   misalnya transfer yang ternyata dibatalkan bank. Kuitansinya menjadi *BATAL* dan tagihan dihitung ulang.
-- **Mengubah batas cicilan** satu tagihan (halaman tagihan → **Ubah batas cicilan**), wajib dengan alasan.
+- **Mengubah batas cicilan** satu biaya pada satu tagihan (halaman tagihan → **ubah** di samping biaya
+  itu), atau semua biaya tagihan itu (**Ubah batas cicilan semua biaya**), wajib dengan alasan.
 
 ## Integrasi CMS
 
@@ -151,8 +153,34 @@ Superadmin melihat nama pengirim (ditandai *anonim*), misalnya bila ada pesan ya
 **Sistem → Log audit** mencatat setiap perubahan data: siapa, data apa, nilai lama → baru, kapan, dan
 dari alamat IP mana. Gunakan untuk menelusuri jika ada data yang dipertanyakan.
 
-## Cadangan data
+## Data & cadangan
 
-Cadangan database dan berkas dibuat otomatis setiap hari pukul 02.00 oleh server. Pengaturan,
-penyimpanan di luar server, dan cara memulihkan dijelaskan untuk pengelola server di
+Menu **Sistem → Data & cadangan** hanya untuk Superadmin.
+
+**Cadangan.** Setiap hari pukul 02.00 server membuat cadangan seluruh SIAKAD (database dan semua berkas
+yang diunggah) dan menyimpannya 30 hari. Tombol **Buat cadangan sekarang** membuat cadangan saat itu juga,
+misalnya sebelum perubahan besar; halaman menunjukkan prosesnya dan memperbarui sendiri. Cadangan buatan
+manual tidak terhapus otomatis; hapus sendiri bila tidak diperlukan. **Unduh** memberikan satu berkas .zip;
+simpan cadangan penting di tempat lain selain server (misalnya penyimpanan awan atau hard disk eksternal).
+
+**Pulihkan.** Mengembalikan SIAKAD persis seperti saat cadangan dibuat: semua data, akun, dan berkas.
+1. Klik **Pulihkan** pada cadangan yang diinginkan (cadangan dari server lain diunggah dulu lewat
+   **Pulihkan dari berkas**).
+2. SIAKAD memeriksa cadangan: lengkap, tidak rusak, dan tidak berasal dari versi SIAKAD yang lebih baru.
+3. Masukkan kata sandi Anda dan ketik `PULIHKAN`.
+4. SIAKAD membuat cadangan keadaan sekarang lebih dulu, lalu nonaktif beberapa menit selama pemulihan.
+   Halaman menunjukkan setiap langkah. Sesudahnya semua orang, termasuk Anda, masuk lagi.
+Jika pemulihan gagal, SIAKAD aktif kembali dan halaman menyebutkan cadangan berisi keadaan sebelumnya.
+
+**Hapus data.** Menghapus kelompok data tertentu, misalnya data uji coba sebelum SIAKAD dipakai sungguhan.
+1. Centang kelompok yang akan dihapus. Kelompok yang bergantung padanya ikut tercentang (misalnya
+   menghapus *Data orang* ikut menghapus akademik, keuangan, surat, dan artikel mereka).
+2. Klik **Hapus data yang dicentang…**, periksa ringkasan jumlah rekaman, masukkan kata sandi, ketik
+   `HAPUS DATA`.
+3. Cadangan keadaan sekarang dibuat lebih dulu; jika gagal, tidak ada yang dihapus.
+Akun Superadmin, identitas lembaga, tampilan, pengaturan, penomoran surat/kwitansi, dan cadangan selalu
+tetap ada. Jika yang dihapus hanya *Akun staf*, data yang mereka catat tetap ada atas nama Anda. Untuk
+membatalkan penghapusan, pulihkan cadangan yang disebutkan di halaman.
+
+Pengaturan server (lokasi cadangan, alat `pg_dump`/`pg_restore`, batas unggah) ada di
 [`../OPERATIONS.md`](../OPERATIONS.md).

@@ -2,6 +2,8 @@
 
 How to run SIAKAD on a server: the scheduler, backups and restoring them. For the design see
 [`DESIGN.md`](DESIGN.md); for the state of the project see [`HANDOVER.md`](HANDOVER.md).
+For a demo on another Windows computer, opened from devices on the same network, see
+[LOCAL-DEMO.md](LOCAL-DEMO.md).
 
 ---
 
@@ -38,6 +40,13 @@ On iPhone/iPad, pop-ups work only after SIAKAD is added to the Home Screen (iOS 
 Web Push. If `siakad:vapid` says *Unable to create the key*, set the environment variable
 `OPENSSL_CONF` to PHP's `openssl.cnf` (with Herd: `%USERPROFILE%\.config\herd\bin\php84\extras\ssl\openssl.cnf`)
 for the web server and the scheduler, and restart them. Linux servers need nothing.
+
+**Uploads need a writable PHP temporary folder (v7).** PHP stores every uploaded file in its temporary folder
+before SIAKAD reads it. If it cannot, nothing arrives and the Superadmin dashboard shows *Unggah berkas tidak
+berfungsi di server ini* with the reason. `php artisan serve` on Windows used to start PHP without `TEMP`, so
+PHP tried `C:\Windows`; SIAKAD now passes `TEMP`/`TMP`/`TMPDIR` on (restart `artisan serve` after updating).
+Elsewhere set `upload_tmp_dir` in `php.ini` to a folder the web server can write, and keep
+`upload_max_filesize` / `post_max_size` at least the upload limit (`SIAKAD_UPLOAD_MAX_KB`, 10 MB by default).
 
 ## 2. Scheduler (required for backups)
 
@@ -129,6 +138,13 @@ storage/app/backups/2026-10-30_020000/
 > or a mounted network share, or copy `storage/app/backups` off the server every day (rsync, rclone to
 > cloud storage, or an external drive). Test a restore at least once per semester.
 
+**From the web (data-manage D50).** Superadmin → *Data & cadangan* lists every backup (daily and made by
+hand) with its time, who made it, the number of records and the size; *Buat cadangan sekarang* makes one
+after the page answers; each backup downloads as one `.zip` (`database.dump`, `files.zip`,
+`manifest.json`). Backups made by hand are not removed by the 30-day clean-up; delete them on that page.
+Every backup now has a `manifest.json` (time, kind, who, last migration, rows per table, file checksums).
+Downloads and deletions are in the audit log.
+
 Run one by hand at any time (e.g. before an upgrade):
 
 ```bash
@@ -137,7 +153,26 @@ php artisan siakad:backup
 
 ## 4. Restoring
 
-Restore into an **empty** database. Never restore over the live database without a fresh backup of it.
+**From the web (data-manage D51).** Superadmin → *Data & cadangan* → *Pulihkan* next to a backup, or upload a
+backup `.zip` under *Pulihkan dari berkas* first (up to `SIAKAD_RESTORE_MAX_MB`, 512 MB by default, and PHP's
+`upload_max_filesize` / `post_max_size`; copy a larger backup folder into the backups folder instead). SIAKAD
+checks the backup (complete, checksums, not from a newer SIAKAD), asks for the password and `PULIHKAN`, then
+runs `php artisan siakad:restore <backup>` in its own process:
+1. a backup of the current state (named on the page if anything fails);
+2. maintenance mode (`artisan down`);
+3. the database: tables the backup does not have are dropped, then `pg_restore --clean --if-exists
+   --single-transaction` (all or nothing);
+4. the private files: unpacked next to `storage/app/private` and swapped in;
+5. `migrate --force`, sessions and queued jobs emptied (everyone signs in again), cache cleared, `artisan up`.
+The page follows it through `/restore-status/{token}`, which works during maintenance. `pg_restore` is
+found next to `BACKUP_PG_DUMP` or at `BACKUP_PG_RESTORE`. The same command works on the server, also into a
+new, empty database (a new server): `php artisan siakad:restore 2026-11-08_020000`.
+
+Checked on 2026-11-08 on PostgreSQL 17 with a scratch database: after restoring, every table had the backup's
+row count (plus the restore's own audit entry, and no sessions); a table from a newer migration was
+dropped and missing rows came back.
+
+**By hand.** Restore into an **empty** database. Never restore over the live database without a fresh backup of it.
 
 ```bash
 # 1. Database (replace values; PGPASSWORD avoids the prompt)
@@ -153,6 +188,17 @@ php artisan config:clear
 
 `pg_restore --list database.dump` shows what a dump contains without restoring it. This procedure was
 tested on 2026-10-26: a dump restored into a scratch database had the same row counts as the source.
+
+## 4a. Deleting data (data-manage D52)
+
+Superadmin → *Data & cadangan* → *Hapus data*: tick groups (Akademik, Keuangan, Surat, Artikel & diskusi, Data
+orang, Data dasar, Akun staf, Notifikasi & log); groups other data depends on are ticked with them (Data orang
+needs Akademik, Keuangan, Surat and Artikel; Data dasar needs those and Data orang). After the password and
+`HAPUS DATA`, `php artisan siakad:wipe <groups> --by=<id>` runs in its own process: a backup of the current
+state first (if it fails, nothing is deleted), then one database transaction, then the files of the deleted
+rows. Superadmin accounts, settings, identity, appearance, letter and receipt numbering, and the backups
+always stay; records made by deleted staff accounts stay under the Superadmin who deleted. One audit entry
+(`data.deleted`) records the groups and counts. To undo it, restore the backup named on the page.
 
 ## 5. Updating the application
 

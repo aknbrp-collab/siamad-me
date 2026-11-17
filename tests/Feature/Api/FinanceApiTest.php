@@ -8,6 +8,7 @@ use App\Enums\PaymentSource;
 use App\Enums\Role;
 use App\Models\Bill;
 use App\Models\ClassGroup;
+use App\Models\FeeRate;
 use App\Models\FeeType;
 use App\Models\Payment;
 use App\Models\Semester;
@@ -86,7 +87,7 @@ test('bills: list, grid and one bill; a collector sees only their gender; correc
     $collector = $this->aisyah->user->fresh();
 
     asFinance($this->cashier, Role::AdminPayment)->getJson('/api/v1/finance/bills?status=outstanding')->assertOk()->assertJsonCount(2, 'data');
-    asFinance($this->cashier, Role::AdminPayment)->getJson('/api/v1/finance/bills/grid')->assertOk()->assertJsonPath('data.columns', 3)->assertJsonCount(2, 'data.rows');
+    asFinance($this->cashier, Role::AdminPayment)->getJson('/api/v1/finance/bills/grid')->assertOk()->assertJsonPath('data.mode', 'all')->assertJsonCount(1, 'data.columns')->assertJsonCount(2, 'data.rows')->assertJsonPath('data.rows.0.left', 2_000_000);
     asFinance($collector, Role::PaymentCollector)->getJson('/api/v1/finance/bills')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.nim', $this->aisyah->nim);
     asFinance($collector, Role::PaymentCollector)->getJson('/api/v1/finance/bills/'.financeBillOf($this->ahmad)->id)->assertForbidden();
 
@@ -158,4 +159,46 @@ test('cash book: accounts, an expense with a receipt, a deposit, the ledger, the
     asFinance($this->cashier, Role::AdminPayment)->postJson("/api/v1/finance/cash/entries/{$entry}/void", ['reason' => 'Salah input'])->assertNoContent();
     asFinance($this->cashier, Role::AdminPayment)->postJson('/api/v1/finance/cash/close', ['month' => today()->subMonth()->format('Y-m')])->assertOk();
     asFinance($this->cashier, Role::AdminPayment)->getJson('/api/v1/finance/overview')->assertOk()->assertJsonPath('data.semester_id', $this->semester->id);
+});
+
+test('payments per fee: the bill lists its fees, a payment names them, a fee gets its own limit, the grid filters by fee', function () {
+    $monthly = FeeType::factory()->monthly()->create(['name' => 'Syahriah', 'months_per_semester' => 5, 'max_installments' => 2]);
+    FeeRate::create(['fee_type_id' => $monthly->id, 'academic_year_id' => $this->semester->academic_year_id, 'amount' => 200_000]);
+    financeBills();
+    $bill = financeBillOf($this->ahmad);
+    $lines = $bill->lines()->get()->keyBy('fee_type_id');
+    $main = $lines[$this->fee->id]->id;
+    $syahriah = $lines[$monthly->id]->id;
+
+    asFinance($this->cashier, Role::AdminPayment)->getJson("/api/v1/finance/bills/{$bill->id}")->assertOk()
+        ->assertJsonCount(2, 'data.fees')
+        ->assertJsonPath('data.fees.1.id', $syahriah)
+        ->assertJsonPath('data.fees.1.months', 5)
+        ->assertJsonPath('data.fees.1.instalments_max', 2)
+        ->assertJsonPath('data.fees.1.left', 1_000_000);
+
+    // A per-fee error is reported under that fee.
+    $pay = fn (array $allocations) => asFinance($this->cashier, Role::AdminPayment)->postJson("/api/v1/finance/bills/{$bill->id}/payments", ['allocations' => $allocations, 'method' => 'cash', 'paid_on' => today()->toDateString()]);
+    $pay([$syahriah => 100_000])->assertUnprocessable()->assertJsonValidationErrors("allocations.{$syahriah}");
+    $pay([$main => 500_000, $syahriah => 400_000])->assertCreated();
+
+    asFinance($this->cashier, Role::AdminPayment)->getJson("/api/v1/finance/bills/{$bill->id}")->assertOk()
+        ->assertJsonPath('data.payments.0.amount', 900_000)
+        ->assertJsonPath('data.payments.0.fees.1.amount', 400_000)
+        ->assertJsonPath('data.fees.1.instalments_used', 1);
+
+    // The second (last) Syahriah payment must settle it, unless the Superadmin allows one more.
+    $mainLimit = $bill->lines()->whereKey($main)->value('max_installments');
+    $pay([$syahriah => 200_000])->assertUnprocessable();
+    asFinance($this->superadmin, Role::Superadmin)->putJson("/api/v1/finance/bills/{$bill->id}/installments", ['max_installments' => 3, 'reason' => 'Keringanan', 'fee_id' => $syahriah])->assertNoContent();
+    $pay([$syahriah => 200_000])->assertCreated();
+    expect($bill->lines()->whereKey($main)->value('max_installments'))->toBe($mainLimit);
+
+    asFinance($this->cashier, Role::AdminPayment)->getJson("/api/v1/finance/bills/grid?fee={$monthly->id}&search={$this->ahmad->nim}")->assertOk()
+        ->assertJsonPath('data.mode', 'monthly')
+        ->assertJsonCount(5, 'data.columns')
+        ->assertJsonCount(2, 'data.fee_types')
+        ->assertJsonCount(1, 'data.rows')
+        ->assertJsonPath('data.rows.0.pending', 600_000)
+        ->assertJsonPath('data.rows.0.cells', ['pending', 'pending', 'pending', 'open', 'open']);
 });

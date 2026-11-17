@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Articles\ManageArticles;
 use App\Enums\PaymentSource;
 use App\Enums\Role;
+use App\Models\Article;
 use App\Models\CashEntry;
 use App\Models\DiscussionFile;
 use App\Models\DiscussionMessage;
@@ -30,7 +32,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class PrivateFileController extends Controller
 {
-    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'incoming-letter', 'teaching-document', 'discussion-file', 'material', 'submission'];
+    public const KINDS = ['student-photo', 'teacher-photo', 'student-document', 'teacher-document', 'payment-proof', 'cash-proof', 'incoming-letter', 'teaching-document', 'discussion-file', 'material', 'submission', 'article-image'];
 
     public function __invoke(Request $request, string $kind, int $id): StreamedResponse
     {
@@ -40,6 +42,14 @@ class PrivateFileController extends Controller
 
         if ($kind === 'teaching-document') {
             return $this->teachingDocument($request, $id);
+        }
+
+        if ($kind === 'article-image') {
+            // Whoever may read the article (v7 D48): the working copy's picture, as the article shows.
+            $article = Article::query()->findOrFail($id);
+            abort_unless(ManageArticles::canView($request->user(), $article), 403);
+
+            return $this->serve($article->image_path, null);
         }
 
         if ($kind === 'discussion-file') {

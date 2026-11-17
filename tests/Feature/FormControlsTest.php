@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Documents\UploadDocument;
+use App\Support\Restores;
 use App\Support\Upload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Blade;
@@ -32,7 +33,8 @@ test('every upload uses the one configured size limit', function () {
     expect($check(9000))->toBeTrue()
         ->and($check(10241))->toBeFalse()
         ->and(Upload::maxMb())->toBe(10)
-        ->and(config('livewire.temporary_file_upload.rules'))->toContain('max:10240');
+        // Livewire's temporary upload takes the largest any field allows: a backup to restore (data-manage D51).
+        ->and(config('livewire.temporary_file_upload.rules'))->toContain('max:'.max(10240, Restores::maxMb() * 1024));
 });
 
 test('pages tell the browser the upload limit', function () {

@@ -149,7 +149,12 @@ test('bills: confirm a transfer with proof; a verified payment gets a receipt li
     asStudent()->post("/api/v1/bills/{$bill->id}/transfers", [
         'amount' => 500_000, 'paid_on' => today()->toDateString(), 'reference' => 'BSI-123',
         'proof' => UploadedFile::fake()->image('bukti.jpg'),
-    ], ['Accept' => 'application/json'])->assertOk()->assertJsonPath('data.payments.0.status', 'unverified');
+    ], ['Accept' => 'application/json'])->assertOk()->assertJsonPath('data.payments.0.status', 'unverified')
+        // The transfer was put on the bill's fee; the fee shows it waiting.
+        ->assertJsonPath('data.payments.0.fees.0.amount', 500_000)
+        ->assertJsonPath('data.fees.0.pending', 500_000)
+        ->assertJsonPath('data.fees.0.left', 1_500_000)
+        ->assertJsonPath('data.transfer.fees.0.left', 1_500_000);
 
     $payment = Payment::query()->sole();
     app(ReviewPayments::class)->verifyTransfer($payment, User::factory()->withRole(Role::AdminPayment)->create());

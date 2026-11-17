@@ -401,6 +401,7 @@ new #[Title('Cash book')] class extends Component {
             <div>
                 <flux:label>{{ __('Proof (receipt / kuitansi, optional)') }}</flux:label>
                 <input type="file" wire:model="entryProof" accept=".pdf,.jpg,.jpeg,.png" class="mt-2 block w-full text-sm">
+                <flux:error name="entryProof" />
                 <flux:error name="proof" />
             </div>
             <div class="flex justify-end gap-2">

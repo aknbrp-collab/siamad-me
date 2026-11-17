@@ -2,8 +2,11 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\AcademicRecordPdfController;
+use App\Http\Controllers\ArticleImageController;
+use App\Http\Controllers\BackupDownloadController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CashReportController;
+use App\Http\Controllers\DispensationLetterController;
 use App\Http\Controllers\ExamCardController;
 use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\LetterPdfController;
@@ -25,6 +28,11 @@ Route::get('brand/{asset}', [BrandController::class, 'asset'])
     ->whereIn('asset', ['app-logo', 'login-background', 'icon-192', 'icon-512', 'apple-touch-icon'])
     ->name('brand.asset');
 Route::get('manifest.webmanifest', [BrandController::class, 'manifest'])->name('brand.manifest');
+
+// The published picture of an article, for the website CMS (v7 D48); the link changes with the picture.
+Route::get('artikel/{code}/gambar/{hash}', [ArticleImageController::class, 'published'])
+    ->where('hash', '[a-f0-9]{24}')
+    ->name('articles.public-image');
 
 // The muhadhir area was /ustadz before it was renamed; keep old links working.
 Route::get('ustadz/{path?}', fn (?string $path = null) => redirect('/muhadhir'.($path ? '/'.$path : ''), 301))
@@ -60,6 +68,9 @@ Route::middleware('portal')->group(function () {
         Route::livewire('appearance', 'pages::superadmin.appearance')->name('appearance');
         Route::livewire('signatures', 'pages::superadmin.signatures')->name('signatures');
         Route::livewire('maintenance', 'pages::superadmin.maintenance')->name('maintenance');
+        // Data (data-manage D50–D53): backups to make, download and restore, and deleting data.
+        Route::livewire('data', 'pages::superadmin.data')->name('data');
+        Route::get('data/backups/{backup}/download', BackupDownloadController::class)->where('backup', '[0-9_-]+')->name('data.download');
         Route::livewire('cms', 'pages::superadmin.cms')->name('cms');
         Route::livewire('letter-types', 'pages::superadmin.letter-types')->name('letter-types');
         Route::get('identity/preview', [AcademicRecordPdfController::class, 'preview'])->name('identity.preview');
@@ -206,6 +217,9 @@ Route::middleware('portal')->group(function () {
     // Exam card PDF: the mahasantri once the period is published, or academic staff.
     Route::get('exams/{period}/card/{student}', ExamCardController::class)->name('exams.card');
 
+    // Surat permohonan dispensasi (v7 D47): the mahasantri, their wali, academic and finance staff.
+    Route::get('dispensations/{dispensation}/letter', DispensationLetterController::class)->name('dispensations.letter');
+
     // Teaching documents (RPS, journal): overview for Admin (review) and the academic monitor (read only).
     Route::livewire('teaching-documents', 'pages::teaching-documents')
         ->middleware('role:admin,superadmin,academic_monitor')
@@ -234,6 +248,7 @@ Route::middleware('portal')->group(function () {
     });
     Route::livewire('articles/review', 'pages::articles.review')->middleware('role:teacher')->name('articles.review');
     Route::livewire('articles/{article}', 'pages::articles.show')->name('articles.show');
+    Route::get('articles/{article}/image', [ArticleImageController::class, 'show'])->name('articles.image');
 
     // LPPPK (v5 D28): channels for every active mahasantri and muhadhir (checked by the page), moderation for staff.
     Route::livewire('lpppk', 'pages::lpppk.index')->name('lpppk');

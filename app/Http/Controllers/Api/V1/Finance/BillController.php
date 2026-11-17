@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\BillResource;
 use App\Models\Bill;
 use App\Models\ClassEnrollment;
+use App\Models\FeeType;
 use App\Models\Payment;
 use App\Models\Semester;
 use App\Support\ActiveRole;
@@ -86,27 +87,41 @@ class BillController extends Controller
     /**
      * Instalment grid (Rekap angsuran).
      *
-     * One row per bill of a semester with a cell per instalment (paid, pending, open, done, none) up to the
-     * semester's highest limit, and what is still owed from earlier semesters. Filters: `class`, `gender`
-     * (finance office), `search`.
+     * One row per bill of a semester, and what is still owed from earlier semesters. Without `fee`: every fee
+     * type of the semester as a column (`columns`), each row's `fees` with due / paid / pending / left per fee
+     * type, and the total `left`. With `fee` (a fee type id, see `fee_types`): only bills with that fee; a
+     * monthly fee has a cell per month (`cells`: paid, pending, open, none), another fee its instalments
+     * `used` / `max`; both with `paid`, `pending` and `left` of that fee. "Left" is what is not verified yet.
+     * Filters: `class`, `gender` (finance office), `search`.
      */
     public function grid(Request $request): JsonResponse
     {
-        $request->validate(['semester' => ['nullable', 'integer'], 'class' => ['nullable', 'integer'], 'gender' => ['nullable', 'string'], 'search' => ['nullable', 'string']]);
+        $request->validate(['semester' => ['nullable', 'integer'], 'class' => ['nullable', 'integer'], 'gender' => ['nullable', 'string'], 'search' => ['nullable', 'string'], 'fee' => ['nullable', 'integer']]);
         $semester = $request->filled('semester') ? Semester::query()->findOrFail($request->integer('semester')) : Semester::active();
         abort_if($semester === null, 404);
+        $fee = $request->filled('fee') ? FeeType::query()->findOrFail($request->integer('fee')) : null;
 
-        $grid = InstallmentGrid::build($semester, $request->user(), ActiveRole::get(), $request->integer('class') ?: null, (string) $request->input('search'), Gender::tryFrom((string) $request->input('gender')));
+        $grid = InstallmentGrid::build($semester, $request->user(), ActiveRole::get(), $request->integer('class') ?: null, (string) $request->input('search'), Gender::tryFrom((string) $request->input('gender')), $fee);
 
         return response()->json(['data' => [
             'semester' => $semester->label(),
+            'mode' => $grid['mode'],
+            'fee' => $fee ? ['id' => $fee->id, 'name' => $fee->name, 'frequency' => $fee->frequency->value] : null,
+            'fee_types' => InstallmentGrid::feeTypes($semester)->map(fn (FeeType $type) => ['id' => $type->id, 'name' => $type->name, 'frequency' => $type->frequency->value])->values()->all(),
             'columns' => $grid['columns'],
             'rows' => $grid['rows']->map(fn (array $row) => [
                 'bill_id' => $row['bill']->id,
                 'nim' => $row['bill']->student->nim,
                 'name' => $row['bill']->student->user->name,
                 'class_name' => $row['class'],
+                'fees' => collect($row['fees'])->map(fn (array $amounts, int $type) => ['fee_type_id' => $type ?: null, ...$amounts])->values()->all(),
                 'cells' => $row['cells'],
+                'due' => $row['due'],
+                'paid' => $row['paid'],
+                'pending' => $row['pending'],
+                'left' => $row['left'],
+                'used' => $grid['mode'] === InstallmentGrid::FEE ? $row['used'] : null,
+                'max' => $grid['mode'] === InstallmentGrid::FEE ? $row['max'] : null,
                 'previous_semesters' => $row['arrears'],
                 'status' => $row['bill']->status->value,
             ])->values()->all(),
@@ -116,13 +131,14 @@ class BillController extends Controller
     /**
      * A bill.
      *
-     * Lines and payments (with receipt links), what a new payment may be (`allowance`: open amount,
-     * instalments used / allowed, minimum), and what this role may do.
+     * Lines, fees (what is left of each, instalments used / allowed) and payments with the fees they paid
+     * (and receipt links), what a new payment may be (`allowance`: open amount, minimum, fees), and what this
+     * role may do.
      */
     public function show(Request $request, Bill $bill): JsonResponse
     {
         abort_unless(BillAccess::allows($request->user(), ActiveRole::get(), $bill), 403);
-        $bill->load(['student.user', 'semester.academicYear', 'lines', 'payments']);
+        $bill->load(['student.user', 'semester.academicYear', 'lines', 'payments.allocations.line']);
 
         return response()->json(['data' => [
             ...(new BillResource($bill))->resolve($request),
@@ -142,18 +158,22 @@ class BillController extends Controller
     /**
      * Record a payment.
      *
-     * `amount`, `method` (cash or transfer), `paid_on`, `reference` (transfers), `proof` (multipart), and for the
-     * finance office the `cash_account_id` it goes into. It waits for verification: cash is handed over, a
-     * transfer is checked against the bank statement.
+     * `allocations` (fee line id => amount, the fees this payment pays; the bill's `fees` list them) or just
+     * `amount` (spread over the fees in the bill's order), `method` (cash or transfer), `paid_on`, `reference`
+     * (transfers), `proof` (multipart), and for the finance office the `cash_account_id` it goes into. Each fee
+     * keeps its own instalment rules. It waits for verification: cash is handed over, a transfer is checked
+     * against the bank statement.
      */
     public function recordPayment(Request $request, Bill $bill, RecordPayment $record): JsonResponse
     {
         abort_unless(BillAccess::allows($request->user(), ActiveRole::get(), $bill), 403);
-        $request->validate(['amount' => ['required', 'integer'], 'method' => ['required', 'string'], 'paid_on' => ['required', 'date'], 'reference' => ['nullable', 'string'], 'proof' => ['nullable', 'file'], 'cash_account_id' => ['nullable', 'integer']]);
+        $request->validate(['amount' => ['nullable', 'integer'], 'allocations' => ['nullable', 'array'], 'method' => ['required', 'string'], 'paid_on' => ['required', 'date'], 'reference' => ['nullable', 'string'], 'proof' => ['nullable', 'file'], 'cash_account_id' => ['nullable', 'integer']]);
         $role = ActiveRole::get();
 
         $payment = $record->handle($bill, $request->user(), [
-            'amount' => $request->integer('amount'),
+            'amount' => $request->filled('amount') ? $request->integer('amount') : null,
+            // Fee (bill line id) => amount; without it the amount is spread over the fees (after-review D55).
+            'allocations' => $request->input('allocations'),
             'method' => $request->input('method'),
             'paid_on' => $request->input('paid_on'),
             'reference' => $request->input('reference') ?: null,
@@ -207,13 +227,15 @@ class BillController extends Controller
     /**
      * Change the instalment limit (Superadmin).
      *
-     * `max_installments` (up to 5) with a `reason`.
+     * `max_installments` (1–12, not below the payments already made) with a `reason`; for one fee with
+     * `fee_id` (a bill line id from `fees`), else for every fee of the bill.
      */
     public function installments(Request $request, Bill $bill, AdjustBill $adjust): Response
     {
         abort_unless(ActiveRole::get() === Role::Superadmin, 403);
-        $request->validate(['max_installments' => ['required', 'integer'], 'reason' => ['required', 'string', 'max:500']]);
-        $adjust->setMaxInstallments($bill, $request->integer('max_installments'), (string) $request->input('reason'));
+        $request->validate(['max_installments' => ['required', 'integer'], 'reason' => ['required', 'string', 'max:500'], 'fee_id' => ['nullable', 'integer']]);
+        $line = $request->filled('fee_id') ? $bill->lines()->whereKey($request->integer('fee_id'))->firstOrFail() : null;
+        $adjust->setMaxInstallments($bill, $request->integer('max_installments'), (string) $request->input('reason'), $line);
 
         return response()->noContent();
     }

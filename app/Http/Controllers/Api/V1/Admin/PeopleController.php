@@ -11,6 +11,7 @@ use App\Actions\People\UpdateTeacher;
 use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Guardian;
+use App\Models\Semester;
 use App\Models\Student;
 use App\Models\StudentDocument;
 use App\Models\Teacher;
@@ -19,6 +20,7 @@ use App\Models\User;
 use App\Support\ActiveRole;
 use App\Support\ApiFiles;
 use App\Support\CreatedAccount;
+use App\Support\StudentPicker;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -43,20 +45,19 @@ class PeopleController extends Controller
     /**
      * Mahasantri.
      *
-     * `search` (NIM or name), `status` (active, leave, graduated, …), `program` (study program id); paginated,
-     * with how many documents are verified.
+     * `search` (NIM or name), `status` (active, leave, graduated, …), `program` (study program id), `class_id`
+     * (class in the active semester, or `none`) and `gender`; paginated, with how many documents are verified
+     * and the class. Also the list to choose mahasantri from (v7 D43).
      */
     public function students(Request $request): JsonResponse
     {
-        $request->validate(['search' => ['nullable', 'string'], 'status' => ['nullable', 'string'], 'program' => ['nullable', 'integer']]);
-        $term = '%'.mb_strtolower(trim((string) $request->input('search'))).'%';
+        $request->validate(['status' => ['nullable', 'string'], 'program' => ['nullable', 'integer'], ...StudentPicker::rules()]);
+        $semester = Semester::active();
 
-        $students = Student::query()->with(['user', 'studyProgram'])
+        $students = StudentPicker::fromRequest(StudentPicker::query($semester)->with('studyProgram'), $request, $semester, activeOnly: false)
             ->withCount(['documents', 'documents as verified_documents_count' => fn (Builder $query) => $query->where('status', DocumentStatus::Verified)])
             ->when($request->filled('status'), fn (Builder $query) => $query->where('status', $request->input('status')))
             ->when($request->filled('program'), fn (Builder $query) => $query->where('study_program_id', $request->integer('program')))
-            ->when($request->filled('search'), fn (Builder $query) => $query->where(fn (Builder $query) => $query->whereRaw('lower(nim) like ?', [$term])
-                ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term]))))
             ->orderBy('nim')->paginate(25);
 
         return response()->json([
@@ -67,6 +68,7 @@ class PeopleController extends Controller
                 'gender' => $student->gender->value,
                 'status' => $student->status->value,
                 'study_program' => $student->studyProgram->code,
+                'class' => $student->classEnrollments->first()?->class_name,
                 'entry_year' => $student->entry_year,
                 'documents' => (int) $student->getAttribute('documents_count'),
                 'verified_documents' => (int) $student->getAttribute('verified_documents_count'),

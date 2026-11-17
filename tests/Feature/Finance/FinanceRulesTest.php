@@ -1,8 +1,10 @@
 <?php
 
 use App\Actions\Enrollment\ManageClassEnrollments;
+use App\Actions\Finance\AddFeeToBills;
 use App\Actions\Finance\AdjustBill;
 use App\Actions\Finance\GenerateBills;
+use App\Actions\Finance\ManageFees;
 use App\Actions\Finance\ManageScholarshipAwards;
 use App\Actions\Finance\RecordPayment;
 use App\Actions\Finance\ReviewPayments;
@@ -220,4 +222,74 @@ test('bills cannot be generated for a closed semester', function () {
     $this->semester->update(['status' => 'closed']);
 
     expect(fn () => app(GenerateBills::class)->handle($this->semester))->toThrow(ValidationException::class);
+});
+
+test('a monthly fee bills its own months, and each fee line keeps the fee instalment limit', function () {
+    $yearId = $this->semester->academic_year_id;
+    $this->spp->update(['max_installments' => 1]);
+    $syahriah = FeeType::factory()->monthly()->create(['name' => 'Syahriah', 'months_per_semester' => 5, 'max_installments' => 5]);
+    FeeRate::create(['fee_type_id' => $syahriah->id, 'academic_year_id' => $yearId, 'amount' => 100_000]);
+
+    app(GenerateBills::class)->handle($this->semester);
+
+    $lines = billFor($this->student)->lines()->get()->keyBy('description');
+    expect($lines->keys()->all())->toBe(['SPP', 'Syahriah (5 months)'])
+        ->and($lines['Syahriah (5 months)']->amount)->toBe(500_000)
+        ->and($lines['Syahriah (5 months)']->months)->toBe(5)
+        ->and($lines['Syahriah (5 months)']->max_installments)->toBe(5)
+        ->and($lines['SPP']->months)->toBeNull()
+        ->and($lines['SPP']->max_installments)->toBe(1);
+
+    // Changing the fee later leaves the bill as it was.
+    $syahriah->update(['months_per_semester' => 4]);
+    expect(billFor($this->student)->lines()->where('fee_type_id', $syahriah->id)->sole()->amount)->toBe(500_000);
+});
+
+test('a fee added to existing bills uses its months and limit', function () {
+    app(GenerateBills::class)->handle($this->semester);
+    $makan = FeeType::factory()->monthly()->create(['name' => 'Makan', 'months_per_semester' => 4, 'max_installments' => 2]);
+    FeeRate::create(['fee_type_id' => $makan->id, 'academic_year_id' => $this->semester->academic_year_id, 'amount' => 300_000]);
+
+    app(AddFeeToBills::class)->handle($makan, $this->semester, $this->cashier);
+
+    $line = billFor($this->student)->lines()->where('fee_type_id', $makan->id)->sole();
+    expect($line->amount)->toBe(1_200_000)->and($line->months)->toBe(4)->and($line->max_installments)->toBe(2)
+        ->and($line->description)->toBe('Makan (4 months)');
+});
+
+test('fee settings are checked: 1 to 12 instalments, 1 to 6 months for a monthly fee', function () {
+    $fees = app(ManageFees::class);
+    $save = fn (array $input) => $fees->saveFeeType(null, ['name' => 'Uji '.uniqid(), 'frequency' => 'monthly', 'max_installments' => 3, 'months_per_semester' => 5, ...$input]);
+
+    expect(fn () => $save(['max_installments' => 0]))->toThrow(ValidationException::class)
+        ->and(fn () => $save(['max_installments' => 13]))->toThrow(ValidationException::class)
+        ->and(fn () => $save(['months_per_semester' => 7]))->toThrow(ValidationException::class)
+        ->and(fn () => $save(['months_per_semester' => null]))->toThrow(ValidationException::class)
+        ->and($save([])->months_per_semester)->toBe(5)
+        ->and($fees->saveFeeType(null, ['name' => 'Pendaftaran', 'frequency' => 'once', 'max_installments' => 3])->max_installments)->toBe(3);
+});
+
+test('the fee form sets the months and instalments; the app reads and writes them', function () {
+    $this->actingAs($this->cashier)->get(route('finance.fees'))->assertOk();
+
+    Livewire\Livewire::test('pages::finance.fees')
+        ->call('createFeeType')
+        ->set('feeName', 'Syahriah')->set('frequency', 'monthly')
+        ->assertSeeHtml('data-test="fee-months"')
+        ->set('feeMonths', 9)->set('feeMaxInstallments', 5)
+        ->call('saveFeeType')->assertHasErrors('feeMonths')
+        ->set('feeMonths', 5)
+        ->call('saveFeeType')->assertHasNoErrors()
+        ->assertSee(trans_choice('Monthly, :count month per semester|Monthly, :count months per semester', 5));
+
+    expect(FeeType::query()->where('name', 'Syahriah')->sole())->months_per_semester->toBe(5)->max_installments->toBe(5);
+
+    app('auth')->forgetGuards();
+    $api = $this->withToken($this->cashier->createToken('Test')->plainTextToken)->withHeader('X-Role', Role::AdminPayment->value);
+    $fee = collect($api->getJson('/api/v1/finance/fees')->assertOk()->json('data.fee_types'))->firstWhere('name', 'Syahriah');
+    expect($fee['months_per_semester'])->toBe(5)->and($fee['max_installments'])->toBe(5);
+
+    app('auth')->forgetGuards();
+    $api->postJson('/api/v1/finance/fee-types', ['id' => $fee['id'], 'name' => 'Syahriah', 'frequency' => 'monthly', 'max_installments' => 2])->assertOk();
+    expect(FeeType::query()->find($fee['id']))->max_installments->toBe(2)->months_per_semester->toBe(5);
 });

@@ -1,18 +1,23 @@
 <?php
 
 use App\Actions\Discussions\ModerateLpppk;
+use App\Enums\Gender;
+use App\Enums\TeacherStatus;
+use App\Livewire\PageWithStudentPicker;
 use App\Models\LpppkSanction;
+use App\Models\Semester;
 use App\Models\User;
+use App\Support\StudentPicker;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('LPPPK moderation')] class extends Component {
-    public string $search = '';
+new #[Title('LPPPK moderation')] class extends PageWithStudentPicker {
+    /** '' everyone, 'student' mahasantri only, 'teacher' muhadhir only. */
+    public string $who = '';
 
     public ?int $personId = null;
     public string $action = 'mute';
@@ -20,28 +25,45 @@ new #[Title('LPPPK moderation')] class extends Component {
     public string $reason = '';
 
     /**
-     * Mahasantri and muhadhir matching the search.
+     * Active mahasantri and muhadhir, all of them until filtered (v7 D43). A class filter leaves the
+     * muhadhir out; Putra/Putri applies to both.
      *
      * @return Collection<int, User>
      */
     #[Computed]
     public function people(): Collection
     {
-        if (mb_strlen(trim($this->search)) < 2) {
-            return new Collection;
-        }
+        $semester = Semester::active();
+        $gender = Gender::tryFrom($this->pickerGender);
+        $search = trim($this->studentSearch);
+        $term = '%'.mb_strtolower($search).'%';
+        $withStudents = $this->who !== 'teacher';
+        $withTeachers = $this->who !== 'student' && $this->pickerClass === '';
 
-        $term = '%'.mb_strtolower(trim($this->search)).'%';
-
-        return User::query()
-            ->with(['student', 'teacher'])
-            ->where(fn (Builder $query) => $query->whereHas('student')->orWhereHas('teacher'))
-            ->where(fn (Builder $query) => $query
+        $query = User::query()
+            ->with(['student.classEnrollments' => fn ($query) => $query->where('semester_id', $semester->id ?? 0), 'teacher'])
+            ->where(function (Builder $query) use ($withStudents, $withTeachers, $semester, $gender) {
+                $query->whereRaw('1 = 0');
+                if ($withStudents) {
+                    $query->orWhereHas('student', fn (Builder $query) => StudentPicker::filter($query, null, $this->pickerClass, $this->pickerGender, $semester));
+                }
+                if ($withTeachers) {
+                    $query->orWhereHas('teacher', fn (Builder $query) => $query->where('status', TeacherStatus::Active)
+                        ->when($gender, fn (Builder $query, Gender $gender) => $query->where('gender', $gender)));
+                }
+            })
+            ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->whereRaw('lower(name) like ?', [$term])
-                ->orWhereRaw('lower(username) like ?', [$term]))
-            ->orderBy('name')
-            ->limit(15)
-            ->get();
+                ->orWhereRaw('lower(username) like ?', [$term])));
+
+        $this->pickerTotal = (clone $query)->count();
+
+        return $query->orderBy('name')->limit(max(StudentPicker::PAGE, $this->pickerLimit))->get();
+    }
+
+    public function updatedWho(): void
+    {
+        $this->pickerLimit = StudentPicker::PAGE;
     }
 
     /**
@@ -106,15 +128,22 @@ new #[Title('LPPPK moderation')] class extends Component {
         </x-slot:actions>
     </x-page-header>
 
-    <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Find a mahasantri or muhadhir: name, NIM or NIDM…')" class="mb-2" />
+    <div class="mb-2 grid gap-2 sm:grid-cols-[10rem_1fr]">
+        <flux:select wire:model.live="who" size="sm" data-test="picker-who">
+            <flux:select.option value="">{{ __('Mahasantri & muhadhir') }}</flux:select.option>
+            <flux:select.option value="student">{{ __('Mahasantri') }}</flux:select.option>
+            <flux:select.option value="teacher">{{ __('Muhadhir') }}</flux:select.option>
+        </flux:select>
+        <x-student-picker.filters :classes="$this->pickerClasses" :placeholder="__('Name, NIM or NIDM…')" />
+    </div>
     @if ($this->people->isNotEmpty())
-        <div class="mb-8 divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700">
+        <div class="mb-1 max-h-[28rem] divide-y divide-zinc-200 overflow-y-auto rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700" data-test="candidates">
             @foreach ($this->people as $person)
                 <div wire:key="person-{{ $person->id }}" class="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
                     <span class="me-auto">
                         <span class="font-mono text-zinc-500">{{ $person->username }}</span>
                         <span class="ms-2 font-medium">{{ $person->name }}</span>
-                        <span class="ms-1 text-xs text-zinc-500">{{ $person->teacher ? __('Muhadhir') : __('Mahasantri') }}</span>
+                        <span class="ms-1 text-xs text-zinc-500">{{ $person->teacher ? __('Muhadhir') : ($person->student?->classEnrollments->first()?->class_name ?? __('Mahasantri')) }}</span>
                     </span>
                     <flux:button size="xs" icon="speaker-x-mark" wire:click="start({{ $person->id }}, 'mute')" data-test="mute-{{ $person->id }}">{{ __('Mute') }}</flux:button>
                     <flux:button size="xs" variant="danger" icon="no-symbol" wire:click="start({{ $person->id }}, 'restrict')" data-test="restrict-{{ $person->id }}">{{ __('Close access') }}</flux:button>
@@ -122,6 +151,7 @@ new #[Title('LPPPK moderation')] class extends Component {
             @endforeach
         </div>
     @endif
+    <x-student-picker.more :shown="$this->people->count()" :total="$this->pickerTotal" :empty="__('Nobody found.')" class="mb-8" />
 
     <flux:heading class="mb-2 mt-6">{{ __('Muted or without access') }}</flux:heading>
     <div class="divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700">

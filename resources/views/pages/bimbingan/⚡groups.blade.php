@@ -4,6 +4,7 @@ use App\Actions\Discussions\ManageDiscussions;
 use App\Enums\DiscussionKind;
 use App\Enums\StudentStatus;
 use App\Enums\TeacherStatus;
+use App\Livewire\PageWithStudentPicker;
 use App\Models\Discussion;
 use App\Models\DiscussionMember;
 use App\Models\Student;
@@ -14,9 +15,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 
-new #[Title('Bimbingan groups')] class extends Component {
+new #[Title('Bimbingan groups')] class extends PageWithStudentPicker {
     #[Url(as: 'group')]
     public ?int $selectedId = null;
 
@@ -28,7 +28,6 @@ new #[Title('Bimbingan groups')] class extends Component {
     public string $description = '';
     public ?int $leadId = null;
 
-    public string $studentSearch = '';
 
     /**
      * @return Collection<int, Discussion>
@@ -66,29 +65,18 @@ new #[Title('Bimbingan groups')] class extends Component {
     }
 
     /**
-     * Active mahasantri matching the search, not yet in the group.
+     * Active mahasantri not yet in the group, all of them until filtered (v7 D43).
      *
      * @return Collection<int, Student>
      */
     #[Computed]
     public function candidates(): Collection
     {
-        if ($this->selected === null || mb_strlen(trim($this->studentSearch)) < 2) {
+        if ($this->selected === null) {
             return new Collection;
         }
 
-        $term = '%'.mb_strtolower(trim($this->studentSearch)).'%';
-
-        return Student::query()
-            ->with('user')
-            ->where('status', StudentStatus::Active)
-            ->whereNotIn('user_id', $this->members->pluck('user_id'))
-            ->where(fn (Builder $query) => $query
-                ->whereRaw('lower(nim) like ?', [$term])
-                ->orWhereHas('user', fn (Builder $query) => $query->whereRaw('lower(name) like ?', [$term])))
-            ->orderBy('nim')
-            ->limit(15)
-            ->get();
+        return $this->pickStudents(fn (Builder $query) => $query->whereNotIn('user_id', $this->members->pluck('user_id')));
     }
 
     /**
@@ -103,7 +91,7 @@ new #[Title('Bimbingan groups')] class extends Component {
     public function select(int $id): void
     {
         $this->selectedId = $id;
-        $this->studentSearch = '';
+        $this->resetStudentPicker();
         unset($this->selected, $this->members, $this->candidates);
     }
 
@@ -232,17 +220,22 @@ new #[Title('Bimbingan groups')] class extends Component {
                 </div>
 
                 @unless ($group->closed_at)
-                    <flux:input wire:model.live.debounce.300ms="studentSearch" icon="magnifying-glass" :placeholder="__('Add mahasantri: type a NIM or name…')" class="mb-2" />
+                    <flux:heading class="mb-2">{{ __('Add mahasantri') }}</flux:heading>
+                    <x-student-picker.filters :classes="$this->pickerClasses" class="mb-2" />
                     @if ($this->candidates->isNotEmpty())
-                        <div class="mb-4 divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700">
+                        <div class="mb-1 max-h-96 divide-y divide-zinc-200 overflow-y-auto rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700" data-test="candidates">
                             @foreach ($this->candidates as $candidate)
                                 <div wire:key="candidate-{{ $candidate->id }}" class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                                    <span><span class="font-mono text-zinc-500">{{ $candidate->nim }}</span> <span class="ms-2 font-medium">{{ $candidate->user->name }}</span></span>
+                                    <span>
+                                        <span class="font-mono text-zinc-500">{{ $candidate->nim }}</span> <span class="ms-2 font-medium">{{ $candidate->user->name }}</span>
+                                        <span class="ms-1 text-xs text-zinc-500">{{ $candidate->classEnrollments->first()?->class_name ?? __('No class') }}</span>
+                                    </span>
                                     <flux:button size="xs" wire:click="addStudent({{ $candidate->id }})" data-test="add-{{ $candidate->id }}">{{ __('Add') }}</flux:button>
                                 </div>
                             @endforeach
                         </div>
                     @endif
+                    <x-student-picker.more :shown="$this->candidates->count()" :total="$this->pickerTotal" class="mb-4" />
                 @endunless
 
                 <flux:heading class="mb-2">{{ trans_choice(':count mahasantri|:count mahasantri', $this->members->count()) }}</flux:heading>

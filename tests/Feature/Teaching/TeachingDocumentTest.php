@@ -129,11 +129,11 @@ test('the muhadhir uploads from the Dokumen tab and sees the review', function (
     $this->actingAs($this->teacher->user);
     Livewire::test('pages::ustadz.offerings.documents', ['offering' => $this->fiqhPutra])
         ->set('files.rps', rpsFile())
-        ->call('upload', 'rps')
+        ->call('uploadFile', 'rps')
         ->assertHasNoErrors()
         ->assertSee(__('Version :version', ['version' => 1]))
         ->set('files.journal', UploadedFile::fake()->create('jurnal.pdf', 80, 'application/pdf'))
-        ->call('upload', 'journal')
+        ->call('uploadFile', 'journal')
         ->assertHasNoErrors();
 
     $document = TeachingDocument::query()->where('kind', 'rps')->sole();

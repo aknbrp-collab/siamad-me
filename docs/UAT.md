@@ -10,10 +10,18 @@ the app, using a real class and real fee amounts. Take a `php artisan siakad:bac
 
 Mark each line ✅ / ❌ and write the problem next to ❌.
 
+## Every role (v7 appearance)
+- [ ] On a computer with a short window, the menu scrolls while the theme switch and your name stay at the bottom of the sidebar
+- [ ] A button that asks first (e.g. Hapus draf, Hapus pertemuan) opens a dialog instead of the browser's box: red for removing, Batal / Escape / clicking outside cancels, Ya, lanjutkan goes ahead; also in dark mode and on a phone
+
 ## Superadmin
+- [ ] Data & cadangan → Hapus data (on a test server): tick Data orang; Akademik, Keuangan, Surat and Artikel are ticked as needed; the summary lists the counts; a wrong password or phrase is refused; with HAPUS DATA a backup appears, then the mahasantri, muhadhir and wali are gone while study programs, subjects and settings stay; restoring that backup brings everything back
+- [ ] Data & cadangan → Pulihkan on a recent backup (on a test server): the check says it is complete; a wrong password or phrase is refused; with PULIHKAN the page shows the steps, SIAKAD is offline meanwhile, then asks everyone to sign in again; the data is as in the backup; a backup of the state before appears in the list. Upload a downloaded backup .zip under Pulihkan dari berkas: it joins the list; any other zip is refused
+- [ ] Data & cadangan: Buat cadangan sekarang; the page shows it running, then the new backup (Manual, your name, records, size); download it (one .zip with database.dump, files.zip, manifest.json); delete it; a daily backup has no delete button; an Admin cannot open the page
 - [ ] Create accounts for Admin, Admin Keuangan and Pemantau Akademik; each logs in and must change the temporary password
 - [ ] Give one muhadhir the Pemantau Akademik role; they get the role picker and can switch roles
 - [ ] Confirm an Admin cannot reset that muhadhir's password
+- [ ] The dashboard shows no "Unggah berkas tidak berfungsi" warning; on Templates, Unggah pengganti with a wrong file shows the reason under the field
 - [ ] In Identitas, fill in the institution details and upload the institution logo and the name in Arabic calligraphy; Pratinjau kop surat shows the letterhead
 - [ ] In Tampilan aplikasi, set the app name and short name, a welcome title and text, upload the app logo, a separate app icon and a login background; check the browser tab, the sidebar, the login page (log out) and, on a phone, the installed app's name and icon; a KHS PDF still shows the institution
 - [ ] In Tanda tangan & stempel, add the Mudir and the Bendahara with their signature images and two stamps; set the transcript to the Mudir + institution stamp and the receipt to the Bendahara + finance stamp
@@ -23,6 +31,10 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Turn maintenance mode on with a reason: the English banner shows on staff pages (not for muhadhir/mahasantri); as Admin, add a previous academic year (both semesters closed) and place mahasantri in a class there; turn it off: the semester is read-only again; the session lists the changes
 
 ## Admin
+- [ ] Previous-year data → Nilai akhir with the grade scale emptied: every row is refused (set the scale first). After changing the grade scale, the page shows how many imported grades differ (e.g. E → B+: 480); Terapkan skala nilai (maintenance mode on) changes them; KHS and IPS follow; grades with a letter from the archive and grades entered in class stay
+- [ ] Templates → Cetakan: download the KHS starting file, change it in Word (keep the placeholders), upload it; a KHS now prints from it (PDF with LibreOffice, else Word); Gunakan bawaan returns to the built-in PDF. The same for transcript, exam card, receipt (only verified ones), cash report and dispensation request
+- [ ] Ujian → a period → Peserta: a mahasantri's dispensation request shows as "Diminta" (opens the letter); Dispensasi fills the note with the reason; after saving, the mahasantri sees "Disetujui"
+- [ ] Student pickers (bimbingan group, semester placement, wali, scholarship, activity, LPPPK moderation) list every active mahasantri before anything is typed; class, "Belum punya kelas", Putra/Putri and search narrow the list; "Muat lagi" shows the next 50
 - [ ] Study program, classes, subjects, grade scale, academic year
 - [ ] Import the real mahasantri list from Excel (check the error rows, then import); hand out the credentials sheet
 - [ ] Import the subject list from Excel (no credentials sheet); an existing code is refused
@@ -43,20 +55,26 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] A mahasantri who retook a subject: the transcript lists it once with the best grade and the IPK counts only that; the old semester's KHS is unchanged
 
 ## Admin Keuangan
+- [ ] Biaya: set a monthly fee to 5 months per semester and Pendaftaran to maks. 3 angsuran; Buat tagihan shows "(5 bulan)" at rate × 5; bills already made keep their months and limits
+- [ ] Previous-year data → Tagihan & pembayaran for a semester whose bills were made with Buat tagihan: rows for bills without payments replace them (the old bill shows Batal, "Diganti data arsip"); a row for a bill with payments is refused with that bill's number
 - [ ] Fee types and rates (one class-specific); copy rates to next year
 - [ ] Award a scholarship; generate bills; check amounts against the manual calculation
 - [ ] After billing, add a new fee with a class-specific rate and use "Add to existing bills": amounts follow the class rate, the 50% scholarship grows, a paid bill becomes partly paid, and running it again adds nothing
 - [ ] Record cash and transfer payments; try breaking the rules (4th instalment, below Rp 200.000, overpaying)
+- [ ] Payments per fee: on a bill with SPP (1 angsuran) and a monthly fee (3 angsuran), a payment of less than the SPP is refused (the last allowed payment must settle it); an amount covering SPP and part of the monthly fee pays SPP first; the receipt lists Rincian per fee; a rejected transfer frees its fees again; existing payments after the update still add up to the same paid and left per bill. A monthly fee below the minimum a month (e.g. Rp 100.000) can be paid one month at a time; half a month is refused
+- [ ] Bill page → Catat pembayaran: tick two fees (each fills with what is left), set a monthly fee to 2 months (its amount follows), lower another fee's amount; Jumlah is the sum; a wrong amount shows its error under that fee; the payment list shows the fees of each payment. As Superadmin, ubah next to one fee changes only that fee's limit
 - [ ] Hand over cash; print the provisional slip and, after verification, the official receipt
 - [ ] Verify one transfer confirmation from a mahasantri and reject another with a reason
 - [ ] Receive a cash handover from the putri payment collector and verify one of her transfers
 - [ ] Unverified payments: cash not handed over, a handover and a transfer each show where they wait, with whom and for how many days; Remind notifies the holder once a day
 - [ ] Cash book: add Kas and the bank account with their opening balance and set the defaults; record a cash payment into Kas, verify it, and see it in the Kas ledger; record an expense with a receipt photo, an infaq, and a deposit from Kas to the bank; void one entry with a reason; check the balances against the real ones
 - [ ] Close the books through last month; an entry dated in it is refused (allowed only in maintenance mode); print the cash report for the semester with the Bendahara signature
-- [ ] Rekap angsuran: pick a semester; one column per instalment (raise one bill to 5 and see 5 columns); a verified payment is ticked, an unverified one shows a clock; click an empty cell to reach the bill; the arrears from last semester match; filter a class and Putri; export to Excel and print
+- [ ] Rekap angsuran: pick a semester; Semua biaya shows each fee as paid / left and the total left (a waiting payment shows a clock); Jenis tagihan → a monthly fee shows one column per month (a bill made for fewer months shows grey cells), verified months ticked, waiting ones with a clock, an empty cell opens the bill; another fee shows paid, left and instalments used / allowed; the arrears from last semester match; filter a class and Putri; export to Excel and print (both follow the fee chosen)
 - [ ] In maintenance mode, import last year's bills & payments and income & expenses (Data tahun sebelumnya); the semester's bills show lunas/sisa and the cash report includes them
 
 ## Muhadhir
+- [ ] Write an article with a picture and caption; it shows above the text; publish it; on the website (CMS) the article shows the picture; change the picture: the website keeps the old one until the new version is published
+- [ ] Dokumen mengajar: choose an RPS file, the Unggah button becomes active, the upload goes to the reviewer (v7: the button used to do nothing)
 - [ ] Add meetings (one online) and take attendance
 - [ ] Materials, an assignment with grading, a quiz with an essay question
 - [ ] Grade components, enter scores by hand and by Excel import, copy assignment/quiz scores, finalise
@@ -87,6 +105,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Evaluasi muhadhir: see the results and comments of a class with 3+ answers, and nothing for a class with fewer; export to Excel; no setup tab
 
 ## Mahasantri (on a phone)
+- [ ] With the semester bill not paid off: Tagihan → Tulis permohonan dispensasi, write the reason, Cetak surat shows the kop, your data, your bills, the reason and an empty place for the Mudir; the wali sees it on their Tagihan
 - [ ] First login, password change, document upload (also a 3–9 MB scan; a file over 10 MB is refused with a clear message); the ijazah asks for level, school and graduation year
 - [ ] Join an online meeting, submit an assignment, take the quiz until the time runs out
 - [ ] KHS and transcript (and PDFs) after grades are final; bills with pending and verified payments
@@ -137,6 +156,7 @@ Mark each line ✅ / ❌ and write the problem next to ❌.
 - [ ] Tanya Hukum: draft, ask for approval, two other muhadhir approve (the drafter cannot); the answer is sent to the CMS
 - [ ] Admin: add an academic year; add a class kuliah that clashes with another class of the same muhadhir and answer it as a joint class; place a mahasantri; schedule an exam, set rooms, seat and publish; add a mahasantri (temporary password shown once); return a document with a note; assign a supervisor; answer a letter request with a letter and open its PDF; record an incoming letter with a scan
 - [ ] Pemantau: monitoring dashboard and teaching documents read; unlocking grades refused; record an activity; manage a bimbingan group
+- [ ] Payments per fee (API): `GET /finance/bills/{id}` lists `fees`; record a payment with `allocations` (an error comes under that fee); `PUT /installments` with `fee_id` raises one fee; the grid with `fee` of a monthly fee shows months; a mahasantri's bill shows `fees` and `transfer.fees`
 - [ ] Keuangan: add a fee rate (a duplicate is refused), preview and generate bills, award a scholarship; record cash and hand it over (the Admin counts it, not Keuangan); verify one transfer and reject another with a reason; record an expense with a receipt and a deposit to the bank; the ledger and the cash report PDF; Rekap angsuran
 - [ ] Petugas Pembayaran: only putri bills; record cash and hand it over
 - [ ] Superadmin: add a staff account (password once) and give it a second role; make a putri mahasantri Petugas Pembayaran; change a setting (a wrong value is refused), the identity and the app name; upload and remove the app logo; add a signatory and a stamp and set the transcript defaults; add a letter type; download a template; find the changes in the audit log

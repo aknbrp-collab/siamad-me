@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SIAKAD ⇄ CMS Integration
-  version: 1.1.0
+  version: 1.2.0
   description: |
     Contract between SIAKAD and the CMS. Prose version, signing rules and changelog: siakad-api-spec.md.
     Every request in both directions carries X-Siakad-Timestamp and X-Siakad-Signature
@@ -180,6 +180,8 @@ components:
         doi: { type: string, maxLength: 255 }
         file_url: { type: string, format: uri, maxLength: 2048 }
         source_url: { type: string, format: uri, maxLength: 2048 }
+        image_url: { type: string, format: uri, maxLength: 2048, description: "(1.2) Public JPEG of the article's picture, at most 1600 px wide; changes when the picture changes." }
+        image_caption: { type: string, maxLength: 255, description: "(1.2) Caption of the picture." }
     ArticleReceived:
       type: object
       properties:

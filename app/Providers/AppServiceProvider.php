@@ -9,10 +9,12 @@ use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\User;
 use App\Support\ApiDocs;
 use App\Support\Branding;
+use App\Support\Restores;
 use App\Support\Upload;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -59,8 +61,15 @@ class AppServiceProvider extends ServiceProvider
         ApiDocs::configure();
         Gate::define('viewApiDocs', fn (?User $user = null) => (bool) config('siakad.api_docs_public') || ($user?->hasRole(Role::Superadmin) ?? false));
 
-        // Livewire's temporary upload uses the same size limit as our own rules.
-        config(['livewire.temporary_file_upload.rules' => ['required', 'file', Upload::max()]]);
+        // Livewire's temporary upload takes the largest file any field allows (a backup to restore may be
+        // larger than the usual limit, data-manage D51); every field still checks its own limit.
+        config(['livewire.temporary_file_upload.rules' => ['required', 'file', 'max:'.max(Upload::maxKb(), Restores::maxMb() * 1024)]]);
+
+        // `artisan serve` starts PHP with only a few environment variables. Without TEMP/TMP, PHP on
+        // Windows stores uploads in C:\Windows, which it may not write, and every upload fails (v7 D42).
+        if ($this->app->runningInConsole()) {
+            ServeCommand::$passthroughVariables = array_values(array_unique([...ServeCommand::$passthroughVariables, ...Upload::TEMP_VARIABLES]));
+        }
     }
 
     /**

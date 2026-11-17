@@ -23,6 +23,19 @@
 
         <flux:text>{{ $role->description() }}</flux:text>
 
+        @if ($role === \App\Enums\Role::Superadmin && ($uploadProblems = \App\Support\Upload::problems()))
+            <flux:callout variant="danger" icon="exclamation-triangle" data-test="upload-problems">
+                <flux:callout.heading>{{ __('File uploads do not work on this server') }}</flux:callout.heading>
+                <flux:callout.text>
+                    <ul class="list-disc ps-5">
+                        @foreach ($uploadProblems as $problem)
+                            <li>{{ $problem }}</li>
+                        @endforeach
+                    </ul>
+                </flux:callout.text>
+            </flux:callout>
+        @endif
+
         @include('partials.documents-reminder', ['role' => $role])
         @include('partials.evaluation-reminder', ['role' => $role])
 

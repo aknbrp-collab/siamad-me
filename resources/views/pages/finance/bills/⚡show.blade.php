@@ -9,6 +9,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Models\Bill;
+use App\Models\BillLine;
 use App\Models\CashAccount;
 use App\Models\Payment;
 use App\Support\ActiveRole;
@@ -27,8 +28,16 @@ new #[Title('Bill')] class extends Component {
 
     public Bill $bill;
 
-    // Record payment
-    public ?int $amount = null;
+    // Record payment: the fees ticked, with an amount (and, for a monthly fee, months) each (after-review D57).
+    /** @var array<int|string, bool> bill line id => ticked */
+    public array $pay = [];
+
+    /** @var array<int|string, int|string|null> bill line id => amount */
+    public array $feeAmounts = [];
+
+    /** @var array<int|string, int|string|null> bill line id => months (monthly fees) */
+    public array $feeMonths = [];
+
     public string $method = 'cash';
     public ?string $paidOn = null;
     public ?string $reference = null;
@@ -41,6 +50,9 @@ new #[Title('Bill')] class extends Component {
     public ?int $voidingPaymentId = null;
     public ?int $maxInstallments = null;
     public string $overrideReason = '';
+
+    /** The fee whose limit is changed; null for every fee of the bill. */
+    public ?int $overrideLineId = null;
 
     public function mount(Bill $bill): void
     {
@@ -75,16 +87,99 @@ new #[Title('Bill')] class extends Component {
     #[Computed]
     public function details(): Bill
     {
-        return $this->bill->fresh(['student.user', 'semester.academicYear', 'lines', 'payments.recorder', 'payments.verifier', 'payments.handover']);
+        return $this->bill->fresh(['student.user', 'semester.academicYear', 'lines', 'payments.recorder', 'payments.verifier', 'payments.handover', 'payments.allocations.line']);
     }
 
     /**
-     * @return array{open: int, used: int, max: int, min: int}
+     * @return array{open: int, min: int, fees: list<array{id: int, description: string, due: int, paid: int, pending: int, left: int, used: int, max: int, months: int|null}>}
      */
     #[Computed]
     public function allowance(): array
     {
         return app(RecordPayment::class)->allowance($this->details);
+    }
+
+    /**
+     * The fees as the form uses them, keyed by bill line id: can it take a payment, and for a monthly fee the
+     * monthly amount and the months not yet paid or waiting.
+     *
+     * @return array<int, array{id: int, description: string, due: int, paid: int, pending: int, left: int, used: int, max: int, months: int|null, payable: bool, monthly: int|null, monthsLeft: int|null}>
+     */
+    #[Computed]
+    public function fees(): array
+    {
+        $fees = [];
+
+        foreach ($this->allowance['fees'] as $fee) {
+            $monthly = $fee['months'] ? intdiv($fee['due'], $fee['months']) : 0;
+            $fees[$fee['id']] = [
+                ...$fee,
+                'payable' => $fee['left'] > 0 && $fee['used'] < $fee['max'],
+                'monthly' => $monthly > 0 ? $monthly : null,
+                'monthsLeft' => $monthly > 0 ? (int) ceil($fee['left'] / $monthly) : null,
+            ];
+        }
+
+        return $fees;
+    }
+
+    /**
+     * The sum of the ticked fees' amounts: the payment's Jumlah.
+     */
+    #[Computed]
+    public function total(): int
+    {
+        return array_sum(array_map(fn (int|string $id) => max(0, (int) ($this->feeAmounts[$id] ?? 0)), array_keys(array_filter($this->pay))));
+    }
+
+    /**
+     * Ticking a fee fills its amount with what is left of it (and its months left); unticking clears it. Livewire
+     * sends one fee ($key) or, when ticks are sent together, the whole list.
+     */
+    public function updatedPay(mixed $value, ?string $key = null): void
+    {
+        if ($key === null) {
+            foreach (array_keys($this->fees) as $id) {
+                $ticked = ! empty($this->pay[$id]);
+                if (! $ticked || ! isset($this->feeAmounts[$id])) {
+                    $this->tick((string) $id, $ticked);
+                }
+            }
+
+            return;
+        }
+
+        $this->tick($key, (bool) $value);
+    }
+
+    private function tick(string $key, bool $ticked): void
+    {
+        $fee = $this->fees[(int) $key] ?? null;
+
+        if (! $ticked || $fee === null || ! $fee['payable']) {
+            unset($this->pay[$key], $this->feeAmounts[$key], $this->feeMonths[$key]);
+
+            return;
+        }
+
+        $this->feeAmounts[$key] = $fee['left'];
+        $this->feeMonths[$key] = $fee['monthsLeft'];
+    }
+
+    /**
+     * A monthly fee set by months: that many months of its monthly amount, the rest of the fee for its last months.
+     */
+    public function updatedFeeMonths(mixed $value, ?string $key = null): void
+    {
+        $fee = $key !== null ? $this->fees[(int) $key] ?? null : null;
+
+        if ($fee === null || $fee['monthly'] === null) {
+            return;
+        }
+
+        $months = max(1, min((int) $value, (int) $fee['monthsLeft']));
+        $this->feeMonths[$key] = $months;
+        $this->feeAmounts[$key] = $months >= $fee['monthsLeft'] ? $fee['left'] : min($fee['left'], $months * $fee['monthly']);
     }
 
     #[Computed]
@@ -99,8 +194,19 @@ new #[Title('Bill')] class extends Component {
 
         $this->resetErrorBag();
 
+        $allocations = [];
+        foreach (array_keys(array_filter($this->pay)) as $id) {
+            $allocations[(int) $id] = (int) ($this->feeAmounts[$id] ?? 0);
+        }
+
+        if ($allocations === []) {
+            $this->addError('allocations', __('Choose at least one fee to pay.'));
+
+            return;
+        }
+
         $recordPayment->handle($this->bill, auth()->user(), [
-            'amount' => $this->amount,
+            'allocations' => $allocations,
             'method' => $this->method,
             'paid_on' => $this->paidOn,
             'reference' => $this->reference ?: null,
@@ -109,8 +215,8 @@ new #[Title('Bill')] class extends Component {
             'cash_account_id' => $this->administers ? $this->cashAccountId : null,
         ], BillAccess::source(ActiveRole::get()));
 
-        $this->reset('amount', 'reference', 'proof');
-        unset($this->details, $this->allowance);
+        $this->reset('pay', 'feeAmounts', 'feeMonths', 'reference', 'proof');
+        unset($this->details, $this->allowance, $this->fees);
         Flux::toast(variant: 'success', text: $this->method === PaymentMethod::Cash->value
             ? __('Payment recorded. Hand the cash over to the Admin for verification.')
             : __('Payment recorded. An Admin verifies it against the bank statement.'));
@@ -129,11 +235,12 @@ new #[Title('Bill')] class extends Component {
         Flux::toast(variant: 'success', text: __('Bill voided. Generate bills again to bill this mahasantri.'));
     }
 
-    public function openOverride(): void
+    public function openOverride(?int $lineId = null): void
     {
         abort_unless($this->isSuperadmin, 403);
 
-        $this->maxInstallments = $this->details->max_installments;
+        $this->overrideLineId = $lineId !== null && isset($this->fees[$lineId]) ? $lineId : null;
+        $this->maxInstallments = $this->overrideLineId !== null ? $this->fees[$this->overrideLineId]['max'] : $this->details->max_installments;
         $this->overrideReason = '';
         $this->resetErrorBag();
         Flux::modal('override-installments')->show();
@@ -144,10 +251,11 @@ new #[Title('Bill')] class extends Component {
         abort_unless($this->isSuperadmin, 403);
         $this->resetErrorBag();
 
-        $adjustBill->setMaxInstallments($this->bill, (int) $this->maxInstallments, $this->overrideReason);
+        $line = $this->overrideLineId !== null ? BillLine::query()->where('bill_id', $this->bill->id)->findOrFail($this->overrideLineId) : null;
+        $adjustBill->setMaxInstallments($this->bill, (int) $this->maxInstallments, $this->overrideReason, $line);
 
         Flux::modal('override-installments')->close();
-        unset($this->details, $this->allowance);
+        unset($this->details, $this->allowance, $this->fees);
         Flux::toast(variant: 'success', text: __('Instalment limit changed.'));
     }
 
@@ -169,7 +277,7 @@ new #[Title('Bill')] class extends Component {
         $review->void(Payment::query()->where('bill_id', $this->bill->id)->findOrFail($this->voidingPaymentId), $this->voidReason);
 
         Flux::modal('void-payment')->close();
-        unset($this->details, $this->allowance);
+        unset($this->details, $this->allowance, $this->fees);
         Flux::toast(variant: 'warning', text: __('Payment voided. The bill is recalculated.'));
     }
 }; ?>
@@ -200,8 +308,19 @@ new #[Title('Bill')] class extends Component {
                 <flux:heading class="mb-2">{{ __('Bill lines') }}</flux:heading>
                 <div class="rounded-lg border border-zinc-200 dark:border-zinc-700">
                     @foreach ($bill->lines as $line)
-                        <div wire:key="line-{{ $line->id }}" class="flex justify-between px-4 py-2 text-sm">
-                            <span>{{ $line->description }}</span>
+                        @php($fee = $this->fees[$line->id] ?? null)
+                        <div wire:key="line-{{ $line->id }}" class="flex justify-between gap-3 px-4 py-2 text-sm" data-test="bill-line">
+                            <div>
+                                <span>{{ $line->description }}</span>
+                                @if ($fee && $bill->status !== BillStatus::Void)
+                                    <div class="text-xs text-zinc-500">
+                                        {{ __('Left :left · instalments :used of :max', ['left' => Money::format($fee['left']), 'used' => $fee['used'], 'max' => $fee['max']]) }}
+                                        @if ($this->isSuperadmin)
+                                            · <flux:link class="cursor-pointer" wire:click="openOverride({{ $line->id }})" data-test="fee-limit">{{ __('change') }}</flux:link>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
                             <span @class(['tabular-nums', 'text-green-700 dark:text-green-400' => $line->amount < 0])>{{ Money::format($line->amount) }}</span>
                         </div>
                     @endforeach
@@ -220,9 +339,8 @@ new #[Title('Bill')] class extends Component {
                 </div>
                 <flux:text class="mt-2 text-xs">
                     {{ __('Due') }}: {{ $bill->due_on?->translatedFormat('j M Y') ?? '—' }} ·
-                    {{ __('Instalments allowed') }}: {{ $bill->max_installments }}
                     @if ($this->isSuperadmin && $bill->status !== BillStatus::Void)
-                        · <flux:link class="cursor-pointer" wire:click="openOverride">{{ __('change') }}</flux:link>
+                        <flux:link class="cursor-pointer" wire:click="openOverride">{{ __('Change the instalment limit of every fee') }}</flux:link>
                     @endif
                 </flux:text>
             </div>
@@ -251,7 +369,12 @@ new #[Title('Bill')] class extends Component {
                                             <div class="text-xs text-zinc-500">{{ $payment->handover->number }}</div>
                                         @endif
                                     </flux:table.cell>
-                                    <flux:table.cell align="end" class="tabular-nums">{{ Money::format($payment->amount) }}</flux:table.cell>
+                                    <flux:table.cell align="end" class="whitespace-normal tabular-nums">
+                                        {{ Money::format($payment->amount) }}
+                                        @foreach ($payment->allocations->sortBy('bill_line_id') as $allocation)
+                                            <div class="text-xs text-zinc-500" data-test="payment-fee">{{ $allocation->line->description }}: {{ Money::format($allocation->amount) }}</div>
+                                        @endforeach
+                                    </flux:table.cell>
                                     <flux:table.cell class="whitespace-normal">
                                         <flux:badge size="sm" :color="$payment->status->color()">{{ $payment->status->label() }}</flux:badge>
                                         <div class="text-xs text-zinc-500">
@@ -290,19 +413,40 @@ new #[Title('Bill')] class extends Component {
         </div>
 
         <div class="space-y-6">
-            @if ($bill->status !== BillStatus::Void && $this->allowance['open'] > 0 && $this->allowance['used'] < $this->allowance['max'])
+            @if ($bill->status !== BillStatus::Void && $this->allowance['open'] > 0)
                 <flux:card>
                     <form wire:submit="recordPayment" class="space-y-4">
                         <flux:heading>{{ __('Record payment') }}</flux:heading>
                         <flux:text class="text-sm">
-                            {{ __('Open: :open · instalment :next of :max · minimum :min unless it settles the rest.', [
-                                'open' => Money::format($this->allowance['open']),
-                                'next' => $this->allowance['used'] + 1,
-                                'max' => $this->allowance['max'],
+                            {{ __('Tick the fees paid. A fee paid in part needs at least :min unless that settles it or pays whole months of a monthly fee; its last allowed instalment must settle it.', [
                                 'min' => Money::format($this->allowance['min']),
                             ]) }}
                         </flux:text>
-                        <flux:input wire:model="amount" :label="__('Amount (Rp)')" type="number" min="1" step="1" required />
+                        <div class="space-y-3" data-test="payment-fees">
+                            @foreach ($this->fees as $id => $fee)
+                                <div wire:key="pay-{{ $id }}" @class(['rounded-lg border border-zinc-200 p-3 dark:border-zinc-700', 'opacity-60' => ! $fee['payable']])>
+                                    <flux:checkbox wire:model.live="pay.{{ $id }}" :disabled="! $fee['payable']" :label="$fee['description']"
+                                        :description="$fee['payable']
+                                            ? __('Left :left · instalments :used of :max', ['left' => Money::format($fee['left']), 'used' => $fee['used'], 'max' => $fee['max']])
+                                            : ($fee['left'] === 0 ? __('Paid or awaiting verification') : __('All allowed instalments are used.'))" />
+                                    @if (! empty($pay[$id]))
+                                        <div class="mt-2 flex gap-2">
+                                            @if ($fee['monthly'])
+                                                <flux:input wire:model.live.blur="feeMonths.{{ $id }}" :label="__('Months')" type="number" min="1" :max="$fee['monthsLeft']" step="1" class="w-24" />
+                                            @endif
+                                            <flux:input wire:model.live.blur="feeAmounts.{{ $id }}" :label="__('Amount (Rp)')" type="number" min="1" :max="$fee['left']" step="1" class="flex-1" />
+                                        </div>
+                                    @endif
+                                    <flux:error name="allocations.{{ $id }}" />
+                                </div>
+                            @endforeach
+                        </div>
+                        <flux:error name="allocations" />
+                        <flux:error name="amount" />
+                        <div class="flex items-center justify-between border-t border-zinc-200 pt-3 font-semibold dark:border-zinc-700">
+                            <span>{{ __('Amount') }}</span>
+                            <span class="tabular-nums" data-test="payment-total">{{ Money::format($this->total) }}</span>
+                        </div>
                         <flux:radio.group wire:model.live="method" variant="segmented">
                             @foreach (PaymentMethod::cases() as $case)
                                 <flux:radio :value="$case->value" :label="$case->label()" />
@@ -360,7 +504,9 @@ new #[Title('Bill')] class extends Component {
     <flux:modal name="override-installments" class="w-full max-w-md">
         <form wire:submit="overrideInstallments" class="space-y-6">
             <flux:heading size="lg">{{ __('Change instalment limit') }}</flux:heading>
-            <flux:input wire:model="maxInstallments" :label="__('Maximum instalments for this bill')" type="number" min="1" max="12" required />
+            <flux:input wire:model="maxInstallments" :label="$overrideLineId !== null && isset($this->fees[$overrideLineId])
+                ? __('Maximum instalments for :fee', ['fee' => $this->fees[$overrideLineId]['description']])
+                : __('Maximum instalments for every fee of this bill')" type="number" min="1" max="12" required />
             <flux:textarea wire:model="overrideReason" :label="__('Reason')" rows="2" required />
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>

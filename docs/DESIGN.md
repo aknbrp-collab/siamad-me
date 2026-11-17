@@ -1294,3 +1294,229 @@ v6 Step 12 (2026-11-08) — Push to the mobile app (D39):
   and the user has a device with a push token; failures are reported, never thrown. `GET /api/v1/app`
   reports `push_enabled`.
 - Tests use a throwaway key in `tests/Fixtures/firebase-service-account.json` and fake Google's endpoints.
+
+v7 Step 1 (2026-11-08) — uploads that never reached SIAKAD (D42):
+- Two causes. (1) `wire:click="upload(…)"` ran Livewire 4's own `$wire.upload(name, file)` (Livewire resolves
+  its built-ins also without `$`: upload, set, get, call, dispatch, watch, commit…), which threw in the browser,
+  so the button did nothing on Templates, Dokumen mengajar and My documents. The page methods are now
+  `uploadFile()`; `UploadFixTest` fails if a page method takes a built-in's name. (2) `artisan serve` gives PHP
+  only `ServeCommand::$passthroughVariables`; without `TEMP`/`TMP` PHP on Windows falls back to `C:\Windows` and
+  every temporary upload fails (422, PHP error 6). `AppServiceProvider` adds `Upload::TEMP_VARIABLES`.
+- A failed temporary upload shows a toast (`livewire-upload-error` in `upload-limit.js`) besides the field error;
+  the cashbook proof and discussion files now show their own field errors (`entryProof`, `uploads.*`).
+- `Upload::problems()` (file_uploads off, temporary folder not writable — tried for real, as `is_writable()` on
+  Windows only reads the read-only flag — or PHP limits below the upload limit) shows on the Superadmin dashboard.
+- Checked: the `mimes:` rules accept Word and Excel files saved by Word, LibreOffice and PhpWord, whatever the
+  order of their zip entries, so they stay; the v4 select override still covers every select.
+
+v7 Step 2 (2026-11-08) — student pickers list everyone (D43):
+- `App\Support\StudentPicker::filter()` narrows a mahasantri query by search (NIM or name), class in a
+  semester (`none` = no class there), gender and active status; `classes()` names the classes as in that
+  semester. `rules()` / `fromRequest()` give the API the same parameters (`search`, `class_id`, `gender`).
+- `App\Livewire\Concerns\PicksStudents` holds the filter properties (`studentSearch`, `pickerClass`,
+  `pickerGender`, `pickerLimit`, `pickerTotal`) and `pickStudents(scope)`; a page may fix the semester or the
+  gender (a Putra class lists putra only). Pages extend `App\Livewire\PageWithStudentPicker` (so Larastan
+  analyses the trait); the wali form, built on `PersonForm`, uses the trait itself. `<x-student-picker.filters>` and `<x-student-picker.more>`
+  ("Menampilkan 50 dari 312", "Muat lagi") are the shared markup; read the total as `$this->pickerTotal`, as it
+  is set while the list is read.
+- Bimbingan groups, semester placements, scholarships and activities list active mahasantri; the wali form
+  every status; LPPPK moderation users (mahasantri and active muhadhir, a "who" filter; a class filter leaves
+  the muhadhir out). Rows show the class this semester.
+- API: placement and scholarship candidates no longer need `search`, are paginated by 50 with `meta`, and take
+  `class_id` / `gender`; `GET /admin/students` takes them too and returns `class`.
+
+v7 Step 3 (2026-11-08) — surat permohonan dispensasi (D47):
+- `dispensation_requests` (student, semester, reason, `outstanding` at the time; unique per student and
+  semester). `ManageDispensationRequests`: `openSemester()` (the active semester while its bill is unpaid or
+  partial), `bills()` (bills still to pay plus the semester's own, with verified payment counts), `submit()`
+  (validates, saves, tells Admin on a new request, grouped), `granted()` (an exam dispensation of a period of
+  that semester).
+- `DispensationLetterController` streams `records/dispensation` (A4): kop, data, bills, reason, the
+  mahasantri's and the Mudir's signature places. The Mudir's name is the default signatory of
+  `PrintDocument::Dispensation` or `institution.head`; no images are printed (signed by hand). Access: the
+  mahasantri, their wali, academic staff (`StudentAccess::canViewBills`) and Admin Keuangan.
+- Pages: a card (`partials/dispensation-card`) on the mahasantri's Tagihan with the form, read-only per child on
+  the wali's Tagihan, a link from Ujian when the card is blocked for payment; on the Admin exam period,
+  "Diminta" next to the participant and the reason in the dispensation note.
+- API: `DispensationController` (show per student, store for the mahasantri), `dispensation-letter` in the
+  signed downloads, `dispensation_request` in the participants list.
+
+v7 Step 4 (2026-11-08) — printouts from Word templates (D44):
+- `App\Support\PrintTemplates`: slots `print.{document}` for KHS, transcript, exam card, receipt, cash report and
+  dispensation request (group "Cetakan"). `common()` / `placeholders()` / `rows()` name what a template may use
+  (an upload with any other placeholder is refused); a row is marked by its first placeholder and repeated with
+  `cloneRow`, or removed with `deleteRow` when there are no items. `ttd`, `stempel` and `foto` are images;
+  `alasan`, `ips_semester` and `catatan` keep their lines.
+- One builder per printout (`khs()`, `transcript()`, `examCard()`, `receipt()`, `cashReport()`,
+  `dispensation()`) returns values, rows and images from the same data as the Blade view.
+  `respond()` returns null without an uploaded template, so each controller falls back to its dompdf view.
+- `DocxToPdf::respond()` hands out a filled .docx as PDF (LibreOffice) or as Word (none installed, a failed
+  conversion, or `?format=docx`); letters use it too.
+- Only a verified receipt is printed from the template; the dispensation request is filled with
+  `PrintMarks(images: false)` and the Mudir's name in `${penandatangan}`.
+- Word cells now always get a width (TeachingTemplates letterhead and identity, letter signature, printouts):
+  LibreOffice collapses a cell without one.
+
+v7 Step 5 (2026-11-08) — article picture (D48):
+- `articles.image_path` / `image_caption` (working copy) and the same on `article_versions` (copied when
+  published). `ArticleImages::store()` makes a JPEG at most 1600 px wide (on white) under a random name, so a
+  version keeps its file; `forget()` deletes a file once neither a working copy nor a version uses it (on
+  replace, remove and discard).
+- A changed picture makes a published article a draft, like a text change; the website keeps the published
+  picture until the next publication.
+- `ArticleImageController`: `articles.image` (whoever may read the article, the working copy) and the public
+  `articles.public-image` (`/artikel/{code}/gambar/{hash}`, HMAC of the path with the app key; only the latest
+  published version, not when withdrawn; cached for a year since the link changes with the picture).
+- `PushArticle::payload()` sends `image_url`, `image_caption` and a `<figure>` before the text (spec 1.2).
+- API: `image_url` (signed, kind `article-image`) and `image_caption`; `POST`/`DELETE /articles/{id}/image`
+  (PUT cannot carry a file); `PUT` keeps the caption unless sent.
+
+v7 Step 6 (2026-11-08) — appearance (D45, D46):
+- Sidebar (`layouts/app/sidebar`): the nav sits in `[data-test=sidebar-menu]` (`min-h-0 flex-1 overflow-y-auto`,
+  `.sidebar-scroll` thin scrollbar), so Flux's sticky `max-h-dvh` sidebar no longer scrolls as a whole and the
+  theme switch and desktop user menu stay at the bottom.
+- `wire:confirm`: Livewire's directive sets `el.__livewire_confirm` and cannot be registered twice, but the
+  `directive.init` hook runs after it; `resources/js/confirm-dialog.js` replaces the hook there for every
+  `wire:confirm`. The answer comes after the click, so it calls `instead()` (stop the click's other handlers)
+  at once and runs the action on "yes". `<x-confirm-dialog>` (both app layouts) is a native `<dialog>`
+  (focus, Escape, backdrop click cancel): the first sentence as title, the rest as explanation; the danger
+  tone (red, warning icon, focus on Batal) when the message starts with remove/delete/withdraw/sign out/end or
+  hapus/keluarkan/tarik/akhiri/batalkan, or when the button says `data-confirm-tone="danger"`; `.prompt`
+  shows a field and enables the button only for the expected word. Without the dialog on the page, the
+  browser's confirm() / prompt() are used.
+
+Data management Step 1 (2026-11-08) — backups on the web (D50):
+- `siakad:backup --by=ID` marks a backup made by hand; every backup gets `manifest.json` (`Backups::writeManifest`:
+  format, time, kind, who, last migration, rows per table, size and sha256 of `database.dump` and `files.zip`).
+  The run fails if pg_dump wrote no file. The clean-up skips backups made by hand.
+- `App\Support\Backups`: list (folders named `Y-m-d_His`, newest first; old ones without manifest count as
+  daily), find (404 for other names), `archive()` (one .zip, parts stored uncompressed), `delete()` (made by
+  hand only), `audit()` (type "Backup" in the audit log), and the state of a run started from the page
+  (`.running.json`, treated as stopped after 3 hours; `.last.json`).
+- `/superadmin/data` (*Data & cadangan*, Superadmin only): list, "Buat cadangan sekarang", download
+  (`BackupDownloadController`), delete. The backup runs as `siakad:backup --by=ID` in its own process
+  (`App\Support\BackgroundCommand`: `start /B` on Windows, `nohup … &` elsewhere, the CLI php found by
+  Symfony's PhpExecutableFinder), because "after the response" still holds the browser under php-cgi and
+  `artisan serve`; the command writes `.last.json` when it ends and the page polls every 5 s meanwhile.
+  In tests `BackgroundCommand::start()` throws unless faked: a real process would inherit the test database
+  settings and write into the real backups folder (it happened once while the code changed mid-run).
+
+Data management Step 2 (2026-11-08) — restore (D51):
+- `App\Support\Restores::problems()` refuses a backup without a SIAKAD manifest, with a missing or damaged part
+  (sha256 against the manifest), or whose last migration is not among this SIAKAD's migration files (made by a
+  newer version). `import()` takes an uploaded .zip holding exactly `database.dump`, `files.zip`,
+  `manifest.json` (nothing else, so no paths), unpacks it as a new backup made by hand (`imported` noted in the
+  manifest) and deletes it again when the checks fail.
+- `siakad:restore {backup} {--by=}`: state in `.restore.json` (status, step, message, safety backup, token);
+  steps safety backup → `down` → `DatabaseRestore` → files (unpacked to `<private>-restoring-*`, swapped with
+  `<private>-before-restore-*`, the old one deleted on success, kept and named on failure) → `migrate --force`
+  → sessions and jobs emptied, cache cleared → audit entry in the restored database → `up`. Any failure brings
+  SIAKAD up again and records the message and the safety backup. A missing `users` table (an empty database)
+  is fine.
+- `DatabaseRestore` (swappable in tests): `pg_restore --list` gives the dump's tables; current tables not in
+  it are dropped (newer migrations), then `pg_restore --clean --if-exists --no-owner --single-transaction
+  --exit-on-error`.
+- The Data page starts it with `BackgroundCommand` after the password and `PULIHKAN`; since SIAKAD is down
+  meanwhile (and its sessions are being replaced), the page follows `/restore-status/{token}` with plain fetch:
+  that route is registered in `bootstrap/app.php` `then:` (no web middleware: no session, cookies or database
+  cache) and listed in `preventRequestsDuringMaintenance(except:)`.
+- Uploads: Livewire's temporary upload limit is the larger of the usual limit and `SIAKAD_RESTORE_MAX_MB`;
+  `upload-limit.js` honours `data-max-kb` on an input; every field still validates its own size.
+
+Data management Step 3 (2026-11-08) — deleting data by groups (D52):
+- `App\Support\DataGroups::TABLES` puts every table in one of 8 groups or in `KEPT` (users, roles, settings, number
+  sequences, framework tables); `NEEDS` follows the foreign keys (Data orang needs Akademik, Keuangan, Surat,
+  Artikel; Data dasar needs those and Data orang). `WipeTest` fails when a new table is in no group, or when a
+  restricting foreign key between groups is not covered by `NEEDS`.
+- Accounts: *Data orang* deletes users with a mahasantri, muhadhir or wali profile; *Akun staf* users with staff
+  roles and no profile; Superadmin accounts never. Their references in kept rows (restrict / no action) are set
+  to the deleting Superadmin, except `discussion_members.user_id` and `lpppk_sanctions.user_id`, which are
+  deleted with the account; cascading and nulling keys need nothing.
+- `App\Actions\Superadmin\WipeData`: one transaction; tables in an order where a table goes before those it points at
+  (from `Schema::getForeignKeys`), self-references (joined classes, replies) nulled first; then tokens, sessions
+  and users. Files of every `*_path` column of deleted tables are removed after the commit. The audit entry
+  `data.deleted` (groups, rows, files) is written last.
+- `siakad:wipe {groups*} --by=`: Superadmin only, backup first (a failed backup deletes nothing), state in
+  `.wipe.json` next to the backups; the Data page starts it with `BackgroundCommand` and polls every 3 s.
+
+After review Step 1 (2026-11-17) — imported grades follow the grade scale (D54):
+- Cause found in the dev data: grades imported while the grade scale table was empty all got E (the fallback of
+  `GradeScale::resolve()`), and final grades never change with the scale.
+- `course_enrollments.from_archive` and `archive_letter` (migration backfills them from the import note: a
+  letter counts as given by the archive when there was no score, or when it is a letter of the scale other than
+  the score's). `GradeHistory` refuses every row while the scale is empty and sets both flags.
+- `ApplyGradeScale`: `changes()` lists imported grades with a score and no archive letter whose letter or point
+  differs from the current scale; `handle()` (maintenance mode only, like the import) updates them one by one,
+  so each change is in the audit log. The previous-year data page shows the changes ("E → B+: 480") with
+  *Terapkan skala nilai* when the grades type is chosen.
+
+After review Step 2 (2026-11-17) — archive bills replace unpaid bills (D59):
+- "Sudah punya tagihan untuk semester ini" came from the bills archive import (not placements): the semester's
+  bills had been made with *Buat tagihan*, and one live bill per mahasantri and semester is allowed.
+- `BillHistory::check()` refuses only a live bill with counting payments, naming its number; `import()` voids a
+  live bill without payments through `AdjustBill::void()` ("Diganti data arsip", audited) and then creates the
+  archive bill, in one transaction.
+
+After review Step 3 (2026-11-17) — instalments and months per fee (D55, D56):
+- `fee_types.max_installments` (1–12) and `months_per_semester` (1–6, monthly fees); `bill_lines.max_installments`
+  and `months` keep them as they were when the bill was made (null on discount and archive lines). The migration
+  gives existing fees the current `payment.max_installments` and 6 months, and existing lines their bill's
+  limit and 6 months for monthly fees, so nothing changes until edited.
+- `FeeType::monthsBilled()` replaces `FeeFrequency::MONTHS_PER_SEMESTER`; `GenerateBills::feeLine()` builds a fee
+  line (rate × months, description "(5 bulan)", limit, months) for *Buat tagihan* and *Tambah biaya ke tagihan*.
+- Fees page and `POST /finance/fee-types` take both; the API leaves an omitted value as it is. Payments still
+  follow the bill's limit until Step 4 counts them per fee.
+
+After review Step 4 (2026-11-17) — payments per fee (D55):
+- `payment_allocations` (payment, bill line, amount; unique per payment and line). A fee is a bill line with a
+  positive amount; a scholarship discount is shared by the fees in proportion to their amounts (largest
+  remainder, so the shares add up exactly). `BillFees::of()` gives each fee its due, paid (verified), pending
+  (waiting), left, payments used and limit (`bill_lines.max_installments`, else the bill's).
+- `RecordPayment` takes `allocations` (line id => amount; `amount` then optional and must equal the sum) or only
+  an amount, which `BillFees::spread()` pays into the fees in the bill's order (transfer confirmation, the app,
+  the API). Rules per fee (`BillFees::check()`): at most its limit of payments, never more than is left, at
+  least the minimum instalment unless it settles the fee, and the last allowed payment settles it. Errors go
+  under `allocations.{line id}` (or `amount` for a spread payment).
+- Rejected and voided payments stop counting because only verified and waiting payments are read, so their
+  allocations release the fees without being deleted. Archive bills get one allocation per payment.
+- The migration spreads existing verified and waiting payments over their bill's fees, oldest first, each fee
+  up to its due after its discount share; an old overpayment stays with the last fee. Paid amounts do not change.
+- `AdjustBill::setMaxInstallments()` can raise one fee's limit (audited "Batas cicilan :fee ..."). Receipts have
+  a *Rincian* row (placeholder `${rincian}`, one fee per line).
+
+After review Step 5 (2026-11-17) — paying chosen fees on the bill page (D57):
+- *Catat pembayaran* lists the bill's fees with what is left and instalments used / allowed (a fee that cannot
+  take a payment is shown disabled). Ticking a fee fills its amount with what is left; a monthly fee also has
+  *Bulan*: months x (due / months), and the months left give exactly what is left. *Jumlah* is the read-only
+  sum; the page sends `allocations`, and `RecordPayment`'s per-fee errors show under each fee.
+- `updatedPay()` handles one fee or the whole list (Livewire sends the list when ticks go together).
+- Bill lines show each fee's left and instalments; the Superadmin's *ubah* changes one fee's limit, and
+  *Ubah batas cicilan semua biaya* every fee. Each payment in the list shows its fees.
+
+After review Step 6 (2026-11-17) — the grid by fee (D58):
+- `InstallmentGrid::build(..., ?FeeType $fee)` reads each bill's fees with `BillFees::forBills()` (one query for
+  the payments of every bill). "Left" in the grid is what is not verified yet; waiting money shows a clock.
+- No fee (*Semua biaya*, default): a column per fee type billed in the semester (paid / left), then the total
+  left. A monthly fee: one cell per month of the bill line (month m is paid when verified money on that fee
+  reaches m x (due / months), the last month the whole fee; pending when waiting money does; "none" beyond a
+  bill's own months), then paid and left. Another fee: paid, left and instalments used / allowed. A fee view
+  lists only bills with that fee. The old "a cell per instalment of the bill" view is gone.
+- *Jenis tagihan* (`?fee=`) lists the fee types billed in the semester. The Excel export follows the view
+  (`rekap-angsuran-{semester}-{fee}.xlsx`), and the print heading names the fee.
+- `GET /api/v1/finance/bills/grid` takes `fee` and returns `mode`, `fee`, `fee_types`, `columns` and per row
+  `fees`, `cells`, `due`, `paid`, `pending`, `left`, `used` / `max`.
+
+After review Step 7 (2026-11-17) — API and docs (D60):
+- `BillResource` (mahasantri, wali and the finance office) adds `fees` (line id, fee type, due, paid,
+  pending, left, instalments used / max, months, payable), `lines[].id`, and each payment's `fees`. Its
+  `transfer` block counts per fee (`open_amount`, `min_amount`, `fees` in the order a transfer pays them) and
+  drops the whole-bill `instalments_used` / `instalments_max`; docs/API.md lists these changes for the app.
+- `PUT /finance/bills/{id}/installments` takes `fee_id` for one fee. OpenAPI exported again.
+- Guides: keuangan (fees with instalments and months, the payment form, the grid, archive bills replacing
+  unpaid ones), petugas, mahasantri, superadmin (per-fee limit) and admin (grade scale before importing).
+
+After review follow-up (2026-11-17) — monthly fees paid by whole months:
+- The minimum instalment does not apply to a payment on a monthly fee that leaves it paid for a whole number
+  of months (paid + waiting + this payment is a multiple of due / months), so a fee of less than the minimum a
+  month can be paid month by month. Other fees, the per-fee limit and "the last allowed payment settles it"
+  are unchanged. `BillFees::monthly()` gives the monthly amount; the error names it.

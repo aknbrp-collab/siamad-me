@@ -161,7 +161,8 @@ final class TeachingTemplates
             $table->addCell(1400, ['valign' => 'center'])->addImage($head['logo'], ['height' => 55]);
         }
 
-        $cell = $table->addCell(null, ['valign' => 'center']);
+        // Explicit widths: a cell without one collapses in LibreOffice.
+        $cell = $table->addCell($head['logo'] !== null ? 8400 : 9800, ['valign' => 'center']);
         $centre = ['alignment' => Jc::CENTER, 'spaceAfter' => 0];
 
         if ($head['foundation']) {
@@ -185,7 +186,7 @@ final class TeachingTemplates
         foreach ([['Mata kuliah', '${mata_kuliah} (${kode}), ${sks} SKS'], ['Kitab', '${kitab}'], ['Kelas', '${kelas}'], ['Muhadhir', '${muhadhir}'], ['Semester', '${semester}']] as [$label, $value]) {
             $table->addRow();
             $table->addCell(2600, ['bgColor' => self::LIGHT])->addText($label, ['bold' => true]);
-            $table->addCell(null)->addText($value);
+            $table->addCell(7200)->addText($value);
         }
 
         $section->addTextBreak(1, ['size' => 6]);
@@ -252,7 +253,7 @@ final class TeachingTemplates
         $section->addTextBreak(1);
         $table = $section->addTable(['width' => 100 * 50, 'unit' => TblWidth::PERCENT]);
         $table->addRow();
-        $table->addCell(null)->addText('');
+        $table->addCell(5600)->addText('');
         $cell = $table->addCell(4200);
         $cell->addText('${kota}, ${tanggal}', null, ['spaceAfter' => 0]);
         $cell->addText('Muhadhir,', null, ['spaceAfter' => 900]);

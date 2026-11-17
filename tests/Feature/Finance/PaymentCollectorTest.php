@@ -116,7 +116,7 @@ test('payments the collector records are marked as theirs and need the finance o
     actAsCollector($this->collector);
 
     Livewire::test('pages::finance.bills.show', ['bill' => $this->putriBill])
-        ->set('amount', 1_000_000)
+        ->set('pay.'.$this->putriBill->lines()->value('id'), true)->set('feeAmounts.'.$this->putriBill->lines()->value('id'), 1_000_000)
         ->set('paidOn', now()->toDateString())
         ->call('recordPayment')
         ->assertHasNoErrors();

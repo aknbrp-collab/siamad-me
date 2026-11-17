@@ -45,7 +45,7 @@ trait ConfirmsTransfers
     /**
      * Open amount, instalments used / allowed and the minimum, for the bill being confirmed.
      *
-     * @return array{open: int, used: int, max: int, min: int}|null
+     * @return array{open: int, min: int, fees: list<array{id: int, description: string, due: int, paid: int, pending: int, left: int, used: int, max: int, months: int|null}>}|null
      */
     #[Computed]
     public function transferAllowance(): ?array

@@ -52,6 +52,8 @@ it('reads php.ini sizes', function (string $value, int $bytes) {
 it('warns the Superadmin when PHP cannot take files as large as the limit', function () {
     $superadmin = User::factory()->withRole(Role::Superadmin)->create();
 
+    // A limit any php.ini takes (CI runs with PHP's default upload_max_filesize of 2M): no warning.
+    config(['siakad.uploads.max_kb' => 1]);
     $this->actingAs($superadmin)->get(route('superadmin.dashboard'))->assertOk()->assertDontSee('data-test="upload-problems"', false);
 
     // A limit far above PHP's own upload_max_filesize / post_max_size.

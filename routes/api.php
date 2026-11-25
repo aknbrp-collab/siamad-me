@@ -156,7 +156,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         // Articles (Step 8): mahasantri and muhadhir write; staff who oversee read and withdraw.
         Route::get('articles/mine', [ArticleController::class, 'mine'])->name('articles.mine');
-        Route::get('articles/review', [ArticleController::class, 'reviewQueue'])->name('articles.review');
+        Route::get('articles/review', [ArticleController::class, 'reviewQueue'])->name('articles.review-queue');
         Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
         Route::prefix('articles/{article}')->name('articles.')->group(function () {
             Route::get('/', [ArticleController::class, 'show'])->name('show');

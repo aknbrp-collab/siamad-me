@@ -10260,7 +10260,7 @@
         },
         "/articles/review": {
             "get": {
-                "operationId": "article.reviewQueue",
+                "operationId": "v1.articles.review-queue",
                 "description": "Mahasantri articles in review, oldest first, with whether I already gave my decision this round.",
                 "summary": "Articles to review (muhadhir)",
                 "tags": [
@@ -12530,7 +12530,7 @@
         },
         "/articles/{article}/review": {
             "post": {
-                "operationId": "article.review",
+                "operationId": "v1.articles.review",
                 "description": "`approve: true` approves (the second approval publishes); `false` asks for changes, with a `note`.",
                 "summary": "Review (muhadhir)",
                 "tags": [
@@ -31006,7 +31006,7 @@
                             "object",
                             "null"
                         ],
-                        "description": "For \"Konfirmasi transfer\": null when nothing is left to pay. The amount is spread over `fees` in\nthis order; a fee paid in part needs at least `min_amount` unless that settles it.",
+                        "description": "For \"Konfirmasi transfer\": null when nothing is left to pay. The amount is spread over `fees` in\nthis order; a fee paid in part needs at least `min_amount` unless that settles it or (a monthly fee)\nleaves it paid for whole months.",
                         "properties": {
                             "open_amount": {
                                 "type": "integer"

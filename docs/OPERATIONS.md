@@ -11,6 +11,9 @@ Server sizes (demo and production, minimum / ideal / maximum): see [SERVER-REQUI
 
 ## 1. First installation
 
+On a VPS (Ubuntu 24.04) use the scripts in [`deploy/`](../deploy/README.md): one-time server setup, zero-downtime
+deploys, nginx, HTTPS and the queue worker, step by step. The commands below are what they do, for other servers.
+
 ```bash
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
@@ -23,7 +26,7 @@ php -d memory_limit=1G artisan scramble:cache
 ```
 
 Required `.env` values in production: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`,
-`APP_LOCALE=id`, `DB_CONNECTION=pgsql` with `DB_HOST/PORT/DATABASE/USERNAME/PASSWORD`. `MAIL_*` is
+`APP_LOCALE=id`, `APP_TIMEZONE=Asia/Jakarta` (times shown and the 02:00 backup follow it; the default is UTC), `DB_CONNECTION=pgsql` with `DB_HOST/PORT/DATABASE/USERNAME/PASSWORD`. `MAIL_*` is
 only needed for users who reset their own password by email; everyone else gets a temporary password
 from the academic office.
 

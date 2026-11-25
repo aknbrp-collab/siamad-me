@@ -41,26 +41,29 @@ nslookup siakad.mahadaly.ac.id
 
 ## 2. Set up the server (once, about 10 minutes)
 
-From PowerShell in the project folder, copy the script to the server and log in:
+From PowerShell **on your computer** (not on the server), copy the script to the server and log in. Use
+your login user if the provider gave you one instead of `root` (e.g. `siamad@203.0.113.10`):
 
 ```powershell
-scp deploy/server-setup.sh root@203.0.113.10:
+scp D:\herd-laravel\ready\deploy\server-setup.sh root@203.0.113.10:
 ssh root@203.0.113.10
 ```
 
-On the server:
+On the server (`sudo` is needed when you are not logged in as root; it does no harm as root):
 
 ```bash
 sed -i 's/\r$//' server-setup.sh
-DOMAIN=siakad.mahadaly.ac.id bash server-setup.sh
+sudo DOMAIN=siakad.mahadaly.ac.id bash server-setup.sh
 ```
+
+The commands in the rest of this guide all start with `sudo`, so they work for a login user too.
 
 Options, before `bash`: `MODE=demo` for a demo server (demo data, 7 days of backups), `LIBREOFFICE=1` to
 turn letters made from Word templates into PDF (only with 4 GB RAM or more). Example:
-`DOMAIN=demo-siakad.example MODE=demo bash server-setup.sh`.
+`sudo DOMAIN=demo-siakad.example MODE=demo bash server-setup.sh`.
 
 It ends with a **deploy key** (a line starting `ssh-ed25519`) and the next steps. The database password is
-in `/root/siakad-credentials.txt` and already in `/var/www/siakad/shared/.env`. Running it again is safe.
+in `/root/siakad-credentials.txt` (`sudo cat` it) and already in `/var/www/siakad/shared/.env`. Running it again is safe.
 
 ## 3. Give the server read access to GitHub
 
@@ -95,7 +98,7 @@ sudo -u www-data php artisan optimize`.
 ```bash
 sudo -u www-data git clone --depth 1 git@github.com:aknbrp-collab/siamad-me.git /tmp/siakad
 sudo -u www-data bash /tmp/siakad/deploy/deploy.sh main
-rm -rf /tmp/siakad
+sudo rm -rf /tmp/siakad
 ```
 
 It takes a few minutes (Composer, npm build). It warns that `/up` does not answer yet: nginx comes next.
@@ -118,12 +121,12 @@ sudo -u www-data php artisan db:seed --force
 ## 6. nginx and HTTPS
 
 ```bash
-cp /var/www/siakad/current/deploy/nginx.conf /etc/nginx/sites-available/siakad
-sed -i 's/siakad\.example/siakad.mahadaly.ac.id/g' /etc/nginx/sites-available/siakad
-ln -sf /etc/nginx/sites-available/siakad /etc/nginx/sites-enabled/siakad
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
-certbot --nginx -d siakad.mahadaly.ac.id --redirect -m you@example.com --agree-tos -n
+sudo cp /var/www/siakad/current/deploy/nginx.conf /etc/nginx/sites-available/siakad
+sudo sed -i 's/siakad\.example/siakad.mahadaly.ac.id/g' /etc/nginx/sites-available/siakad
+sudo ln -sf /etc/nginx/sites-available/siakad /etc/nginx/sites-enabled/siakad
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d siakad.mahadaly.ac.id --redirect -m you@example.com --agree-tos -n
 ```
 
 certbot gets a free Let's Encrypt certificate, adds HTTPS and renews it by itself. Open
@@ -132,9 +135,9 @@ certbot gets a free Let's Encrypt certificate, adds HTTPS and renews it by itsel
 ## 7. Queue worker
 
 ```bash
-cp /var/www/siakad/current/deploy/queue.conf /etc/supervisor/conf.d/siakad-queue.conf
-supervisorctl reread && supervisorctl update
-supervisorctl status siakad-queue
+sudo cp /var/www/siakad/current/deploy/queue.conf /etc/supervisor/conf.d/siakad-queue.conf
+sudo supervisorctl reread && sudo supervisorctl update
+sudo supervisorctl status siakad-queue
 ```
 
 `RUNNING` is right. The scheduler (cron, set up in step 2) runs backups at 02:00, reminders hourly and the
@@ -153,8 +156,8 @@ Copy the three printed lines over the empty `VAPID_*` lines in `.env` (step 4), 
 real `mailto:` address, then `sudo -u www-data php artisan optimize`.
 
 Push to the mobile app (later, optional): put the Firebase key at `/etc/siakad/firebase.json`
-(`chown root:www-data`, `chmod 640`), set `FIREBASE_CREDENTIALS=/etc/siakad/firebase.json`, then
-`php artisan optimize` (OPERATIONS.md §2).
+(`sudo chown root:www-data`, `sudo chmod 640`), set `FIREBASE_CREDENTIALS=/etc/siakad/firebase.json`, then
+`sudo -u www-data php artisan optimize` (OPERATIONS.md §2).
 
 ## 9. Check it works
 
@@ -165,8 +168,8 @@ Push to the mobile app (later, optional): put the Firebase key at `/etc/siakad/f
 
 **Backups off the server (production).** A backup on the same disk does not survive a disk failure. Mount
 the separate storage (e.g. a block volume at `/mnt/backup`), then
-`mkdir -p /mnt/backup/siakad && chown www-data:www-data /mnt/backup/siakad`, set
-`BACKUP_PATH=/mnt/backup/siakad` in `.env` and `php artisan optimize`. Also turn on the provider's server
+`sudo mkdir -p /mnt/backup/siakad && sudo chown www-data:www-data /mnt/backup/siakad`, set
+`BACKUP_PATH=/mnt/backup/siakad` in `.env` and `sudo -u www-data php artisan optimize`. Also turn on the provider's server
 snapshots. Test a restore once per semester (OPERATIONS.md §4).
 
 ## 10. Updating
@@ -183,8 +186,8 @@ release misbehaves, switch back to the previous one:
 
 ```bash
 ls -1t /var/www/siakad/releases            # the second line is the previous release
-ln -sfn /var/www/siakad/releases/<previous> /var/www/siakad/current
-systemctl reload php8.4-fpm
+sudo -u www-data ln -sfn /var/www/siakad/releases/<previous> /var/www/siakad/current
+sudo systemctl reload php8.4-fpm
 ```
 
 If that release ran migrations the old code does not know, restore the backup made just before it
@@ -194,9 +197,10 @@ If that release ran migrations the old code does not know, restore the backup ma
 
 | Problem | Where to look |
 | --- | --- |
-| Error page / 500 | `tail -n 50 /var/www/siakad/shared/storage/logs/laravel-$(date +%F).log` |
-| 502 Bad Gateway | `systemctl status php8.4-fpm`, `tail /var/log/nginx/error.log` |
+| Error page / 500 | `sudo tail -n 50 /var/www/siakad/shared/storage/logs/laravel-$(date +%F).log` |
+| 502 Bad Gateway | `systemctl status php8.4-fpm`, `sudo tail /var/log/nginx/error.log` |
 | Deploy stops at `git clone` | the deploy key (step 3) |
+| `rm`/`cp`: *Permission denied* | add `sudo` (the files belong to `www-data` or root) |
 | Deploy stops at `npm run build` (killed) | too little RAM: the setup adds 2 GB swap on small servers; check `swapon --show` |
 | Backups not made | `crontab` is in `/etc/cron.d/siakad`; `php artisan schedule:list`; `siakad:backup` by hand shows the error |
 | Times 7 hours off | `APP_TIMEZONE=Asia/Jakarta` in `.env`, then `php artisan optimize` |

@@ -129,6 +129,11 @@ sudo nginx -t && sudo systemctl reload nginx
 sudo certbot --nginx -d siakad.mahadaly.ac.id --redirect -m you@example.com --agree-tos -n
 ```
 
+Replace `you@example.com` with a real address (Let's Encrypt refuses example addresses; it only mails renewal
+warnings), or use `--register-unsafely-without-email` instead of `-m …`. If certbot says *Account … not
+found* right after *Account registered*, wait a minute and run it again; if it repeats,
+`sudo rm -rf /etc/letsencrypt/accounts` (safe before the first certificate) and run it again.
+
 certbot gets a free Let's Encrypt certificate, adds HTTPS and renews it by itself. Open
 `https://siakad.mahadaly.ac.id` and log in.
 
